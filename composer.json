@@ -1,0 +1,15 @@
+{
+  "name": "converter",
+  "description": "Converter project",
+  "homepage": "http://retloko.com",
+  "type": "project",
+  "require": {
+    "php": ">=7.1.0",
+    "guzzlehttp/guzzle": "^6.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Converter\\": "src/"
+    }
+  }
+}
