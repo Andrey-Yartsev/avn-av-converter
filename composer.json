@@ -7,7 +7,9 @@
     "php": ">=7.1.0",
     "cloudconvert/cloudconvert-php": "^2.2",
     "aws/aws-sdk-php": "^3.66",
-    "guzzlehttp/guzzle": "^6.0"
+    "guzzlehttp/guzzle": "^6.0",
+    "vlucas/valitron": "^1.4",
+    "symfony/http-foundation": "*"
   },
   "autoload": {
     "psr-4": {

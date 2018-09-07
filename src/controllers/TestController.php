@@ -7,7 +7,9 @@
 namespace Converter\controllers;
 
 
-class TestController
+use Converter\components\Controller;
+
+class TestController extends Controller
 {
     public function actionTest($userId)
     {
