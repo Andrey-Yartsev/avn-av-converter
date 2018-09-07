@@ -6,6 +6,9 @@
 
 namespace Converter;
 
+use Converter\exceptions\HttpException;
+use Converter\exceptions\NotFoundHttpException;
+
 class Application
 {
     protected $routes = [];
@@ -17,29 +20,61 @@ class Application
 
     public function run()
     {
-        $method = 'GET';
-        $url = $this->normalizeUrl('');
-        list($callable, $arguments) = $this->findRoute($url, $method);
-
-        if (!$callable) {
-            // route not found
-        }
-
         try {
+            $method = 'GET';
+            $url = $this->normalizeUrl('');
+            list($callable, $arguments) = $this->findRoute($url, $method);
+
+            if (!$callable) {
+                throw new NotFoundHttpException('Route not found.');
+            }
+
             return $this->send(call_user_func_array($callable, $arguments));
         } catch (\Exception $e) {
             return $this->sendException($e);
         }
     }
 
-    public function send()
+    /**
+     * @param string $data
+     * @return string
+     */
+    public function send($data)
     {
-        
+        $this->sendResponse(200, $data);
     }
 
-    public function sendException()
+    /**
+     * @param \Exception $exception
+     * @return string
+     */
+    public function sendException($exception)
     {
-        
+        if ($exception instanceof HttpException) {
+            $httpCode = $exception->statusCode;
+        } else {
+            $httpCode = 500;
+        }
+        $message = [
+            'error' => [
+                'code' => $exception->getCode(),
+                'message' => $exception->getMessage(),
+                'file' => $exception->getFile(),
+                'line' => $exception->getLine(),
+            ]
+        ];
+        $this->sendResponse($httpCode, $message);
+    }
+
+    public function sendResponse($httpCode = 200, $message)
+    {
+        if (php_sapi_name() !== 'cli') {
+            header('Content-Type: application/json; charset=utf-8');
+            header('Content-Length: ' . strlen($message));
+            http_response_code($httpCode);
+        }
+        echo json_encode($message);
+        exit(0);
     }
 
     /**
