@@ -8,28 +8,42 @@ namespace Converter;
 
 use Converter\exceptions\HttpException;
 use Converter\exceptions\NotFoundHttpException;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class Application
 {
     protected $routes = [];
-
-    public function __construct()
-    {
-        
-    }
-
+    
+    /**
+     * @return string
+     */
     public function run()
     {
+        $request = Request::createFromGlobals();
         try {
-            $method = 'GET';
-            $url = $this->normalizeUrl('');
+            $method = $request->getRealMethod();
+            $url = $this->normalizeUrl($request->getRequestUri());
             list($callable, $arguments) = $this->findRoute($url, $method);
 
             if (!$callable) {
                 throw new NotFoundHttpException('Route not found.');
             }
-
-            return $this->send(call_user_func_array($callable, $arguments));
+            
+            if (is_array($callable)) {
+                list($controller, $action) = $callable;
+                if (!class_exists($controller)) {
+                    throw new NotFoundHttpException('Route not found.');
+                }
+                $controller = new $controller($request);
+                $methodName = 'action' . ucfirst($action);
+                if (!method_exists($controller, $methodName)) {
+                    throw new NotFoundHttpException('Route not found.');
+                }
+                return $this->send(call_user_func_array([$controller, $methodName], $arguments));
+            } else {
+                return $this->send(call_user_func_array($callable, $arguments));
+            }
         } catch (\Exception $e) {
             return $this->sendException($e);
         }
@@ -41,7 +55,7 @@ class Application
      */
     public function send($data)
     {
-        $this->sendResponse(200, $data);
+        $this->sendResponse(Response::HTTP_OK, $data);
     }
 
     /**
@@ -53,7 +67,7 @@ class Application
         if ($exception instanceof HttpException) {
             $httpCode = $exception->statusCode;
         } else {
-            $httpCode = 500;
+            $httpCode = Response::HTTP_INTERNAL_SERVER_ERROR;
         }
         $message = [
             'error' => [
@@ -65,15 +79,21 @@ class Application
         ];
         $this->sendResponse($httpCode, $message);
     }
-
-    public function sendResponse($httpCode = 200, $message)
+    
+    /**
+     * @param int $httpCode
+     * @param $message
+     */
+    public function sendResponse($httpCode = Response::HTTP_OK, $message)
     {
+        $message = json_encode($message);
         if (php_sapi_name() !== 'cli') {
             header('Content-Type: application/json; charset=utf-8');
             header('Content-Length: ' . strlen($message));
             http_response_code($httpCode);
         }
-        echo json_encode($message);
+        
+        echo $message;
         exit(0);
     }
 
@@ -109,7 +129,7 @@ class Application
      */
     public function addGetRoute($uri, $action)
     {
-        $this->addRoute($uri, $action, 'GET');
+        $this->addRoute($uri, $action, Request::METHOD_GET);
         return $this;
     }
 
@@ -120,7 +140,7 @@ class Application
      */
     public function addPostRoute($uri, $action)
     {
-        $this->addRoute($uri, $action, 'POST');
+        $this->addRoute($uri, $action, Request::METHOD_POST);
         return $this;
     }
 
@@ -131,7 +151,7 @@ class Application
      */
     public function addPutRoute($uri, $action)
     {
-        $this->addRoute($uri, $action, 'PUT');
+        $this->addRoute($uri, $action, Request::METHOD_PUT);
         return $this;
     }
 
@@ -142,7 +162,7 @@ class Application
      */
     public function addDeleteRoute($uri, $action)
     {
-        $this->addRoute($uri, $action, 'DELETE');
+        $this->addRoute($uri, $action, Request::METHOD_DELETE);
         return $this;
     }
 
@@ -153,7 +173,7 @@ class Application
      */
     public function addPatchRoute($uri, $action)
     {
-        $this->addRoute($uri, $action, 'PATCH');
+        $this->addRoute($uri, $action, Request::METHOD_PATCH);
         return $this;
     }
 
@@ -164,7 +184,7 @@ class Application
      */
     public function addHeadRoute($uri, $action)
     {
-        $this->addRoute($uri, $action, 'HEAD');
+        $this->addRoute($uri, $action, Request::METHOD_HEAD);
         return $this;
     }
 
@@ -175,7 +195,7 @@ class Application
      */
     public function addOptionsRoute($uri, $action)
     {
-        $this->addRoute($uri, $action, 'OPTIONS');
+        $this->addRoute($uri, $action, Request::METHOD_OPTIONS);
         return $this;
     }
 

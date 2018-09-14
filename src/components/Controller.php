@@ -13,10 +13,14 @@ class Controller
 {
     /** @var  Request */
     protected $_request;
-
-    public function __construct()
+    
+    /**
+     * Controller constructor.
+     * @param Request $request
+     */
+    public function __construct($request)
     {
-        $this->_request = Request::createFromGlobals();
+        $this->_request = $request;
     }
 
     /**
