@@ -9,7 +9,9 @@
     "aws/aws-sdk-php": "^3.66",
     "guzzlehttp/guzzle": "^6.0",
     "vlucas/valitron": "^1.4",
-    "symfony/http-foundation": "*"
+    "symfony/http-foundation": "*",
+    "symfony/lock": "~3.4|~4.0",
+    "symfony/console": "^4.1"
   },
   "autoload": {
     "psr-4": {

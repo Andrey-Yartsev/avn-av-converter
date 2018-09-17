@@ -6,10 +6,13 @@
 
 use Converter\Application;
 use Converter\controllers\CloudConverterController;
+use Converter\controllers\AmazonController;
 
-include '../vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php';
 
 $application = new Application();
 $application->addPostRoute('/video/cloudconvert', [CloudConverterController::class, 'process']);
 $application->addPostRoute('/video/cloudconvert/callback', [CloudConverterController::class, 'callback']);
+
+$application->addPostRoute('/video/amazon', [AmazonController::class, 'process']);
 $application->run();

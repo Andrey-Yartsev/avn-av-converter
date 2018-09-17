@@ -24,7 +24,7 @@ class CloudConverterController extends Controller
         $formData = $request->getContentType() == 'json' ? json_decode($request->getContent(), true) : [];
         $form = new CloudConvertForm();
         $form->setAttributes($formData);
-        $processId = $form->start();
+        $processId = $form->processVideo();
         if ($processId === false) {
             throw new BadRequestHttpException($form);
         }

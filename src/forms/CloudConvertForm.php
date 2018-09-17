@@ -23,7 +23,7 @@ class CloudConvertForm extends Form
      * @throws \CloudConvert\Exceptions\InvalidParameterException
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function start()
+    public function processVideo()
     {
         $rules = [
             'required' => ['filePath', 'callback'],
