@@ -17,3 +17,5 @@ Thumbs.db
 
 # composer vendor dir
 /vendor
+
+/src/config/config.php
