@@ -9,6 +9,7 @@ namespace Converter\commands;
 
 use Aws\ElasticTranscoder\ElasticTranscoderClient;
 use Converter\components\Config;
+use Converter\components\drivers\AmazonDriver;
 use Converter\components\Redis;
 use GuzzleHttp\Client;
 use Symfony\Component\Console\Command\Command;
@@ -31,21 +32,15 @@ class AmazonQueueCommand extends Command
             $output->writeln('Process already working!');
             return 1;
         }
-    
-        $amazonConfig = Config::getInstance()->get('amazon');
-        $transcoderClient = new ElasticTranscoderClient([
-            'version' => 'latest',
-            'region' => $amazonConfig['transcoder']['region'],
-            'credentials' => [
-                'key' => $amazonConfig['transcoder']['key'],
-                'secret' => $amazonConfig['transcoder']['secret'],
-            ]
-        ]);
         
+        $presents = Config::getInstance()->get('presets');
         while (true) {
             $jobs = Redis::getInstance()->sMembers('amazon:queue');
             foreach ($jobs as $job) {
                 $options = json_decode($job, true);
+                $presetName = $options['presetName'];
+                $amazonDriver = new AmazonDriver($presetName, $presents[$presetName]);
+                $transcoderClient = $amazonDriver->getTranscoderClient();
                 $response = $transcoderClient->readJob(['Id' => $options['jobId']]);
                 $jobData = (array) $response->get('Job');
                 $output->writeln('Read job #' . $options['jobId'] . ', status: ' . strtolower($jobData['Status']));
@@ -55,7 +50,7 @@ class AmazonQueueCommand extends Command
                         $client->request('POST', $options['callback'], [
                             'json' => [
                                 'processId' => $options['processId'],
-                                'url' => $amazonConfig['url'] . '/files/' . $jobData['Output']['Key']
+                                'url' => $amazonDriver->url . '/files/' . $jobData['Output']['Key']
                             ]
                         ]);
                         Redis::getInstance()->sRem('amazon:queue', $job);

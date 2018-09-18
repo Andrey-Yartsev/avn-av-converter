@@ -7,6 +7,8 @@
 namespace Converter\commands;
 
 
+use Converter\components\Config;
+use Converter\components\drivers\AmazonDriver;
 use Converter\components\Redis;
 use Converter\forms\AmazonForm;
 use Symfony\Component\Console\Command\Command;
@@ -29,18 +31,24 @@ class AmazonUploadCommand extends Command
             $output->writeln('Process already working!');
             return 1;
         }
+    
+        $presents = Config::getInstance()->get('presets');
         while (true) {
             $uploads = Redis::getInstance()->sMembers('amazon:upload');
             foreach ($uploads as $upload) {
                 $params = json_decode($upload, true);
-                $form = new AmazonForm();
-                $form->setAttributes($params);
-                $output->writeln('<info>Catch message #' . $upload . '</info>');
-                if ($form->processVideo()) {
+                $presetName = $params['presetName'];
+                if (empty($presents[$presetName])) {
+                    Redis::getInstance()->sRem('amazon:upload', $upload);
+                    continue;
+                }
+                
+                $amazonDriver = new AmazonDriver($presetName, $presents[$presetName]);
+                if ($amazonDriver->createJob($params['filePat'], $params['callback'], $params['processId'])) {
                     Redis::getInstance()->sRem('amazon:upload', $upload);
                     $output->writeln('<info>Process #' . $params['processId'] . ' uploaded</info>');
                 } else {
-                    $output->writeln('<error>' . current($form->getErrors()) . '</error>');
+                    $output->writeln('<error>:(</error>');
                 }
             }
     

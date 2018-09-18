@@ -7,12 +7,12 @@
 use Converter\Application;
 use Converter\controllers\CloudConverterController;
 use Converter\controllers\AmazonController;
+use Converter\controllers\VideoController;
 
 require __DIR__ . '/../vendor/autoload.php';
 
 $application = new Application();
-$application->addPostRoute('/video/cloudconvert', [CloudConverterController::class, 'process']);
+$application->addPostRoute('/video/process', [VideoController::class, 'process']);
 $application->addGetRoute('/video/cloudconvert/callback', [CloudConverterController::class, 'callback']);
 
-$application->addPostRoute('/video/amazon', [AmazonController::class, 'process']);
 $application->run();

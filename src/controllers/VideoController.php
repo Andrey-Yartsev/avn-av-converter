@@ -1,7 +1,7 @@
 <?php
 /**
  * User: pel
- * Date: 17/09/2018
+ * Date: 18/09/2018
  */
 
 namespace Converter\controllers;
@@ -9,21 +9,21 @@ namespace Converter\controllers;
 
 use Converter\components\Controller;
 use Converter\exceptions\BadRequestHttpException;
-use Converter\forms\AmazonForm;
+use Converter\forms\VideoForm;
 
-class AmazonController extends Controller
+class VideoController extends Controller
 {
     public function actionProcess()
     {
         $request = $this->getRequest();
         $formData = $request->getContentType() == 'json' ? json_decode($request->getContent(), true) : [];
-        $form = new AmazonForm();
+        $form = new VideoForm();
         $form->setAttributes($formData);
-        $processId = $form->addQueue();
+        $processId = $form->process();
         if ($processId === false) {
             throw new BadRequestHttpException($form);
         }
-    
+        
         return [
             'processId' => $processId
         ];
