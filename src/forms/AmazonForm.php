@@ -13,6 +13,7 @@ use Aws\S3\S3Client;
 use Converter\components\Config;
 use Converter\components\Form;
 use Converter\components\Redis;
+use GuzzleHttp\Client;
 
 class AmazonForm extends Form
 {
@@ -31,7 +32,7 @@ class AmazonForm extends Form
             return false;
         }
         $processId = uniqid() . time();
-        Redis::getInstance()->publish('au', json_encode([
+        Redis::getInstance()->sAdd('amazon:upload', json_encode([
             'processId' => $processId,
             'callback' => $this->callback,
             'filePath' => $this->filePath
@@ -42,7 +43,7 @@ class AmazonForm extends Form
     public function processVideo()
     {
         $pathParts = pathinfo($this->filePath);
-        $keyName = '/temp_video/' . uniqid(parse_url($this->filePath, PHP_URL_HOST), true) . '.' . $pathParts['extension'];
+        $keyName = '/temp_video/' . parse_url($this->filePath, PHP_URL_HOST) . '/' . uniqid('', true) . '.' . $pathParts['extension'];
         $amazonConfig = Config::getInstance()->get('amazon');
         
         $s3Client = new S3Client([
@@ -55,10 +56,12 @@ class AmazonForm extends Form
         ]);
     
         try {
+            $client = new Client();
+            $response = $client->get($this->filePath);
             $s3Client->putObject([
                 'Bucket' => $amazonConfig['s3']['bucket'],
                 'Key' => $keyName,
-                'SourceFile' => $this->filePath,
+                'Body' => $response->getBody(),
             ]);
         } catch (S3Exception $e) {
             $this->setErrors($e->getMessage());
@@ -107,6 +110,7 @@ class AmazonForm extends Form
                 'processId' => $this->processId,
                 'callback' => $this->callback
             ]));
+            return true;
         }
     }
 }

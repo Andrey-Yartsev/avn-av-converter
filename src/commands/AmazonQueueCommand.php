@@ -48,7 +48,7 @@ class AmazonQueueCommand extends Command
                 $options = json_decode($job, true);
                 $response = $transcoderClient->readJob(['Id' => $options['jobId']]);
                 $jobData = (array) $response->get('Job');
-                
+                $output->writeln('Read job #' . $options['jobId'] . ', status: ' . strtolower($jobData['Status']));
                 if (strtolower($jobData['Status']) == 'complete') {
                     try {
                         $client = new Client();
@@ -63,6 +63,8 @@ class AmazonQueueCommand extends Command
                     } catch (\Exception $e) {
         
                     }
+                } elseif (strtolower($jobData['Status']) == 'error') {
+                    Redis::getInstance()->sRem('amazon:queue', $job);
                 }
             }
             sleep(1);

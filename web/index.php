@@ -12,7 +12,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 $application = new Application();
 $application->addPostRoute('/video/cloudconvert', [CloudConverterController::class, 'process']);
-$application->addPostRoute('/video/cloudconvert/callback', [CloudConverterController::class, 'callback']);
+$application->addGetRoute('/video/cloudconvert/callback', [CloudConverterController::class, 'callback']);
 
 $application->addPostRoute('/video/amazon', [AmazonController::class, 'process']);
 $application->run();

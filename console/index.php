@@ -11,5 +11,5 @@ use Symfony\Component\Console\Application;
 
 $application = new Application();
 $application->add(new \Converter\commands\AmazonUploadCommand());
-//$application->add(new FooLockCommand())
+$application->add(new \Converter\commands\AmazonQueueCommand());
 $application->run();

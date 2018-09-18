@@ -29,17 +29,22 @@ class AmazonUploadCommand extends Command
             $output->writeln('Process already working!');
             return 1;
         }
-        
-        Redis::getInstance()->subscribe(['au'], function ($redis, $channel, $msg) use ($output) {
-            $params = json_decode($msg, true);
-            $form = new AmazonForm();
-            $form->setAttributes($params);
-            if ($form->processVideo()) {
-                $output->writeln('<info>Process #' . $params['processId'] . ' uploaded</info>');
-            } else {
-                $output->writeln('<error>' . current($form->getErrors()) . '</error>');
+        while (true) {
+            $uploads = Redis::getInstance()->sMembers('amazon:upload');
+            foreach ($uploads as $upload) {
+                $params = json_decode($upload, true);
+                $form = new AmazonForm();
+                $form->setAttributes($params);
+                $output->writeln('<info>Catch message #' . $upload . '</info>');
+                if ($form->processVideo()) {
+                    Redis::getInstance()->sRem('amazon:upload', $upload);
+                    $output->writeln('<info>Process #' . $params['processId'] . ' uploaded</info>');
+                } else {
+                    $output->writeln('<error>' . current($form->getErrors()) . '</error>');
+                }
             }
-        });
+    
+        }
         
         $this->release();
     

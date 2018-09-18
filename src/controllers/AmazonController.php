@@ -19,7 +19,7 @@ class AmazonController extends Controller
         $formData = $request->getContentType() == 'json' ? json_decode($request->getContent(), true) : [];
         $form = new AmazonForm();
         $form->setAttributes($formData);
-        $processId = $form->processVideo();
+        $processId = $form->addQueue();
         if ($processId === false) {
             throw new BadRequestHttpException($form);
         }

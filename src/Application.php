@@ -23,7 +23,7 @@ class Application
         $request = Request::createFromGlobals();
         try {
             $method = $request->getRealMethod();
-            $url = $this->normalizeUrl($request->getRequestUri());
+            $url = $this->normalizeUrl($request->getPathInfo());
             list($callable, $arguments) = $this->findRoute($url, $method);
 
             if (!$callable) {
@@ -212,6 +212,7 @@ class Application
             foreach ($this->routes as $routeUrl => $routeMethods) {
                 if (preg_match('|^'.$routeUrl.'$|', $url, $matches)) {
                     if (isset($routeMethods[$method])) {
+                        $arguments = [];
                         array_shift($matches);
                         foreach ($matches as $match) {
                             $arguments[] = $match;
