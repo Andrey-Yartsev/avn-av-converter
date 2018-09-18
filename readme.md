@@ -18,3 +18,4 @@
 
     $ php console/index.php amazon:queue
     $ php console/index.php amazon:upload
+z
