@@ -39,7 +39,7 @@ class VideoForm extends Form
             return false;
         }
         /** @var Driver $driver */
-        $driver = new $preset['driver']($preset);
+        $driver = new $preset['driver']($this->preset, $preset);
         $processId = $driver->processVideo($this->filePath, $this->callback);
         return $processId;
     }
