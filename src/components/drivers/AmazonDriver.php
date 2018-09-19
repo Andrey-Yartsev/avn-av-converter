@@ -107,10 +107,10 @@ class AmazonDriver implements Driver
         $job = (array)$job->get('Job');
         if (strtolower($job['Status']) == 'submitted') {
             Redis::getInstance()->sAdd('amazon:queue', json_encode([
-                'presetName' => $this->presetName,
                 'jobId' => $job['Id'],
                 'processId' => $processId,
-                'callback' => $callback
+                'callback' => $callback,
+                'presetName' => $this->presetName
             ]));
             return true;
         }
