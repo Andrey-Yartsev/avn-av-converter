@@ -57,7 +57,8 @@ class AmazonQueueCommand extends Command
                         Redis::getInstance()->sRem('amazon:queue', $job);
                         // @TODO removed original file
                     } catch (\Exception $e) {
-        
+                        $output->writeln('<error>' . $e->getMessage() . '</error>');
+                        Redis::getInstance()->sRem('amazon:queue', $job);
                     }
                 } elseif (strtolower($jobData['Status']) == 'error') {
                     Redis::getInstance()->sRem('amazon:queue', $job);
