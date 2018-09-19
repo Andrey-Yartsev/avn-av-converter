@@ -54,6 +54,7 @@ class AmazonQueueCommand extends Command
                                 'url' => $amazonDriver->url . '/files/' . $jobData['Output']['Key']
                             ]
                         ]);
+                        $output->writeln('Read job #' . $options['jobId'] . ', status: ' . strtolower($jobData['Status']));
                         Redis::getInstance()->sRem('amazon:queue', $job);
                         // @TODO removed original file
                     } catch (\Exception $e) {
@@ -64,7 +65,7 @@ class AmazonQueueCommand extends Command
                     Redis::getInstance()->sRem('amazon:queue', $job);
                 }
             }
-            sleep(1);
+            sleep(2);
         }
         $this->release();
         
