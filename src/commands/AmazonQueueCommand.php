@@ -37,6 +37,7 @@ class AmazonQueueCommand extends Command
         while (true) {
             $jobs = Redis::getInstance()->sMembers('amazon:queue');
             foreach ($jobs as $job) {
+                $output->writeln('<info>Catch ' . $job . '</info>');
                 $options = json_decode($job, true);
                 $presetName = $options['presetName'];
                 $amazonDriver = new AmazonDriver($presetName, $presents[$presetName]);
