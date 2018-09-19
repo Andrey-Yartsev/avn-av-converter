@@ -37,6 +37,7 @@ class AmazonUploadCommand extends Command
             $uploads = Redis::getInstance()->sMembers('amazon:upload');
             foreach ($uploads as $upload) {
                 $params = json_decode($upload, true);
+                $output->writeln('<info>Catch ' . $upload . '</info>');
                 $presetName = $params['presetName'];
                 if (empty($presents[$presetName])) {
                     Redis::getInstance()->sRem('amazon:upload', $upload);
