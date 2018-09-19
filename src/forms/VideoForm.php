@@ -34,7 +34,7 @@ class VideoForm extends Form
             return false;
         }
         $preset = $presets[$this->preset];
-        if (class_exists($preset['driver'])) {
+        if (!class_exists($preset['driver'])) {
             $this->setErrors('Driver not found.');
             return false;
         }
