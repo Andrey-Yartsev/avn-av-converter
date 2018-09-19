@@ -45,7 +45,7 @@ class AmazonUploadCommand extends Command
                 }
                 
                 $amazonDriver = new AmazonDriver($presetName, $presents[$presetName]);
-                if ($amazonDriver->createJob($params['filePat'], $params['callback'], $params['processId'])) {
+                if ($amazonDriver->createJob($params['filePath'], $params['callback'], $params['processId'])) {
                     Redis::getInstance()->sRem('amazon:upload', $upload);
                     $output->writeln('<info>Process #' . $params['processId'] . ' uploaded</info>');
                 } else {
