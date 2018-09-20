@@ -52,7 +52,7 @@ class AmazonUploadCommand extends Command
                     $output->writeln('<error>:(</error>');
                 }
             }
-    
+            sleep(1);
         }
         
         $this->release();
