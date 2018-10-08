@@ -52,7 +52,10 @@ class CloudConvertDriver implements Driver
             'file' => $filePath,
             'callback' => Config::getInstance()->get('baseUrl') . '/video/cloudconvert/callback'
         ]);
-        Redis::getInstance()->set('cc:' . $process->id, json_encode(['callback' => $callback, 'token' => $this->token]));
+        Redis::getInstance()->set('cc:' . $process->id, json_encode([
+            'callback' => $callback,
+            'presetName' => $this->presetName,
+        ]));
         return $process->id;
     }
 }

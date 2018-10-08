@@ -27,6 +27,7 @@ class AmazonDriver implements Driver
             $this->$name = is_string($value) ? trim($value) : $value;
         }
     }
+    
     public function processVideo($filePath, $callback)
     {
         $processId = uniqid() . time();
