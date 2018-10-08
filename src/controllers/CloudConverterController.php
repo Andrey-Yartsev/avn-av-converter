@@ -21,6 +21,8 @@ class CloudConverterController extends Controller
     {
         $request = $this->getRequest();
         $id = $request->get('id');
+        $fn = fopen('log.txt', 'w+');
+        fputs($fn, '#' . $id . ' step = ' . $request->get('step'));
         if ($id && $request->get('step') == 'finished') {
             $options = Redis::getInstance()->get('cc:' . $id);
             if ($options) {
@@ -32,12 +34,18 @@ class CloudConverterController extends Controller
                     $process = new Process($api, $request->get('url'));
                     $output = $process->refresh()->output;
                     $url = $output->url;
+                    
                     if (!empty($preset['storage'])) {
+                        fputs($fn, 'storage step');
                         /** @var FileStorage $storage */
                         $storage = new $preset['storage']['driver']($preset['storage']['url'], $preset['storage']['bucket']);
                         $hash = md5($output->filename);
                         $savedPath = 'files/' . substr($hash, 0, 1) . '/' . substr($hash, 0, 2) . '/' . $hash;
+                        fputs($fn, '$savedPath:' . $savedPath . '/' . $hash . '.' . $output->ext);
+                        fputs($fn, '$url:' . $url);
                         $url = $storage->upload($url, $savedPath . '/' . $hash . '.' . $output->ext);
+                        fputs($fn, 'error:' . $storage->getError());
+                        fputs($fn, '$url:' . $url);
                     }
                     try {
                         $client = new Client();
@@ -54,5 +62,6 @@ class CloudConverterController extends Controller
                 }
             }
         }
+        fclose($fn);
     }
 }
