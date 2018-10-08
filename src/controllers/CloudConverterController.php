@@ -34,7 +34,7 @@ class CloudConverterController extends Controller
                     $url = $output->url;
                     if (!empty($preset['storage'])) {
                         /** @var FileStorage $storage */
-                        $storage = new $preset['storage']['driver']($preset['url'], $preset['bucket']);
+                        $storage = new $preset['storage']['driver']($preset['storage']['url'], $preset['storage']['bucket']);
                         $hash = md5($output->filename);
                         $savedPath = 'files/' . substr($hash, 0, 1) . '/' . substr($hash, 0, 2) . '/' . $hash;
                         $url = $storage->upload($url, $savedPath . '/' . $hash . '.' . $output->ext);
