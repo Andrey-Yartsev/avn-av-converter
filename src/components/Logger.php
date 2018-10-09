@@ -9,6 +9,7 @@ namespace Converter\components;
 
 use Gelf\Publisher;
 use Gelf\Transport\UdpTransport;
+use Psr\Log\LogLevel;
 
 class Logger
 {
@@ -33,6 +34,17 @@ class Logger
         }
         
         return self::$instance;
+    }
+    
+    /**
+     * @param $message
+     * @param array $context
+     * @param string $level
+     */
+    public static function send($message, array $context = array(), $level = LogLevel::INFO)
+    {
+        $instance = self::getInstance();
+        $instance->log($level, $message, $context);
     }
     
     private function __clone() {}

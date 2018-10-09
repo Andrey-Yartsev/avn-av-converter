@@ -11,9 +11,11 @@ use CloudConvert\Api;
 use CloudConvert\Process;
 use Converter\components\Config;
 use Converter\components\Controller;
+use Converter\components\Logger;
 use Converter\components\Redis;
 use Converter\components\storages\FileStorage;
 use GuzzleHttp\Client;
+use Psr\Log\LogLevel;
 
 class CloudConverterController extends Controller
 {
@@ -21,12 +23,15 @@ class CloudConverterController extends Controller
     {
         $request = $this->getRequest();
         $id = $request->get('id');
-        $fn = fopen('log.txt', 'w+');
-        fputs($fn, '#' . $id . ' step = ' . $request->get('step'));
+        Logger::send('CC.callback.init', [
+            'id'   => $id,
+            'step' => $request->get('step')
+        ]);
         if ($id && $request->get('step') == 'finished') {
             $options = Redis::getInstance()->get('cc:' . $id);
             if ($options) {
                 $options = json_decode($options, true);
+                Logger::send('CC.callback.findJob', $options);
                 $presents = Config::getInstance()->get('presets');
                 if (!empty($presents[$options['presetName']])) {
                     $preset = $presents[$options['presetName']];
@@ -34,34 +39,40 @@ class CloudConverterController extends Controller
                     $process = new Process($api, $request->get('url'));
                     $output = $process->refresh()->output;
                     $url = $output->url;
-                    
+                    Logger::send('CC.callback.findPreset', $preset);
                     if (!empty($preset['storage'])) {
-                        fputs($fn, 'storage step');
                         /** @var FileStorage $storage */
                         $storage = new $preset['storage']['driver']($preset['storage']['url'], $preset['storage']['bucket']);
                         $hash = md5($output->filename);
                         $savedPath = 'files/' . substr($hash, 0, 1) . '/' . substr($hash, 0, 2) . '/' . $hash;
-                        fputs($fn, '$savedPath:' . $savedPath . '/' . $hash . '.' . $output->ext);
-                        fputs($fn, '$url:' . $url);
+                        Logger::send('CC.callback.upload', [
+                            'url' => $url,
+                            'savedPath' => $savedPath . '/' . $hash . '.' . $output->ext
+                        ]);
                         $url = $storage->upload($url, $savedPath . '/' . $hash . '.' . $output->ext);
-                        fputs($fn, 'error:' . $storage->getError());
-                        fputs($fn, '$url:' . $url);
+                        Logger::send('CC.callback.uploadFinished', [
+                            'url' => $url
+                        ]);
                     }
                     try {
                         $client = new Client();
-                        $client->request('POST', $options['callback'], [
+                        $response = $client->request('POST', $options['callback'], [
                             'json' => [
                                 'processId' => $id,
-                                'url' => $url
+                                'url'       => $url
                             ]
+                        ]);
+                        Logger::send('CC.callback.sendCallback', [
+                            'response' => $response->getBody()
                         ]);
                         Redis::getInstance()->del('cc:' . $id);
                     } catch (\Exception $e) {
-        
+                        Logger::send('CC.callback.sendCallback', [
+                            'error' => $e->getMessage()
+                        ], LogLevel::ERROR);
                     }
                 }
             }
         }
-        fclose($fn);
     }
 }

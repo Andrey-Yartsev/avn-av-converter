@@ -9,6 +9,7 @@ namespace Converter\components\drivers;
 
 use CloudConvert\Api;
 use Converter\components\Config;
+use Converter\components\Logger;
 use Converter\components\Redis;
 
 class CloudConvertDriver implements Driver
@@ -22,6 +23,7 @@ class CloudConvertDriver implements Driver
     
     public function __construct($presetName, $config = [])
     {
+        Logger::send('CC.init');
         $this->presetName = $presetName;
         foreach ($config as $name => $value) {
             $this->$name = is_string($value) ? trim($value) : $value;
@@ -56,6 +58,11 @@ class CloudConvertDriver implements Driver
             'callback' => $callback,
             'presetName' => $this->presetName,
         ]));
+        Logger::send('CC.sendToProvider', [
+            'callback' => $callback,
+            'presetName' => $this->presetName,
+            'processId' => $process->id
+        ]);
         return $process->id;
     }
 }
