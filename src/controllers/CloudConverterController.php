@@ -59,7 +59,8 @@ class CloudConverterController extends Controller
                         $response = $client->request('POST', $options['callback'], [
                             'json' => [
                                 'processId' => $id,
-                                'url'       => $url
+                                'url'       => $url,
+                                'size'      => $output->size
                             ]
                         ]);
                         Logger::send('CC.callback.sendCallback', [
