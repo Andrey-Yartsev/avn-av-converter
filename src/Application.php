@@ -21,11 +21,13 @@ class Application
     public function run()
     {
         $request = Request::createFromGlobals();
+        set_error_handler([$this, 'sendException']);
+        set_exception_handler([$this, 'sendException']);
         try {
             $method = $request->getRealMethod();
             $url = $this->normalizeUrl($request->getPathInfo());
             list($callable, $arguments) = $this->findRoute($url, $method);
-
+            
             if (!$callable) {
                 throw new NotFoundHttpException('Route not found.');
             }
@@ -47,8 +49,10 @@ class Application
         } catch (\Exception $e) {
             return $this->sendException($e);
         }
+        restore_exception_handler();
+        restore_error_handler();
     }
-
+    
     /**
      * @param string $data
      * @return string
@@ -57,13 +61,27 @@ class Application
     {
         $this->sendResponse(Response::HTTP_OK, $data);
     }
-
+    
     /**
      * @param \Exception $exception
-     * @return string
+     * @param null $message
+     * @param null $file
+     * @param null $line
      */
-    public function sendException($exception)
+    public function sendException($exception, $message = null, $file = null, $line = null)
     {
+        // PHP errors have 5 args, always
+        $isPhpError = (func_num_args() === 5);
+        
+        if ($isPhpError) {
+            $code = $exception;
+        } else {
+            $code = $exception->getCode();
+            $message = $exception->getMessage();
+            $file = $exception->getFile();
+            $line = $exception->getLine();
+        }
+        
         if ($exception instanceof HttpException) {
             $httpCode = $exception->statusCode;
         } else {
@@ -71,10 +89,10 @@ class Application
         }
         $message = [
             'error' => [
-                'code' => $exception->getCode(),
-                'message' => $exception->getMessage(),
-                'file' => $exception->getFile(),
-                'line' => $exception->getLine(),
+                'code'    => $code,
+                'message' => $message,
+                'file'    => $file,
+                'line'    => $line,
             ]
         ];
         $this->sendResponse($httpCode, $message);
@@ -96,7 +114,7 @@ class Application
         echo $message;
         exit(0);
     }
-
+    
     /**
      * @param string $uri
      * @param callable|string $action
@@ -108,7 +126,7 @@ class Application
         $this->routes[$uri][$httpMethod] = $action;
         return $this;
     }
-
+    
     /**
      * @param string $uri
      * @return $this
@@ -118,10 +136,10 @@ class Application
         if (isset($this->routes[$uri])) {
             unset($this->routes[$uri]);
         }
-
+        
         return $this;
     }
-
+    
     /**
      * @param string $uri
      * @param callable|string $action
@@ -132,7 +150,7 @@ class Application
         $this->addRoute($uri, $action, Request::METHOD_GET);
         return $this;
     }
-
+    
     /**
      * @param string $uri
      * @param callable|string $action
@@ -143,7 +161,7 @@ class Application
         $this->addRoute($uri, $action, Request::METHOD_POST);
         return $this;
     }
-
+    
     /**
      * @param string $uri
      * @param callable|string $action
@@ -154,7 +172,7 @@ class Application
         $this->addRoute($uri, $action, Request::METHOD_PUT);
         return $this;
     }
-
+    
     /**
      * @param string $uri
      * @param callable|string $action
@@ -165,7 +183,7 @@ class Application
         $this->addRoute($uri, $action, Request::METHOD_DELETE);
         return $this;
     }
-
+    
     /**
      * @param string $uri
      * @param callable|string $action
@@ -176,7 +194,7 @@ class Application
         $this->addRoute($uri, $action, Request::METHOD_PATCH);
         return $this;
     }
-
+    
     /**
      * @param string $uri
      * @param callable|string $action
@@ -187,7 +205,7 @@ class Application
         $this->addRoute($uri, $action, Request::METHOD_HEAD);
         return $this;
     }
-
+    
     /**
      * @param string $uri
      * @param callable|string $action
@@ -198,7 +216,7 @@ class Application
         $this->addRoute($uri, $action, Request::METHOD_OPTIONS);
         return $this;
     }
-
+    
     /**
      * @param string $url
      * @param string|null $method
@@ -210,7 +228,7 @@ class Application
             return [$method, null];
         } else {
             foreach ($this->routes as $routeUrl => $routeMethods) {
-                if (preg_match('|^'.$routeUrl.'$|', $url, $matches)) {
+                if (preg_match('|^' . $routeUrl . '$|', $url, $matches)) {
                     if (isset($routeMethods[$method])) {
                         $arguments = [];
                         array_shift($matches);
@@ -222,10 +240,10 @@ class Application
                 }
             }
         }
-
+        
         return false;
     }
-
+    
     /**
      * @param string $url
      * @return string
@@ -241,7 +259,7 @@ class Application
         if (substr($url, 0, 1) != '/') {
             $url = '/' . $url;
         }
-
+        
         return $url;
     }
 }

@@ -17,11 +17,7 @@ class Logger
     
     private function __construct()
     {
-        $config = Config::getInstance()->get('graylog');
-        $transport = new UdpTransport($config['connection']['host'], $config['connection']['port'], UdpTransport::CHUNK_SIZE_LAN);
-        $publisher = new Publisher();
-        $publisher->addTransport($transport);
-        self::$instance = new \Gelf\Logger($publisher, 'converter_' . $config['facility']);
+    
     }
     
     /**
@@ -30,7 +26,11 @@ class Logger
     public static function getInstance()
     {
         if (self::$instance === null) {
-            self::$instance = new Logger();
+            $config = Config::getInstance()->get('graylog');
+            $transport = new UdpTransport($config['connection']['host'], $config['connection']['port'], UdpTransport::CHUNK_SIZE_LAN);
+            $publisher = new Publisher();
+            $publisher->addTransport($transport);
+            self::$instance = new \Gelf\Logger($publisher, 'converter_' . $config['facility']);
         }
         
         return self::$instance;
