@@ -37,6 +37,9 @@ class EllipticsStorage extends FileStorage
 
     public function upload($sourcePath, $savedPath)
     {
+        if (strpos($sourcePath, '//') === 0) {
+            $sourcePath = 'https:' . $sourcePath;
+        }
         $this->error = null;
         try {
             $response = $this->httpClient->request('POST', "$this->url/upload/$this->bucket/$savedPath", [
