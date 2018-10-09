@@ -24,8 +24,8 @@ class CloudConverterController extends Controller
         $request = $this->getRequest();
         $id = $request->get('id');
         Logger::send('CC.callback.init', [
-            'id'   => $id,
-            'step' => $request->get('step')
+            'getId' => $id,
+            'step'  => $request->get('step')
         ]);
         if ($id && $request->get('step') == 'finished') {
             $options = Redis::getInstance()->get('cc:' . $id);
@@ -46,7 +46,7 @@ class CloudConverterController extends Controller
                         $hash = md5($output->filename);
                         $savedPath = 'files/' . substr($hash, 0, 1) . '/' . substr($hash, 0, 2) . '/' . $hash;
                         Logger::send('CC.callback.upload', [
-                            'url' => $url,
+                            'url'       => $url,
                             'savedPath' => $savedPath . '/' . $hash . '.' . $output->ext
                         ]);
                         $url = $storage->upload($url, $savedPath . '/' . $hash . '.' . $output->ext);
