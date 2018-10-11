@@ -16,6 +16,7 @@ class VideoForm extends Form
     public $filePath;
     public $callback;
     public $preset;
+    public $isDelay = false;
     
     /**
      * @return Driver|boolean
@@ -47,19 +48,13 @@ class VideoForm extends Form
             return false;
         }
     
-        $preset = $this->validatePreset();
-        if ($preset === false) {
-            return false;
-        }
-    
         $driver = $this->getProcessDriver();
         if ($driver === false) {
             return false;
         }
     
         $fileUrl = Config::getInstance()->get('baseUrl') . '/upload/' . basename($inputFile);
-        $processId = $driver->processVideo($fileUrl, $this->callback);
-        return $processId;
+        return $this->isDelay ? $driver->addDelayQueue($fileUrl, $this->callback) : $driver->processVideo($fileUrl, $this->callback);
     }
     
     public function processExternalFile()
@@ -77,10 +72,8 @@ class VideoForm extends Form
         if ($driver === false) {
             return false;
         }
-        
-        
-        $processId = $driver->processVideo($this->filePath, $this->callback);
-        return $processId;
+    
+        return $this->isDelay ? $driver->addDelayQueue($this->filePath, $this->callback) : $driver->processVideo($this->filePath, $this->callback);
     }
     
     /**

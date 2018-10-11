@@ -9,5 +9,7 @@ namespace Converter\components\drivers;
 
 interface Driver
 {
-    public function processVideo($filePath, $callback);
+    public function addDelayQueue($filePath, $callback);
+    
+    public function processVideo($filePath, $callback, $processId = null);
 }

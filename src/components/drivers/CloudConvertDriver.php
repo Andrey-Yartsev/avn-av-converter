@@ -34,17 +34,35 @@ class CloudConvertDriver implements Driver
     /**
      * @param $filePath
      * @param $callback
+     * @return string
+     */
+    public function addDelayQueue($filePath, $callback)
+    {
+        $processId = uniqid() . time();
+        Redis::getInstance()->set('queue:' . $processId, json_encode([
+            'callback' => $callback,
+            'filePath' => $filePath,
+            'presetName' => $this->presetName,
+        ]));
+        return $processId;
+    }
+    
+    /**
+     * @param $filePath
+     * @param $callback
+     * @param null $processId
      * @return null|object
      * @throws \CloudConvert\Exceptions\ApiException
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function processVideo($filePath, $callback)
+    public function processVideo($filePath, $callback, $processId = null)
     {
         $pathParts = pathinfo($filePath);
-        $process = $this->client->createProcess([
+        $process = $this->client->createProcess( [
             'inputformat' => $pathParts['extension'],
             'outputformat' => $this->outputFormat,
         ]);
+        $processId = $processId ? $processId : $process->id;
         $process->start([
             'outputformat' => $this->outputFormat,
             'converteroptions' => [
@@ -54,15 +72,15 @@ class CloudConvertDriver implements Driver
             'file' => $filePath,
             'callback' => Config::getInstance()->get('baseUrl') . '/video/cloudconvert/callback'
         ]);
-        Redis::getInstance()->set('cc:' . $process->id, json_encode([
+        Redis::getInstance()->set('cc:' . $processId, json_encode([
             'callback' => $callback,
             'presetName' => $this->presetName,
         ]));
         Logger::send('CC.sendToProvider', [
             'callback' => $callback,
             'presetName' => $this->presetName,
-            'processId' => $process->id
+            'processId' => $processId
         ]);
-        return $process->id;
+        return $processId;
     }
 }

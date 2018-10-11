@@ -14,6 +14,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 $application = new Application();
 $application->addPostRoute('/video/process', [VideoController::class, 'process']);
+$application->addPostRoute('/video/start', [VideoController::class, 'start']);
 $application->addGetRoute('/video/cloudconvert/callback', [CloudConverterController::class, 'callback']);
 
 $application->run();

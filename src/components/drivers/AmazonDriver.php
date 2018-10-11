@@ -28,9 +28,31 @@ class AmazonDriver implements Driver
         }
     }
     
-    public function processVideo($filePath, $callback)
+    /**
+     * @param $filePath
+     * @param $callback
+     * @return string
+     */
+    public function addDelayQueue($filePath, $callback)
     {
         $processId = uniqid() . time();
+        Redis::getInstance()->set('queue:' . $processId, json_encode([
+            'callback' => $callback,
+            'filePath' => $filePath,
+            'presetName' => $this->presetName,
+        ]));
+        return $processId;
+    }
+    
+    /**
+     * @param $filePath
+     * @param $callback
+     * @param null $processId
+     * @return null|string
+     */
+    public function processVideo($filePath, $callback, $processId = null)
+    {
+        $processId = $processId ? $processId : uniqid() . time();
         Redis::getInstance()->sAdd('amazon:upload', json_encode([
             'presetName' => $this->presetName,
             'processId' => $processId,
@@ -40,6 +62,9 @@ class AmazonDriver implements Driver
         return $processId;
     }
     
+    /**
+     * @return ElasticTranscoderClient
+     */
     public function getTranscoderClient()
     {
         return new ElasticTranscoderClient([
@@ -52,6 +77,12 @@ class AmazonDriver implements Driver
         ]);
     }
     
+    /**
+     * @param $filePath
+     * @param $callback
+     * @param $processId
+     * @return bool
+     */
     public function createJob($filePath, $callback, $processId)
     {
         $pathParts = pathinfo($filePath);
@@ -74,6 +105,10 @@ class AmazonDriver implements Driver
                 'Key' => $keyName,
                 'Body' => $response->getBody(),
             ]);
+            $filePath = PUBPATH . '/upload/' . basename($filePath);
+            if (file_exists($filePath)) {
+                @unlink($filePath);
+            }
         } catch (S3Exception $e) {
             return false;
         }
