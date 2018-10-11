@@ -6,8 +6,9 @@
 
 use Converter\Application;
 use Converter\controllers\CloudConverterController;
-use Converter\controllers\AmazonController;
 use Converter\controllers\VideoController;
+
+define('PUBPATH', __DIR__);
 
 require __DIR__ . '/../vendor/autoload.php';
 

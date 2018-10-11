@@ -52,6 +52,17 @@ return [
                 'bucket' => 'c1',
                 'url'    => 'https://storage.chatservice.me'
             ]
+        ],
+        'teletest'  => [
+            'driver'       => \Converter\components\drivers\CloudConvertDriver::class,
+            'token'        => 'fYu7Qu2yue99aZ_yRBnJM4WJtHDAMGyEef6s_KZAUeqDAy34YkcfmPXb-eFrtf2lgraBOCLtQ38A-no0fdrkjQ',
+            'outputFormat' => 'mp4',
+            'command'      => "-i {INPUTFILE} {OUTPUTFILE} -f mp4 -vcodec libx264 -movflags +faststart -pix_fmt yuv420p -preset veryslow -b:v 512k -maxrate 512k -profile:v high -level 4.2 -acodec aac -threads 0",
+            'storage'      => [
+                'driver' => \Converter\components\storages\EllipticsStorage::class,
+                'bucket' => 'dev/teletest',
+                'url'    => 'https://storage.view.me'
+            ]
         ]
     ],
 ];

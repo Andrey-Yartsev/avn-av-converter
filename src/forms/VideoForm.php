@@ -17,17 +17,11 @@ class VideoForm extends Form
     public $callback;
     public $preset;
     
-    public function process()
+    /**
+     * @return Driver|boolean
+     */
+    protected function getProcessDriver()
     {
-        $rules = [
-            'required' => ['filePath', 'callback', 'preset'],
-            'url' => ['filePath', 'callback'],
-        ];
-    
-        if (!$this->validate($rules)) {
-            return false;
-        }
-        
         $presets = Config::getInstance()->get('presets');
         if (empty($presets[$this->preset])) {
             $this->setErrors('Preset not found.');
@@ -38,9 +32,64 @@ class VideoForm extends Form
             $this->setErrors('Driver not found.');
             return false;
         }
-        /** @var Driver $driver */
-        $driver = new $preset['driver']($this->preset, $preset);
+    
+        return new $preset['driver']($this->preset, $preset);
+    }
+    
+    public function processLocalFile($inputFile)
+    {
+        $rules = [
+            'required' => ['callback', 'preset'],
+            'url' => ['callback'],
+        ];
+    
+        if (!$this->validate($rules)) {
+            return false;
+        }
+    
+        $preset = $this->validatePreset();
+        if ($preset === false) {
+            return false;
+        }
+    
+        $driver = $this->getProcessDriver();
+        if ($driver === false) {
+            return false;
+        }
+    
+        $fileUrl = Config::getInstance()->get('baseUrl') . '/upload/' . basename($inputFile);
+        $processId = $driver->processVideo($fileUrl, $this->callback);
+        return $processId;
+    }
+    
+    public function processExternalFile()
+    {
+        $rules = [
+            'required' => ['filePath', 'callback', 'preset'],
+            'url' => ['filePath', 'callback'],
+        ];
+    
+        if (!$this->validate($rules)) {
+            return false;
+        }
+    
+        $driver = $this->getProcessDriver();
+        if ($driver === false) {
+            return false;
+        }
+        
+        
         $processId = $driver->processVideo($this->filePath, $this->callback);
         return $processId;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getLocalPath()
+    {
+        $localStoragePath = PUBPATH . '/upload/' . md5(time()) . rand(0, 999999);
+        
+        return $localStoragePath;
     }
 }
