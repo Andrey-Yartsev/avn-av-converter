@@ -10,6 +10,7 @@ namespace Converter\controllers;
 use Converter\components\Config;
 use Converter\components\Controller;
 use Converter\components\drivers\Driver;
+use Converter\components\FileType;
 use Converter\components\Redis;
 use Converter\exceptions\BadRequestHttpException;
 use Converter\exceptions\NotFoundHttpException;
@@ -26,15 +27,24 @@ class VideoController extends Controller
             $processId = $form->processExternalFile();
         } elseif (isset($_FILES['file'])) {
             $form->setAttributes($_POST);
-            $filePath = $form->getLocalPath();
+            $extensions = FileType::getInstance()->findExtensions($_FILES['file']['type']);
+            if (empty($extensions)) {
+                throw new BadRequestHttpException('Invalid file type');
+            }
+            $filePath = $form->getLocalPath() . '.' . end($extensions);
             move_uploaded_file($_FILES['file']['tmp_name'], $filePath);
-            $form->processLocalFile($filePath);
+            $processId = $form->processLocalFile($filePath);
         } else {
             $form->preset = $request->headers->get('X-UPLOAD-PRESET');
             $form->callback = $request->headers->get('X-UPLOAD-CALLBACK');
             $filePath = $form->getLocalPath();
             file_put_contents($filePath, file_get_contents('php://input'));
-            $form->processLocalFile($filePath);
+            $extensions = FileType::getInstance()->findExtensions($filePath);
+            if (empty($extensions)) {
+                throw new BadRequestHttpException('Invalid file type');
+            }
+            rename($filePath, $filePath . '.' . end($extensions));
+            $processId = $form->processLocalFile($filePath);
         }
     
         if ($processId === false) {

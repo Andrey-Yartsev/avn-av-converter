@@ -12,7 +12,8 @@
     "symfony/http-foundation": "*",
     "symfony/lock": "~3.4|~4.0",
     "symfony/console": "^4.1",
-    "graylog2/gelf-php": "^1.5"
+    "graylog2/gelf-php": "^1.5",
+    "dflydev/apache-mime-types": "^1.0"
   },
   "autoload": {
     "psr-4": {

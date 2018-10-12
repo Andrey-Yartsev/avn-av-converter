@@ -22,7 +22,10 @@ class CloudConverterController extends Controller
     public function actionCallBack()
     {
         $request = $this->getRequest();
-        $id = $request->get('id');
+        $id = $request->get('processId');
+        if ($id === null) {
+            $id = $request->get('id');
+        }
         Logger::send('CC.callback.init', [
             'getId' => $id,
             'step'  => $request->get('step')

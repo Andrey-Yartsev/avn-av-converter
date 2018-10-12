@@ -62,7 +62,6 @@ class CloudConvertDriver implements Driver
             'inputformat' => $pathParts['extension'],
             'outputformat' => $this->outputFormat,
         ]);
-        $processId = $processId ? $processId : $process->id;
         $process->start([
             'outputformat' => $this->outputFormat,
             'converteroptions' => [
@@ -70,8 +69,9 @@ class CloudConvertDriver implements Driver
             ],
             'input' => 'download',
             'file' => $filePath,
-            'callback' => Config::getInstance()->get('baseUrl') . '/video/cloudconvert/callback'
+            'callback' => Config::getInstance()->get('baseUrl') . '/video/cloudconvert/callback?processId=' . $processId
         ]);
+        $processId = $processId ? $processId : $process->id;
         Redis::getInstance()->set('cc:' . $processId, json_encode([
             'callback' => $callback,
             'presetName' => $this->presetName,
