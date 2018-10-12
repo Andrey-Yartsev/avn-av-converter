@@ -37,14 +37,15 @@ class VideoController extends Controller
         } else {
             $form->preset = $request->headers->get('X-UPLOAD-PRESET');
             $form->callback = $request->headers->get('X-UPLOAD-CALLBACK');
+            $form->isDelay = $request->headers->get('X-UPLOAD-DELAY');
             $filePath = $form->getLocalPath();
             file_put_contents($filePath, file_get_contents('php://input'));
-            $extensions = FileType::getInstance()->findExtensions($filePath);
+            $extensions = FileType::getInstance()->findExtensions(mime_content_type($filePath));
             if (empty($extensions)) {
                 throw new BadRequestHttpException('Invalid file type');
             }
             rename($filePath, $filePath . '.' . end($extensions));
-            $processId = $form->processLocalFile($filePath);
+            $processId = $form->processLocalFile($filePath . '.' . end($extensions));
         }
     
         if ($processId === false) {
