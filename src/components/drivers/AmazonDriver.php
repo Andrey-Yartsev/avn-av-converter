@@ -31,22 +31,6 @@ class AmazonDriver implements Driver
     /**
      * @param $filePath
      * @param $callback
-     * @return string
-     */
-    public function addDelayQueue($filePath, $callback)
-    {
-        $processId = uniqid() . time();
-        Redis::getInstance()->set('queue:' . $processId, json_encode([
-            'callback' => $callback,
-            'filePath' => $filePath,
-            'presetName' => $this->presetName,
-        ]));
-        return $processId;
-    }
-    
-    /**
-     * @param $filePath
-     * @param $callback
      * @param null $processId
      * @return null|string
      */
@@ -60,6 +44,16 @@ class AmazonDriver implements Driver
             'filePath' => $filePath
         ]));
         return $processId;
+    }
+    
+    public function processAudio($filePath, $callback, $processId = null)
+    {
+        throw new \Exception('Not implemented');
+    }
+    
+    public function processPhoto($filePath, $callback, $processId = null)
+    {
+        throw new \Exception('Not implemented');
     }
     
     /**

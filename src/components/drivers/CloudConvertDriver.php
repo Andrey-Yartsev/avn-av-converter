@@ -34,22 +34,6 @@ class CloudConvertDriver implements Driver
     /**
      * @param $filePath
      * @param $callback
-     * @return string
-     */
-    public function addDelayQueue($filePath, $callback)
-    {
-        $processId = uniqid() . time();
-        Redis::getInstance()->set('queue:' . $processId, json_encode([
-            'callback' => $callback,
-            'filePath' => $filePath,
-            'presetName' => $this->presetName,
-        ]));
-        return $processId;
-    }
-    
-    /**
-     * @param $filePath
-     * @param $callback
      * @param null $processId
      * @return null|object
      * @throws \CloudConvert\Exceptions\ApiException
@@ -82,5 +66,15 @@ class CloudConvertDriver implements Driver
             'processId' => $processId
         ]);
         return $processId;
+    }
+    
+    public function processAudio($filePath, $callback, $processId = null)
+    {
+        throw new \Exception('Not implemented');
+    }
+    
+    public function processPhoto($filePath, $callback, $processId = null)
+    {
+        throw new \Exception('Not implemented');
     }
 }

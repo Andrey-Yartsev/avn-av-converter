@@ -7,13 +7,10 @@
 namespace Converter\controllers;
 
 
-use Converter\components\Config;
 use Converter\components\Controller;
-use Converter\components\drivers\Driver;
 use Converter\components\FileType;
-use Converter\components\Redis;
+use Converter\components\Process;
 use Converter\exceptions\BadRequestHttpException;
-use Converter\exceptions\NotFoundHttpException;
 use Converter\forms\VideoForm;
 
 class VideoController extends Controller
@@ -64,24 +61,7 @@ class VideoController extends Controller
         if (empty($postData['processId'])) {
             throw new BadRequestHttpException('ProcessId is required');
         }
-        $queue = Redis::getInstance()->get('queue:' . $postData['processId']);
-        if ($queue) {
-            $queue = json_decode($queue, true);
-            $presets = Config::getInstance()->get('presets');
-            if (empty($presets[$queue['presetName']])) {
-                throw new BadRequestHttpException('Invalid preset.');
-            }
-            $preset = $presets[$queue['presetName']];
-            if (!class_exists($preset['driver'])) {
-                throw new BadRequestHttpException('Driver not found.');
-            }
-            /** @var Driver $driver */
-            $driver = new $preset['driver']($queue['presetName'], $preset);
-            $driver->processVideo($queue['filePath'], $queue['callback'], $postData['processId']);
-            Redis::getInstance()->del('queue:' . $postData['processId']);
-            return ['success' => true];
-        } else {
-            throw new NotFoundHttpException('Process not found');
-        }
+        Process::start($postData['processId']);
+        return ['success' => true];
     }
 }
