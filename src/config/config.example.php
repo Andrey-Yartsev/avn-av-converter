@@ -7,8 +7,9 @@
 return [
     'baseUrl' => 'https://converter.retloko.com',
     'redis'   => [
-        'host' => '127.0.0.1',
-        'port' => 6379
+        'host'     => '127.0.0.1',
+        'port'     => 6379,
+        'database' => 1
     ],
     'graylog' => [
         'facility'   => 'dev',

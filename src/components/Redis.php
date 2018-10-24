@@ -21,6 +21,9 @@ class Redis
         }
         $this->redisClient = new \Redis();
         $this->redisClient->connect($redisConfig['host'], $redisConfig['port']);
+        if (isset($redisConfig['database'])) {
+            $this->redisClient->select($redisConfig['database']);
+        }
     }
     
     /**
