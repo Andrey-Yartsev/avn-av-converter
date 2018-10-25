@@ -13,20 +13,11 @@ use Aws\S3\S3Client;
 use Converter\components\Redis;
 use GuzzleHttp\Client;
 
-class AmazonDriver implements Driver
+class AmazonDriver extends Driver
 {
     public $url;
     public $s3;
     public $transcoder;
-    public $presetName;
-    
-    public function __construct($presetName, $config = [])
-    {
-        $this->presetName = $presetName;
-        foreach ($config as $name => $value) {
-            $this->$name = is_string($value) ? trim($value) : $value;
-        }
-    }
     
     /**
      * @param $filePath

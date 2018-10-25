@@ -12,22 +12,18 @@ use Converter\components\Config;
 use Converter\components\Logger;
 use Converter\components\Redis;
 
-class CloudConvertDriver implements Driver
+class CloudConvertDriver extends Driver
 {
     /** @var Api */
     protected $client;
     public $token;
     public $outputFormat;
     public $command;
-    public $presetName;
     
     public function __construct($presetName, $config = [])
     {
         Logger::send('CC.init');
-        $this->presetName = $presetName;
-        foreach ($config as $name => $value) {
-            $this->$name = is_string($value) ? trim($value) : $value;
-        }
+        parent::__construct($presetName, $config = []);
         $this->client = new Api($this->token);
     }
     

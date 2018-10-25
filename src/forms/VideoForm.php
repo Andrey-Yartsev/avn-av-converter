@@ -11,6 +11,7 @@ use Converter\components\Config;
 use Converter\components\drivers\Driver;
 use Converter\components\Form;
 use Converter\components\Process;
+use Converter\helpers\FileHelper;
 
 class VideoForm extends Form
 {
@@ -55,7 +56,7 @@ class VideoForm extends Form
         }
     
         $fileUrl = Config::getInstance()->get('baseUrl') . '/upload/' . basename($inputFile);
-        return $this->isDelay ? Process::createQueue($this->callback, $fileUrl, $this->preset) : $driver->processVideo($fileUrl, $this->callback);
+        return $this->isDelay ? Process::createQueue($this->callback, $fileUrl, $this->preset, FileHelper::TYPE_VIDEO) : $driver->processVideo($fileUrl, $this->callback);
     }
     
     public function processExternalFile()
@@ -74,7 +75,7 @@ class VideoForm extends Form
             return false;
         }
     
-        return $this->isDelay ? Process::createQueue($this->callback, $this->filePath, $this->preset) : $driver->processVideo($this->filePath, $this->callback);
+        return $this->isDelay ? Process::createQueue($this->callback, $this->filePath, $this->preset, FileHelper::TYPE_VIDEO) : $driver->processVideo($this->filePath, $this->callback);
     }
     
     /**

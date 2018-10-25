@@ -10,6 +10,7 @@ namespace Converter\components;
 use Converter\components\drivers\Driver;
 use Converter\exceptions\BadRequestHttpException;
 use Converter\exceptions\NotFoundHttpException;
+use Converter\helpers\FileHelper;
 
 class Process
 {
@@ -17,15 +18,17 @@ class Process
      * @param $callback
      * @param $filePath
      * @param $presetName
+     * @param $fileType
      * @return string
      */
-    public static function createQueue($callback, $filePath, $presetName)
+    public static function createQueue($callback, $filePath, $presetName, $fileType)
     {
         $processId = uniqid() . time();
         Redis::getInstance()->set('queue:' . $processId, json_encode([
             'callback' => $callback,
             'filePath' => $filePath,
             'presetName' => $presetName,
+            'fileType' => $fileType
         ]));
         return $processId;
     }
@@ -35,21 +38,36 @@ class Process
         $queue = Redis::getInstance()->get('queue:' . $processId);
         if ($queue) {
             $queue = json_decode($queue, true);
-            $presets = Config::getInstastatnce()->get('presets');
+            $presets = Config::getInstance()->get('presets');
             if (empty($presets[$queue['presetName']])) {
-                throw new BadRequestHttpException('Invalid preset.');
+                return false;
             }
             $preset = $presets[$queue['presetName']];
-            if (!class_exists($preset['driver'])) {
-                throw new BadRequestHttpException('Driver not found.');
+            if (empty($preset[$queue['fileType']])) {
+                return false;
             }
-            /** @var Driver $driver */
-            $driver = new $preset['driver']($queue['presetName'], $preset);
-            $driver->processVideo($queue['filePath'], $queue['callback'], $processId);
+    
+            $driver = Driver::loadByConfig($queue['presetName'], $queue['fileType']);
+            if ($driver === null) {
+                return false;
+            }
+    
+            switch ($queue['fileType']) {
+                case FileHelper::TYPE_VIDEO:
+                    $driver->processVideo($queue['filePath'], $queue['callback'], $processId);
+                    break;
+                case FileHelper::TYPE_IMAGE:
+                    $driver->processPhoto($queue['filePath'], $queue['callback'], $processId);
+                    break;
+                case FileHelper::TYPE_AUDIO:
+                    $driver->processAudio($queue['filePath'], $queue['callback'], $processId);
+                    break;
+                default:
+                    return false;
+            }
             Redis::getInstance()->del('queue:' . $processId);
             return true;
-        } else {
-            throw new NotFoundHttpException('Process not found');
         }
+        return false;
     }
 }
