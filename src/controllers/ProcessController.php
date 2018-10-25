@@ -19,11 +19,21 @@ class ProcessController extends Controller
     {
         $request = $this->getRequest();
         $postData = $request->getContentType() == 'json' ? json_decode($request->getContent(), true) : [];
-        if (empty($postData['processId'])) {
+        if (empty($postData['processId']) && empty($postData['processIds'])) {
             throw new BadRequestHttpException('ProcessId is required');
         }
-        Process::start($postData['processId']);
-        return ['success' => true];
+        $content = json_encode(['success' => true]);
+        header('Content-Type: application/json; charset=utf-8');
+        header('Content-Length: ' . strlen($content));
+        echo $content;
+        fastcgi_finish_request();
+        if (isset($postData['processIds']) && is_array($postData['processIds'])) {
+            foreach ($postData['processIds'] as $processId) {
+                Process::start($processId);
+            }
+        } else {
+            Process::start($postData['processId']);
+        }
     }
     
     public function actionUpload()
