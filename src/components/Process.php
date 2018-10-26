@@ -11,6 +11,8 @@ use Converter\components\drivers\Driver;
 use Converter\exceptions\BadRequestHttpException;
 use Converter\exceptions\NotFoundHttpException;
 use Converter\helpers\FileHelper;
+use GuzzleHttp\Client;
+use Psr\Log\LogLevel;
 
 class Process
 {
@@ -65,7 +67,29 @@ class Process
                 default:
                     return false;
             }
-            Redis::getInstance()->del('queue:' . $processId);
+            $resultBody = [
+                'processId' => $processId,
+                'files'     => $driver->getResult()
+            ];
+            Logger::send('converter.callback.result', [
+                'resultBody' => $resultBody
+            ]);
+    
+            try {
+                $client = new Client();
+                $response = $client->request('POST', $queue['callback'], [
+                    'json' => $resultBody
+                ]);
+                Logger::send('converter.callback.response', [
+                    'response' => $response->getBody()
+                ]);
+                Redis::getInstance()->del('queue:' . $processId);
+            } catch (\Exception $e) {
+                Logger::send('converter.callback.send', [
+                    'error' => $e->getMessage()
+                ], LogLevel::ERROR);
+            }
+            
             return true;
         }
         return false;
