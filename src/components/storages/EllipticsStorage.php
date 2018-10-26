@@ -18,11 +18,13 @@ class EllipticsStorage extends FileStorage
     protected $bucket;
     protected $error;
 
-    public function __construct($url, $bucket)
+    public function __construct($config = [])
     {
+        parent::__construct($config);
         $this->httpClient = new Client();
-        $this->url = $url;
-        $this->bucket = $bucket;
+        if (empty($this->url) || empty($this->bucket)) {
+            throw new \InvalidArgumentException();
+        }
     }
 
     public function hasError()
@@ -34,7 +36,13 @@ class EllipticsStorage extends FileStorage
     {
         return $this->error;
     }
-
+    
+    /**
+     * @param $sourcePath
+     * @param $savedPath
+     * @return bool|string
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function upload($sourcePath, $savedPath)
     {
         if (strpos($sourcePath, '//') === 0) {
@@ -56,5 +64,15 @@ class EllipticsStorage extends FileStorage
     public function delete($hash)
     {
         return;
+    }
+    
+    /**
+     * @param $fileName
+     * @return string
+     */
+    public function generatePath($fileName)
+    {
+        $hash = md5($fileName);
+        return 'files/' . substr($hash, 0, 1) . '/' . substr($hash, 0, 2) . '/' . $hash . '/' . $fileName;
     }
 }

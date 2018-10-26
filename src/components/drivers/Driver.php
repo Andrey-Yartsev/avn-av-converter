@@ -7,9 +7,15 @@
 namespace Converter\components\drivers;
 
 
+use Converter\components\storages\FileStorage;
+
 abstract class Driver
 {
     public $presetName;
+    
+    /** @var FileStorage */
+    protected $storage;
+    protected $result = [];
     
     public function __construct($presetName, $config = [])
     {
@@ -17,6 +23,7 @@ abstract class Driver
         foreach ($config as $name => $value) {
             $this->$name = is_string($value) ? trim($value) : $value;
         }
+        $this->storage = FileStorage::loadByPreset($presetName);
     }
     
     abstract public function processPhoto($filePath, $callback, $processId = null);
@@ -38,5 +45,13 @@ abstract class Driver
         }
         unset($config['driver']);
         return new $driverName($presetName, $config);
+    }
+    
+    /**
+     * @return array
+     */
+    public function getResult()
+    {
+        return $this->result;
     }
 }

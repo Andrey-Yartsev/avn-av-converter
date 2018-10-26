@@ -9,6 +9,17 @@ namespace Converter\components;
 
 abstract class Response implements \JsonSerializable
 {
+    public function __construct($values)
+    {
+        foreach ($values as $key => $value) {
+            $this->{$key} = $value;
+        }
+    }
+    
+    /**
+     * @param $value
+     * @return false|string
+     */
     public function formattedDate($value)
     {
         return is_numeric($value) ? date('c', $value) : date('c', strtotime($value));
