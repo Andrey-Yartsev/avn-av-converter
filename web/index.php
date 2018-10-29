@@ -13,6 +13,16 @@ define('PUBPATH', __DIR__);
 
 require __DIR__ . '/../vendor/autoload.php';
 
+$currentVerb = strtoupper($_SERVER["REQUEST_METHOD"]);
+if ($currentVerb == 'OPTIONS') {
+    http_response_code(200);
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET, PUT, POST, DELETE, OPTIONS');
+    header('Access-Control-Allow-Headers: Origin, Content-Type, Authorization');
+    header('Allow: PUT, GET, DELETE, POST');
+    exit(0);
+}
+
 $application = new Application();
 $application->addPostRoute('/video/process', [VideoController::class, 'process']);
 $application->addPostRoute('/video/start', [VideoController::class, 'start']);
