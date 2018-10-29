@@ -49,7 +49,7 @@ class Process
                 return false;
             }
     
-            $driver = Driver::loadByConfig($queue['presetName'], $queue['fileType']);
+            $driver = Driver::loadByConfig($queue['presetName'], $preset[$queue['fileType']]);
             if ($driver === null) {
                 return false;
             }
@@ -72,7 +72,7 @@ class Process
                 'files'     => $driver->getResult()
             ];
             Logger::send('converter.callback.result', [
-                'resultBody' => $resultBody
+                'resultBody' => json_encode($resultBody)
             ]);
     
             try {
