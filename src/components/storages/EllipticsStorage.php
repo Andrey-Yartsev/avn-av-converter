@@ -72,6 +72,7 @@ class EllipticsStorage extends FileStorage
      */
     public function generatePath($fileName)
     {
+        $fileName = basename($fileName);
         $hash = md5($fileName);
         return 'files/' . substr($hash, 0, 1) . '/' . substr($hash, 0, 2) . '/' . $hash . '/' . $fileName;
     }

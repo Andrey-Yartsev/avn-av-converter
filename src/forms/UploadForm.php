@@ -48,6 +48,10 @@ class UploadForm extends Form
             return false;
         }
         
+        if (empty($this->callback)) {
+            $this->callback = $preset['callback'] ?? null;
+        }
+        
         $driver = Driver::loadByConfig($this->preset, $preset[$this->fileType]);
         if ($driver === null) {
             $this->setErrors('Driver not founded.');
@@ -60,7 +64,7 @@ class UploadForm extends Form
     public function process()
     {
         $rules = [
-            'required' => ['callback', 'preset', 'filePath'],
+            'required' => ['preset', 'filePath'],
             'url' => ['callback'],
         ];
         

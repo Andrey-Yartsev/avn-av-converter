@@ -16,10 +16,12 @@ class ImageResponse extends Response
     public $size;
     public $width;
     public $height;
+    public $name;
     
     public function jsonSerialize()
     {
         return [
+            'name' => $this->name,
             'type' => FileHelper::TYPE_IMAGE,
             'url' => $this->url,
             'size' => (int) $this->size,
