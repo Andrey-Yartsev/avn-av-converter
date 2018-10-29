@@ -14,8 +14,7 @@
     "symfony/console": "^4.1",
     "graylog2/gelf-php": "^1.5",
     "imagine/imagine": "^0.7.1",
-    "php-ffmpeg/php-ffmpeg": "^0.13.0",
-    "dflydev/apache-mime-types": "^1.0"
+    "php-ffmpeg/php-ffmpeg": "^0.13.0"
   },
   "autoload": {
     "psr-4": {

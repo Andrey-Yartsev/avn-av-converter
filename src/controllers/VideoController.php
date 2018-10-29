@@ -24,11 +24,11 @@ class VideoController extends Controller
             $processId = $form->processExternalFile();
         } elseif (isset($_FILES['file'])) {
             $form->setAttributes($_POST);
-            $extensions = FileType::getInstance()->findExtensions($_FILES['file']['type']);
-            if (empty($extensions)) {
+            $extension = FileType::getInstance()->findExtensions($_FILES['file']['type']);
+            if (empty($extension)) {
                 throw new BadRequestHttpException('Invalid file type');
             }
-            $filePath = $form->getLocalPath() . '.' . end($extensions);
+            $filePath = $form->getLocalPath() . '.' . $extension;
             move_uploaded_file($_FILES['file']['tmp_name'], $filePath);
             $processId = $form->processLocalFile($filePath);
         } else {
@@ -37,12 +37,12 @@ class VideoController extends Controller
             $form->isDelay = $request->headers->get('X-UPLOAD-DELAY');
             $filePath = $form->getLocalPath();
             file_put_contents($filePath, file_get_contents('php://input'));
-            $extensions = FileType::getInstance()->findExtensions(mime_content_type($filePath));
-            if (empty($extensions)) {
+            $extension = FileType::getInstance()->findExtensions(mime_content_type($filePath));
+            if (empty($extension)) {
                 throw new BadRequestHttpException('Invalid file type');
             }
-            rename($filePath, $filePath . '.' . end($extensions));
-            $processId = $form->processLocalFile($filePath . '.' . end($extensions));
+            rename($filePath, $filePath . '.' . $extension);
+            $processId = $form->processLocalFile($filePath . '.' . $extension);
         }
     
         if ($processId === false) {

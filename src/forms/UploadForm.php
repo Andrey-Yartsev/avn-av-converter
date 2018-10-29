@@ -80,25 +80,25 @@ class UploadForm extends Form
         
         $fileUrl = Config::getInstance()->get('baseUrl') . '/upload/' . basename($this->filePath);
         if ($this->isDelay) {
-            $processId = Process::createQueue($this->callback, $fileUrl, $this->preset, $this->fileType);
+            return Process::createQueue($this->callback, $fileUrl, $this->preset, $this->fileType);
         } else {
             switch ($this->fileType) {
                 case FileHelper::TYPE_VIDEO:
-                    $processId = $driver->processVideo($fileUrl, $this->callback);
+                    $driver->processVideo($fileUrl, $this->callback);
                     break;
                 case FileHelper::TYPE_IMAGE:
-                    $processId = $driver->processPhoto($fileUrl, $this->callback);
+                    $driver->processPhoto($fileUrl, $this->callback);
                     break;
                 case FileHelper::TYPE_AUDIO:
-                    $processId = $driver->processAudio($fileUrl, $this->callback);
+                    $driver->processAudio($fileUrl, $this->callback);
                     break;
                 default:
                     $this->setErrors(ucfirst($this->fileType) . ' can\'t handle. O.o');
-                    $processId = false;
+                    return false;
+
             }
+            return $driver->getResult();
         }
-        
-        return $processId;
     }
     
     /**

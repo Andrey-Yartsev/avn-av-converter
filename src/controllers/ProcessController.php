@@ -44,12 +44,15 @@ class ProcessController extends Controller
             $form->setAttributes(json_decode($request->getContent(), true));
             $form->process();
         } elseif (isset($_FILES['file'])) {
+            if ($_FILES['file']['error']) {
+                throw new BadRequestHttpException('Error upload', $_FILES['file']['error']);
+            }
             $form->setAttributes($_POST);
-            $extensions = FileType::getInstance()->findExtensions($_FILES['file']['type']);
-            if (empty($extensions)) {
+            $extension = FileType::getInstance()->findExtensions($_FILES['file']['type']);
+            if (empty($extension)) {
                 throw new BadRequestHttpException('Invalid file type');
             }
-            $filePath = $form->getLocalPath() . '.' . end($extensions);
+            $filePath = $form->getLocalPath() . '.' . $extension;
             move_uploaded_file($_FILES['file']['tmp_name'], $filePath);
             $form->filePath = $filePath;
         } else {
@@ -58,22 +61,26 @@ class ProcessController extends Controller
             $form->isDelay = $request->headers->get('X-UPLOAD-DELAY');
             $filePath = $form->getLocalPath();
             file_put_contents($filePath, file_get_contents('php://input'));
-            $extensions = FileType::getInstance()->findExtensions(mime_content_type($filePath));
-            if (empty($extensions)) {
+            $extension = FileType::getInstance()->findExtensions(mime_content_type($filePath));
+            if (empty($extension)) {
                 throw new BadRequestHttpException('Invalid file type');
             }
-            rename($filePath, $filePath . '.' . end($extensions));
-            $form->filePath = $filePath . '.' . end($extensions);
+            rename($filePath, $filePath . '.' . $extension);
+            $form->filePath = $filePath . '.' . $extension;
         }
     
-        $processId = $form->process();
+        $result = $form->process();
         
-        if ($processId === false) {
+        if ($result === false) {
             throw new BadRequestHttpException($form);
         }
     
-        return [
-            'processId' => $processId
-        ];
+        if ($form->isDelay) {
+            return [
+                'processId' => $result
+            ];
+        } else {
+            return $result;
+        }
     }
 }

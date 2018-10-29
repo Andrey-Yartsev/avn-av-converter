@@ -40,7 +40,7 @@ abstract class FileStorage
             return null;
         }
         $preset = $presents[$presetName];
-        if (!empty($preset['storage']) && class_exists($preset['storage'])) {
+        if (!empty($preset['storage']['driver']) && class_exists($preset['storage']['driver'])) {
             $storageName = $preset['storage']['driver'];
             unset($preset['storage']['driver']);
             return new $storageName($preset['storage']);

@@ -18,7 +18,7 @@ $application->addPostRoute('/video/process', [VideoController::class, 'process']
 $application->addPostRoute('/video/start', [VideoController::class, 'start']);
 $application->addGetRoute('/video/cloudconvert/callback', [CloudConverterController::class, 'callback']);
 
-$application->addPostRoute('/upload', [ProcessController::class, 'upload']);
+$application->addPostRoute('/file/upload', [ProcessController::class, 'upload']);
 $application->addPostRoute('/process/start', [ProcessController::class, 'start']);
 
 $application->run();

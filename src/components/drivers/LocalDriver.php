@@ -51,6 +51,7 @@ class LocalDriver extends Driver
             $blur = $size['blur'] ?? null;
             $this->resizeImage($filePath, $width, $height, $blur);
         }
+        return $processId;
     }
     
     public function processVideo($filePath, $callback, $processId = null)

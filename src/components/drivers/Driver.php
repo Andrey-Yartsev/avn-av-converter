@@ -40,7 +40,7 @@ abstract class Driver
     public static function loadByConfig($presetName, $config)
     {
         $driverName = $config['driver'] ?? null;
-        if ($driverName || !class_exists($driverName)) {
+        if ($driverName == null || !class_exists($driverName)) {
             return null;
         }
         unset($config['driver']);

@@ -23,7 +23,7 @@ class CloudConvertDriver extends Driver
     public function __construct($presetName, $config = [])
     {
         Logger::send('CC.init');
-        parent::__construct($presetName, $config = []);
+        parent::__construct($presetName, $config);
         $this->client = new Api($this->token);
     }
     
