@@ -61,7 +61,7 @@ class CloudConvertDriver extends Driver
                 'url' => $url
             ]);
         } else {
-            $url = str_replace(PUBPATH, Config::getInstance()->get('baseUri'), $localSavedFile);
+            $url = str_replace(PUBPATH, Config::getInstance()->get('baseUrl'), $localSavedFile);
         }
         $firstStream = FFProbe::create([
             'ffmpeg.binaries'  => exec('which ffmpeg'),

@@ -60,7 +60,7 @@ class LocalDriver extends Driver
             $url = $filePath;
         }
         if ($this->withSource) {
-            $localPath = str_replace(Config::getInstance()->get('baseUri'), PUBPATH, $url);
+            $localPath = str_replace(Config::getInstance()->get('baseUrl'), PUBPATH, $url);
             $needRemoved = false;
             if (!file_exists($localPath)) {
                 file_put_contents($localPath, file_get_contents($url));
