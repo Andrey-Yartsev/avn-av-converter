@@ -58,6 +58,7 @@ class CloudConverterController extends Controller
                                     'response' => $response->getBody()
                                 ]);
                                 Redis::getInstance()->del('cc:' . $id);
+                                Redis::getInstance()->del('queue:' . $id);
                             } catch (\Exception $e) {
                                 Logger::send('converter.cc.callback.sendCallback', [
                                     'error' => $e->getMessage()
