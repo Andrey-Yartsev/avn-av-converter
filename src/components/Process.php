@@ -35,6 +35,10 @@ class Process
         return $processId;
     }
     
+    /**
+     * @param $processId
+     * @return bool
+     */
     public static function start($processId)
     {
         $queue = Redis::getInstance()->get('queue:' . $processId);
@@ -93,5 +97,14 @@ class Process
             return true;
         }
         return false;
+    }
+    
+    /**
+     * @param $processId
+     * @return bool
+     */
+    public static function exists($processId)
+    {
+        return Redis::getInstance()->exists('queue:' . $processId);
     }
 }

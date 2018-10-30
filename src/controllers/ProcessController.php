@@ -15,6 +15,31 @@ use Converter\forms\UploadForm;
 
 class ProcessController extends Controller
 {
+    public function actionExists()
+    {
+        $request = $this->getRequest();
+        $postData = $request->getContentType() == 'json' ? json_decode($request->getContent(), true) : [];
+        $failedIds = [];
+        if (empty($postData['processId']) && empty($postData['processIds'])) {
+            throw new BadRequestHttpException('ProcessId is required');
+        }
+        if (isset($postData['processIds']) && is_array($postData['processIds'])) {
+            foreach ($postData['processIds'] as $processId) {
+                if (!Process::exists($processId)) {
+                    $failedIds[] = $processId;
+                }
+            }
+        } else {
+            if (!Process::exists($postData['processId'])) {
+                $failedIds[] = $postData['processId'];
+            }
+        }
+        
+        return [
+            'failedIds' => $failedIds
+        ];
+    }
+    
     public function actionStart()
     {
         $request = $this->getRequest();
