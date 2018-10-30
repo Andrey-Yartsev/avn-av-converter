@@ -56,7 +56,7 @@ class CloudConvertDriver extends Driver
                 'url'       => $url,
                 'savedPath' => $savedPath . '/' . $hash . '.' . $output->ext
             ]);
-            $url = $storage->upload($url, $savedPath . '/' . $hash . '.' . $output->ext);
+            $url = $storage->upload($localSavedFile, $savedPath . '/' . $hash . '.' . $output->ext);
             Logger::send('converter.cc.callback.uploadFinished', [
                 'url' => $url
             ]);
