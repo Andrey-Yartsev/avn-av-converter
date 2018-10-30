@@ -34,20 +34,10 @@ class CloudConvertDriver extends Driver
         $this->client = new Api($this->token);
     }
     
-    /**
-     * @param $tempUrl
-     * @return mixed
-     */
-    public function getReadyUrlVideo($tempUrl)
-    {
-        $process = new Process($this->client, $tempUrl);
-        $output = $process->refresh()->output;
-        return $output;
-    }
-    
     public function saveVideo($url)
     {
-        $output = $this->getReadyUrlVideo($url);
+        $process = new Process($this->client, $url);
+        $output = $process->refresh()->output;
         $url = $output->url;
         $hash = md5($output->filename);
         $localSavedFile = PUBPATH . '/upload/' . $hash . '.' . $output->ext;
