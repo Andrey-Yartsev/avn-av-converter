@@ -47,6 +47,11 @@ class LocalDriver extends Driver
     
     public function processPhoto($filePath, $callback, $processId = null)
     {
+        $localPath = str_replace(Config::getInstance()->get('baseUrl'), PUBPATH, $filePath);
+        if (!file_exists($localPath)) {
+            $localPath = PUBPATH . '/upload/' . md5($filePath) . basename($filePath);
+            file_put_contents($localPath, file_get_contents($filePath));
+        }
         foreach ($this->thumbSizes as $size) {
             $width = $size['width'] ?? null;
             $height = $size['height'] ?? null;
@@ -56,23 +61,15 @@ class LocalDriver extends Driver
         }
         if ($this->storage) {
             $url = $this->storage->upload($filePath, $this->storage->generatePath($filePath));
+            $needRemoved = true;
         } else {
             $url = $filePath;
+            $needRemoved = false;
         }
         if ($this->withSource) {
-            $localPath = str_replace(Config::getInstance()->get('baseUrl'), PUBPATH, $url);
-            $needRemoved = false;
-            if (!file_exists($localPath)) {
-                file_put_contents($localPath, file_get_contents($url));
-                $needRemoved = true;
-            }
-    
             $fileSize = filesize($localPath);
             list($width, $height) = getimagesize($localPath);
             
-            if ($needRemoved) {
-                @unlink($localPath);
-            }
             $this->result[] = new ImageResponse([
                 'name' => 'source',
                 'size' => $fileSize,
@@ -81,7 +78,9 @@ class LocalDriver extends Driver
                 'url' => $url
             ]);
         }
-        
+        if ($needRemoved) {
+            @unlink($localPath);
+        }
         return $processId;
     }
     
