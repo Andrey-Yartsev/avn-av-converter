@@ -57,13 +57,13 @@ class LocalDriver extends Driver
             $height = $size['height'] ?? null;
             $blur = $size['blur'] ?? null;
             $name = $size['name'] ?? null;
-            $this->resizeImage($filePath, $width, $height, $name, $blur);
+            $this->resizeImage($localPath, $width, $height, $name, $blur);
         }
         if ($this->storage) {
-            $url = $this->storage->upload($filePath, $this->storage->generatePath($filePath));
+            $url = $this->storage->upload($localPath, $this->storage->generatePath($filePath));
             $needRemoved = true;
         } else {
-            $url = $filePath;
+            $url = str_replace(PUBPATH, Config::getInstance()->get('baseUrl'), $localPath);
             $needRemoved = false;
         }
         if ($this->withSource) {
