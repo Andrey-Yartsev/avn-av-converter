@@ -109,7 +109,6 @@ class CloudConvertDriver extends Driver
         foreach ($driver->getResult() as $result) {
             $this->result[] = $result;
         }
-        @unlink($tempPreviewFile);
     }
     
     /**
