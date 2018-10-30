@@ -45,8 +45,8 @@ class CloudConverterController extends Controller
                         Logger::send('converter.cc.callback.findPreset', $preset);
                         $driver = Driver::loadByConfig($options['presetName'], $preset[$options['fileType']]);
                         if ($driver instanceof CloudConvertDriver) {
-                            $driver->saveVideo($request->get('url'));
                             try {
+                                $driver->saveVideo($request->get('url'));
                                 $client = new Client();
                                 $response = $client->request('POST', $options['callback'], [
                                     'json' => [
