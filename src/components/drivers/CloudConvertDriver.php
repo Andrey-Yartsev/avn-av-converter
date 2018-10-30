@@ -40,7 +40,7 @@ class CloudConvertDriver extends Driver
         $output = $process->refresh()->output;
         Logger::send('converter.cc.callback.output', [
             'url'       => $url,
-            'вуигп' => json_encode($output)
+            'debug' => json_encode($output)
         ]);
         $url = $output->url;
         $hash = md5($output->filename);
