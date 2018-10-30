@@ -51,6 +51,9 @@ class CloudConvertDriver extends Driver
         $url = $output->url;
         $hash = md5($output->filename);
         $localSavedFile = PUBPATH . '/upload/' . $hash . '.' . $output->ext;
+        if (strpos($url, '//') === 0 ) {
+            $url = 'https:' . $url;
+        }
         file_put_contents($localSavedFile, file_get_contents($url));
         if ($this->hasStorage()) {
             $storage = $this->getStorage();
