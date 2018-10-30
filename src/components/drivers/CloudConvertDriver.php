@@ -8,9 +8,9 @@ namespace Converter\components\drivers;
 
 
 use CloudConvert\Api;
+use CloudConvert\Process;
 use Converter\components\Config;
 use Converter\components\Logger;
-use Converter\components\Process;
 use Converter\components\Redis;
 use Converter\helpers\FileHelper;
 use Converter\response\VideoResponse;
@@ -137,12 +137,12 @@ class CloudConvertDriver extends Driver
         Redis::getInstance()->set('cc:' . $processId, json_encode([
             'callback' => $callback,
             'presetName' => $this->presetName,
+            'fileType' => FileHelper::TYPE_VIDEO
         ]));
         Logger::send('converter.cc.sendToProvider', [
             'callback' => $callback,
             'presetName' => $this->presetName,
             'processId' => $processId,
-            'fileType' => FileHelper::TYPE_VIDEO
         ]);
         return $processId;
     }
