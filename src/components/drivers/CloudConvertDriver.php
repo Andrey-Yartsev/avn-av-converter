@@ -81,7 +81,7 @@ class CloudConvertDriver extends Driver
         Logger::send('converter.cc.makePreview', [
             'previewsConfig' => $this->previews
         ]);
-        if (!$this->previews) {
+        if ($this->previews) {
             $this->makePreview($localSavedFile);
         }
         if ($this->hasStorage()) {
