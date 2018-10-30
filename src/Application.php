@@ -6,6 +6,7 @@
 
 namespace Converter;
 
+use Converter\components\Logger;
 use Converter\exceptions\HttpException;
 use Converter\exceptions\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\Request;
@@ -95,6 +96,9 @@ class Application
                 'line'    => $line,
             ]
         ];
+        Logger::send('converter.fatal', [
+            'fatalError' => $message
+        ]);
         $this->sendResponse($httpCode, $message);
     }
     
