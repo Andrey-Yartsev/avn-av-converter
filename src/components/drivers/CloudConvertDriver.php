@@ -38,6 +38,10 @@ class CloudConvertDriver extends Driver
     {
         $process = new Process($this->client, $url);
         $output = $process->refresh()->output;
+        Logger::send('converter.cc.callback.output', [
+            'url'       => $url,
+            'вуигп' => json_encode($output)
+        ]);
         $url = $output->url;
         $hash = md5($output->filename);
         $localSavedFile = PUBPATH . '/upload/' . $hash . '.' . $output->ext;
