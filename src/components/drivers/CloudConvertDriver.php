@@ -78,6 +78,9 @@ class CloudConvertDriver extends Driver
             'duration' => ceil($firstStream->get('duration')),
             'size'     => $output->size
         ]);
+        Logger::send('converter.cc.makePreview', [
+            'previewsConfig' => $this->previews
+        ]);
         if (!$this->previews) {
             $this->makePreview($localSavedFile);
         }
@@ -100,6 +103,9 @@ class CloudConvertDriver extends Driver
             ->save($tempPreviewFile);
         $driver = Driver::loadByConfig($this->presetName, $this->previews);
         $driver->processPhoto($tempPreviewFile, '');
+        Logger::send('converter.cc.makePreview', [
+            'previewsResult' => $driver->getResult()
+        ]);
         foreach ($driver->getResult() as $result) {
             $this->result[] = $result;
         }
