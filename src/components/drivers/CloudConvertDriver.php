@@ -10,7 +10,13 @@ namespace Converter\components\drivers;
 use CloudConvert\Api;
 use Converter\components\Config;
 use Converter\components\Logger;
+use Converter\components\Process;
 use Converter\components\Redis;
+use Converter\helpers\FileHelper;
+use Converter\response\VideoResponse;
+use FFMpeg\Coordinate\TimeCode;
+use FFMpeg\FFMpeg;
+use FFMpeg\FFProbe;
 
 class CloudConvertDriver extends Driver
 {
@@ -19,12 +25,88 @@ class CloudConvertDriver extends Driver
     public $token;
     public $outputFormat;
     public $command;
+    public $previews = [];
     
     public function __construct($presetName, $config = [])
     {
-        Logger::send('CC.init');
+        Logger::send('converter.cc.init');
         parent::__construct($presetName, $config);
         $this->client = new Api($this->token);
+    }
+    
+    /**
+     * @param $tempUrl
+     * @return mixed
+     */
+    public function getReadyUrlVideo($tempUrl)
+    {
+        $process = new Process($this->client, $tempUrl);
+        $output = $process->refresh()->output;
+        return $output;
+    }
+    
+    public function saveVideo($url)
+    {
+        $output = $this->getReadyUrlVideo($url);
+        $url = $output->url;
+        $hash = md5($output->filename);
+        $localSavedFile = PUBPATH . '/upload/' . $hash . '.' . $output->ext;
+        file_put_contents($localSavedFile, file_get_contents($url));
+        if ($this->hasStorage()) {
+            $storage = $this->getStorage();
+            $savedPath = 'files/' . substr($hash, 0, 1) . '/' . substr($hash, 0, 2) . '/' . $hash;
+            Logger::send('converter.cc.callback.upload', [
+                'url'       => $url,
+                'savedPath' => $savedPath . '/' . $hash . '.' . $output->ext
+            ]);
+            $url = $storage->upload($url, $savedPath . '/' . $hash . '.' . $output->ext);
+            Logger::send('converter.cc.callback.uploadFinished', [
+                'url' => $url
+            ]);
+        } else {
+            $url = str_replace(PUBPATH, Config::getInstance()->get('baseUri'), $localSavedFile);
+        }
+        $firstStream = FFProbe::create([
+            'ffmpeg.binaries'  => exec('which ffmpeg'),
+            'ffprobe.binaries' => exec('which ffprobe')
+        ])->streams($localSavedFile)
+            ->videos()
+            ->first();
+        $dimension = $firstStream->getDimensions();
+        $this->result[] = new VideoResponse([
+            'name'     => 'source',
+            'url'      => $url,
+            'width'    => $dimension->getWidth(),
+            'height'   => $dimension->getHeight(),
+            'duration' => ceil($firstStream->get('duration')),
+            'size'     => $output->size
+        ]);
+        if (!$this->previews) {
+            $this->makePreview($localSavedFile);
+        }
+        if ($this->hasStorage()) {
+            @unlink($localSavedFile);
+        }
+        return true;
+    }
+    
+    public function makePreview($localSavedFile)
+    {
+        $pathInfo = pathinfo($localSavedFile);
+        $fileName = $pathInfo['filename'] ?? md5($localSavedFile);
+        $tempPreviewFile = PUBPATH . '/upload/' . $fileName . '_preview.jpg';
+        $video = FFMpeg::create([
+            'ffmpeg.binaries'  => exec('which ffmpeg'),
+            'ffprobe.binaries' => exec('which ffprobe')
+        ])->open($localSavedFile);
+        $video->frame(TimeCode::fromSeconds(1))
+            ->save($tempPreviewFile);
+        $driver = Driver::loadByConfig($this->presetName, $this->previews);
+        $driver->processPhoto($tempPreviewFile, '');
+        foreach ($driver->getResult() as $result) {
+            $this->result[] = $result;
+        }
+        @unlink($tempPreviewFile);
     }
     
     /**
@@ -56,10 +138,11 @@ class CloudConvertDriver extends Driver
             'callback' => $callback,
             'presetName' => $this->presetName,
         ]));
-        Logger::send('CC.sendToProvider', [
+        Logger::send('converter.cc.sendToProvider', [
             'callback' => $callback,
             'presetName' => $this->presetName,
-            'processId' => $processId
+            'processId' => $processId,
+            'fileType' => FileHelper::TYPE_VIDEO
         ]);
         return $processId;
     }

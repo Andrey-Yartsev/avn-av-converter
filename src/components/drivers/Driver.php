@@ -26,6 +26,22 @@ abstract class Driver
         $this->storage = FileStorage::loadByPreset($presetName);
     }
     
+    /**
+     * @return bool
+     */
+    public function hasStorage()
+    {
+        return $this->storage instanceof FileStorage;
+    }
+    
+    /**
+     * @return FileStorage|null
+     */
+    public function getStorage()
+    {
+        return $this->storage;
+    }
+    
     abstract public function processPhoto($filePath, $callback, $processId = null);
 
     abstract public function processAudio($filePath, $callback, $processId = null);

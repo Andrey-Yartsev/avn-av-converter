@@ -17,6 +17,7 @@ use Imagine\Imagick\Imagine as ImagickImagine;
 class LocalDriver extends Driver
 {
     public $thumbSizes = [];
+    public $withSource = false;
     /** @var AbstractImagine */
     protected $image;
     
@@ -58,13 +59,29 @@ class LocalDriver extends Driver
         } else {
             $url = $filePath;
         }
-        $this->result[] = new ImageResponse([
-            'name' => 'source',
-            'size' => 123,
-            'width' => 123,
-            'height' => 123,
-            'url' => $url
-        ]);
+        if ($this->withSource) {
+            $localPath = str_replace(Config::getInstance()->get('baseUri'), PUBPATH, $url);
+            $needRemoved = false;
+            if (!file_exists($localPath)) {
+                file_put_contents($localPath, file_get_contents($url));
+                $needRemoved = true;
+            }
+    
+            $fileSize = filesize($localPath);
+            list($width, $height) = getimagesize($localPath);
+            
+            if ($needRemoved) {
+                @unlink($localPath);
+            }
+            $this->result[] = new ImageResponse([
+                'name' => 'source',
+                'size' => $fileSize,
+                'width' => $width,
+                'height' => $height,
+                'url' => $url
+            ]);
+        }
+        
         return $processId;
     }
     
