@@ -45,23 +45,7 @@ class CloudConverterController extends Controller
                         Logger::send('converter.cc.callback.findPreset', $preset);
                         $driver = Driver::loadByConfig($options['presetName'], $preset[$options['fileType']]);
                         if ($driver instanceof CloudConvertDriver) {
-                            
-                            $output = $driver->getReadyUrlVideo($request->get('url'));
-                            $url = $output->url;
-                            Logger::send('converter.cc.callback.findPreset', $preset);
-                            if ($driver->hasStorage()) {
-                                $storage = $driver->getStorage();
-                                $hash = md5($output->filename);
-                                $savedPath = 'files/' . substr($hash, 0, 1) . '/' . substr($hash, 0, 2) . '/' . $hash;
-                                Logger::send('converter.cc.callback.upload', [
-                                    'url'       => $url,
-                                    'savedPath' => $savedPath . '/' . $hash . '.' . $output->ext
-                                ]);
-                                $url = $storage->upload($url, $savedPath . '/' . $hash . '.' . $output->ext);
-                                Logger::send('converter.cc.callback.uploadFinished', [
-                                    'url' => $url
-                                ]);
-                            }
+                            $driver->saveVideo($request->get('url'));
                             try {
                                 $client = new Client();
                                 $response = $client->request('POST', $options['callback'], [

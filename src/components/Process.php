@@ -71,27 +71,30 @@ class Process
                 default:
                     return false;
             }
-            $resultBody = [
-                'processId' => $processId,
-                'files'     => $driver->getResult()
-            ];
-            Logger::send('converter.callback.result', [
-                'resultBody' => json_encode($resultBody)
-            ]);
+            $hasResult = $driver->getResult();
+            if ($hasResult) {
+                $resultBody = [
+                    'processId' => $processId,
+                    'files'     => $driver->getResult()
+                ];
+                Logger::send('converter.callback.result', [
+                    'resultBody' => json_encode($resultBody)
+                ]);
     
-            try {
-                $client = new Client();
-                $response = $client->request('POST', $queue['callback'], [
-                    'json' => $resultBody
-                ]);
-                Logger::send('converter.callback.response', [
-                    'response' => $response->getBody()
-                ]);
-                Redis::getInstance()->del('queue:' . $processId);
-            } catch (\Exception $e) {
-                Logger::send('converter.callback.send', [
-                    'error' => $e->getMessage()
-                ], LogLevel::ERROR);
+                try {
+                    $client = new Client();
+                    $response = $client->request('POST', $queue['callback'], [
+                        'json' => $resultBody
+                    ]);
+                    Logger::send('converter.callback.response', [
+                        'response' => $response->getBody()
+                    ]);
+                    Redis::getInstance()->del('queue:' . $processId);
+                } catch (\Exception $e) {
+                    Logger::send('converter.callback.send', [
+                        'error' => $e->getMessage()
+                    ], LogLevel::ERROR);
+                }
             }
             
             return true;
