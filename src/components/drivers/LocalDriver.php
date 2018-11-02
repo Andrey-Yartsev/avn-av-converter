@@ -24,7 +24,7 @@ class LocalDriver extends Driver
     public function __construct($presetName, array $config = [])
     {
         parent::__construct($presetName, $config);
-        $engine = $config['driver'] ?? 'gd';
+        $engine = $config['engine'] ?? 'gd';
         switch ($engine) {
             case 'gd':
                 $this->imagine = new GdImagine();
@@ -38,6 +38,22 @@ class LocalDriver extends Driver
             default:
                 throw new \Exception();
         }
+    }
+    
+    public function createPhotoPreview($filePath)
+    {
+        $localPath = str_replace(Config::getInstance()->get('baseUrl'), PUBPATH, $filePath);
+        if (!file_exists($localPath)) {
+            $localPath = PUBPATH . '/upload/' . md5($filePath) . basename($filePath);
+            file_put_contents($localPath, file_get_contents($filePath));
+        }
+        $this->resizeImage($localPath, 200, 200, 'temp', 10);
+        return true;
+    }
+    
+    public function createVideoPreview($filePath)
+    {
+        throw new \Exception('Not implemented');
     }
     
     public function processAudio($filePath, $callback, $processId = null)
@@ -59,14 +75,14 @@ class LocalDriver extends Driver
             $name = $size['name'] ?? null;
             $this->resizeImage($localPath, $width, $height, $name, $blur);
         }
-        if ($this->storage) {
-            $url = $this->storage->upload($localPath, $this->storage->generatePath($filePath));
-            $needRemoved = true;
-        } else {
-            $url = str_replace(PUBPATH, Config::getInstance()->get('baseUrl'), $localPath);
-            $needRemoved = false;
-        }
         if ($this->withSource) {
+            if ($this->storage) {
+                $url = $this->storage->upload($localPath, $this->storage->generatePath($filePath));
+                $needRemoved = true;
+            } else {
+                $url = str_replace(PUBPATH, Config::getInstance()->get('baseUrl'), $localPath);
+                $needRemoved = false;
+            }
             $fileSize = filesize($localPath);
             list($width, $height) = getimagesize($localPath);
             
@@ -97,7 +113,7 @@ class LocalDriver extends Driver
      * @param null $blur
      * @return bool
      */
-    protected function resizeImage($filePath, $width, $height, $name = null, $blur = null)
+    public function resizeImage($filePath, $width, $height, $name = null, $blur = null)
     {
         $image = $this->imagine->open($filePath);
         if ($width && empty($height)) {

@@ -48,6 +48,10 @@ abstract class Driver
     
     abstract public function processVideo($filePath, $callback, $processId = null);
     
+    abstract public function createPhotoPreview($filePath);
+    
+    abstract public function createVideoPreview($filePath);
+    
     /**
      * @param $presetName
      * @param $config

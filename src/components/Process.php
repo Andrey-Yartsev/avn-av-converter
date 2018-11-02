@@ -8,8 +8,6 @@ namespace Converter\components;
 
 
 use Converter\components\drivers\Driver;
-use Converter\exceptions\BadRequestHttpException;
-use Converter\exceptions\NotFoundHttpException;
 use Converter\helpers\FileHelper;
 use GuzzleHttp\Client;
 use Psr\Log\LogLevel;
@@ -21,16 +19,18 @@ class Process
      * @param $filePath
      * @param $presetName
      * @param $fileType
+     * @param $previewFiles
      * @return string
      */
-    public static function createQueue($callback, $filePath, $presetName, $fileType)
+    public static function createQueue($callback, $filePath, $presetName, $fileType, $previewFiles = [])
     {
-        $processId = uniqid() . time();
+        $processId = uniqid() .  substr(md5(time()), 8, 8);
         Redis::getInstance()->set('queue:' . $processId, json_encode([
             'callback' => $callback,
             'filePath' => $filePath,
             'presetName' => $presetName,
-            'fileType' => $fileType
+            'fileType' => $fileType,
+            'previewFiles' => $previewFiles
         ]));
         return $processId;
     }

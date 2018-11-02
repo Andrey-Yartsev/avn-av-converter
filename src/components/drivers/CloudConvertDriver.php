@@ -34,6 +34,35 @@ class CloudConvertDriver extends Driver
         $this->client = new Api($this->token);
     }
     
+    public function createPhotoPreview($filePath)
+    {
+        // TODO: Implement createPhotoPreview() method.
+    }
+    
+    public function createVideoPreview($filePath)
+    {
+        $localPath = str_replace(Config::getInstance()->get('baseUrl'), PUBPATH, $filePath);
+        if (!file_exists($localPath)) {
+            $localPath = PUBPATH . '/upload/' . md5($filePath) . basename($filePath);
+            file_put_contents($localPath, file_get_contents($filePath));
+        }
+        $pathInfo = pathinfo($localPath);
+        $fileName = $pathInfo['filename'] ?? md5($localPath);
+        $tempPreviewFile = PUBPATH . '/upload/' . $fileName . '_preview.jpg';
+        $video = FFMpeg::create([
+            'ffmpeg.binaries'  => exec('which ffmpeg'),
+            'ffprobe.binaries' => exec('which ffprobe')
+        ])->open($localPath);
+        $video->frame(TimeCode::fromSeconds(1))
+            ->save($tempPreviewFile);
+        $driver = Driver::loadByConfig($this->presetName, $this->previews);
+        $driver->resizeImage($localPath, 200, 200, 'temp', 10);
+        foreach ($driver->getResult() as $result) {
+            $this->result[] = $result;
+        }
+        return true;
+    }
+    
     public function saveVideo($url)
     {
         $process = new Process($this->client, $url);

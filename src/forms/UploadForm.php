@@ -84,7 +84,17 @@ class UploadForm extends Form
         
         $fileUrl = Config::getInstance()->get('baseUrl') . '/upload/' . basename($this->filePath);
         if ($this->isDelay) {
-            return Process::createQueue($this->callback, $fileUrl, $this->preset, $this->fileType);
+            switch ($this->fileType) {
+                case FileHelper::TYPE_VIDEO:
+                    $driver->createVideoPreview($fileUrl);
+                    break;
+                case FileHelper::TYPE_IMAGE:
+                    $driver->createPhotoPreview($fileUrl);
+                    break;
+        
+            }
+            $previewFiles = $driver->getResult();
+            return Process::createQueue($this->callback, $fileUrl, $this->preset, $this->fileType, $previewFiles);
         } else {
             switch ($this->fileType) {
                 case FileHelper::TYPE_VIDEO:

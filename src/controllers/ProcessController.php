@@ -10,6 +10,7 @@ namespace Converter\controllers;
 use Converter\components\Controller;
 use Converter\components\FileType;
 use Converter\components\Process;
+use Converter\components\Redis;
 use Converter\exceptions\BadRequestHttpException;
 use Converter\forms\UploadForm;
 
@@ -47,17 +48,31 @@ class ProcessController extends Controller
         if (empty($postData['processId']) && empty($postData['processIds'])) {
             throw new BadRequestHttpException('ProcessId is required');
         }
-        $content = json_encode(['success' => true]);
+        if (isset($postData['processIds']) && is_array($postData['processIds'])) {
+            $processIds = $postData['processIds'];
+        } else {
+            $processIds[] = $postData['processId'];
+        }
+        $response = [];
+        foreach ($processIds as $processId) {
+            $queue = Redis::getInstance()->get('queue:' . $processId);
+            if ($queue) {
+                $queue = json_decode($queue, true);
+                if (isset($queue['previewFiles'])) {
+                    $response[] = [
+                        'processId' => $processId,
+                        'files' =>$queue['previewFiles']
+                    ];
+                }
+            }
+        }
+        $content = json_encode($response);
         header('Content-Type: application/json; charset=utf-8');
         header('Content-Length: ' . strlen($content));
         echo $content;
         fastcgi_finish_request();
-        if (isset($postData['processIds']) && is_array($postData['processIds'])) {
-            foreach ($postData['processIds'] as $processId) {
-                Process::start($processId);
-            }
-        } else {
-            Process::start($postData['processId']);
+        foreach ($processIds as $processId) {
+            Process::start($processId);
         }
     }
     
