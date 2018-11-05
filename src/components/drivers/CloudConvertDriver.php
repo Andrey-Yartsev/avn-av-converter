@@ -171,6 +171,7 @@ class CloudConvertDriver extends Driver
             'fileType' => FileHelper::TYPE_VIDEO
         ]));
         Logger::send('converter.cc.sendToProvider', [
+            'file' => $filePath,
             'callback' => $callback,
             'presetName' => $this->presetName,
             'processId' => $processId,
