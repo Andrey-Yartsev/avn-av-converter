@@ -82,7 +82,7 @@ class UploadForm extends Form
             return false;
         }
         
-        $fileUrl = Config::getInstance()->get('baseUrl') . '/upload/' . basename($this->filePath);
+        $fileUrl = file_exists($this->filePath) ? Config::getInstance()->get('baseUrl') . '/upload/' . basename($this->filePath) : $this->filePath;
         if ($this->isDelay) {
             switch ($this->fileType) {
                 case FileHelper::TYPE_VIDEO:
