@@ -29,8 +29,7 @@ class CloudConverterController extends Controller
             $id = $request->get('id');
         }
         Logger::send('converter.cc.callback.init', [
-            'getId' => $id,
-            'step'  => $request->get('step')
+            'params'  => $_GET
         ]);
         if ($id && $request->get('step') == 'finished') {
             $options = Redis::getInstance()->get('cc:' . $id);
