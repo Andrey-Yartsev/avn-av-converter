@@ -115,12 +115,8 @@ class ProcessController extends Controller
             throw new BadRequestHttpException($form);
         }
     
-        if ($form->isDelay) {
-            return [
-                'processId' => $result
-            ];
-        } else {
-            return $result;
-        }
+        return [
+            'processId' => $result
+        ];
     }
 }

@@ -72,7 +72,7 @@ class UploadForm extends Form
             return false;
         }
         
-        if (!file_exists($this->filePath)) {
+        if (!$this->filePath) {
             $this->setErrors('File not uploaded.');
             return false;
         }
@@ -98,20 +98,19 @@ class UploadForm extends Form
         } else {
             switch ($this->fileType) {
                 case FileHelper::TYPE_VIDEO:
-                    $driver->processVideo($fileUrl, $this->callback);
+                    $processId = $driver->processVideo($fileUrl, $this->callback);
                     break;
                 case FileHelper::TYPE_IMAGE:
-                    $driver->processPhoto($fileUrl, $this->callback);
+                    $processId = $driver->processPhoto($fileUrl, $this->callback);
                     break;
                 case FileHelper::TYPE_AUDIO:
-                    $driver->processAudio($fileUrl, $this->callback);
+                    $processId = $driver->processAudio($fileUrl, $this->callback);
                     break;
                 default:
                     $this->setErrors(ucfirst($this->fileType) . ' can\'t handle. O.o');
                     return false;
-
             }
-            return $driver->getResult();
+            return $processId;
         }
     }
     
