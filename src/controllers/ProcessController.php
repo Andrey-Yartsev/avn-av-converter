@@ -61,7 +61,7 @@ class ProcessController extends Controller
                 if (isset($queue['previewFiles'])) {
                     $response[] = [
                         'processId' => $processId,
-                        'files' =>$queue['previewFiles']
+                        'files' => $queue['previewFiles']
                     ];
                 }
             }

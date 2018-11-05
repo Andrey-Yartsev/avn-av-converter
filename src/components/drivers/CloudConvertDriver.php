@@ -56,7 +56,7 @@ class CloudConvertDriver extends Driver
         $video->frame(TimeCode::fromSeconds(1))
             ->save($tempPreviewFile);
         $driver = Driver::loadByConfig($this->presetName, $this->previews);
-        $driver->resizeImage($localPath, 200, 200, 'temp', 10);
+        $driver->createPhotoPreview($tempPreviewFile);
         foreach ($driver->getResult() as $result) {
             $this->result[] = $result;
         }

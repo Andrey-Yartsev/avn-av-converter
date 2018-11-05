@@ -47,7 +47,12 @@ class LocalDriver extends Driver
             $localPath = PUBPATH . '/upload/' . md5($filePath) . basename($filePath);
             file_put_contents($localPath, file_get_contents($filePath));
         }
-        $this->resizeImage($localPath, 200, 200, 'temp', 10);
+        $size = current($this->thumbSizes);
+        $width = $size['width'] ?? null;
+        $height = $size['height'] ?? null;
+        $blur = $size['blur'] ?? null;
+        $name = $size['name'] ?? null;
+        $this->resizeImage($localPath, $width, $height, $name, $blur);
         return true;
     }
     
@@ -113,7 +118,7 @@ class LocalDriver extends Driver
      * @param null $blur
      * @return bool
      */
-    public function resizeImage($filePath, $width, $height, $name = null, $blur = null)
+    protected function resizeImage($filePath, $width, $height, $name = null, $blur = null)
     {
         $image = $this->imagine->open($filePath);
         if ($width && empty($height)) {
