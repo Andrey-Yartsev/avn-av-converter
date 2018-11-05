@@ -30,18 +30,18 @@ class Application
             list($callable, $arguments) = $this->findRoute($url, $method);
             
             if (!$callable) {
-                throw new NotFoundHttpException('Route not found.');
+                throw new NotFoundHttpException('Route not found (' . $url . ')');
             }
             
             if (is_array($callable)) {
                 list($controller, $action) = $callable;
                 if (!class_exists($controller)) {
-                    throw new NotFoundHttpException('Route not found.');
+                    throw new NotFoundHttpException('Route not found (' . $url . ')');
                 }
                 $controller = new $controller($request);
                 $methodName = 'action' . ucfirst($action);
                 if (!method_exists($controller, $methodName)) {
-                    throw new NotFoundHttpException('Route not found.');
+                    throw new NotFoundHttpException('Route not found (' . $url . ')');
                 }
                 return $this->send(call_user_func_array([$controller, $methodName], $arguments));
             } else {
