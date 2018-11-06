@@ -68,7 +68,7 @@ class CloudConvertDriver extends Driver
         $process = new Process($this->client, $url);
         $output = $process->refresh()->output;
         Logger::send('converter.cc.callback.output', [
-            'url'       => $url,
+            'url'   => $url,
             'debug' => json_encode($output)
         ]);
         $url = $output->url;

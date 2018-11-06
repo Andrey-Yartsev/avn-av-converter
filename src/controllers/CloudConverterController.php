@@ -66,6 +66,15 @@ class CloudConverterController extends Controller
                     }
                 }
             }
+        } else {
+            $url = $request->get('url');
+            if (strpos($url, '//') === 0) {
+                $url = 'http:' . $url;
+            }
+            Logger::send('converter.cc.callback.error', [
+                'url'   => $url,
+                'answer' => file_get_contents($url)
+            ]);
         }
     }
 }
