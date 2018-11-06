@@ -7,8 +7,8 @@
 return [
     'baseUrl' => 'https://convert.onlyfans.com',
     'redis'   => [
-        'host'     => '127.0.0.1',
-        'port'     => 6379,
+        'host'     => '/var/run/redis/redis-server.sock',
+        'port'     => null,
         'database' => 1
     ],
     'graylog' => [
