@@ -11,6 +11,7 @@ use Converter\components\Config;
 
 abstract class FileStorage
 {
+    protected $error;
     
     public function __construct($config = [])
     {
@@ -19,9 +20,15 @@ abstract class FileStorage
         }
     }
     
-    abstract public function hasError();
+    public function hasError()
+    {
+        return (bool) $this->error;
+    }
     
-    abstract public function getError();
+    public function getError()
+    {
+        return $this->error;
+    }
     
     abstract public function upload($sourcePath, $savedPath);
     

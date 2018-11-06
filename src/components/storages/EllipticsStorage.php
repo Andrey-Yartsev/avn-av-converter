@@ -16,7 +16,6 @@ class EllipticsStorage extends FileStorage
     protected $httpClient;
     protected $url;
     protected $bucket;
-    protected $error;
 
     public function __construct($config = [])
     {
@@ -25,16 +24,6 @@ class EllipticsStorage extends FileStorage
         if (empty($this->url) || empty($this->bucket)) {
             throw new \InvalidArgumentException();
         }
-    }
-
-    public function hasError()
-    {
-        return (bool) $this->error;
-    }
-
-    public function getError()
-    {
-        return $this->error;
     }
     
     /**
