@@ -54,6 +54,10 @@ class CloudConverterController extends Controller
                                     ]
                                 ]);
                                 Logger::send('converter.cc.callback.sendCallback', [
+                                    'request' => [
+                                        'processId' => $id,
+                                        'files' => $driver->getResult()
+                                    ],
                                     'response' => $response->getBody()
                                 ]);
                                 Redis::getInstance()->del('cc:' . $id, 'queue:' . $id);

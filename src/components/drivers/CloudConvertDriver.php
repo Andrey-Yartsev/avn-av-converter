@@ -72,6 +72,15 @@ class CloudConvertDriver extends Driver
             'debug' => json_encode($output)
         ]);
         $url = $output->url;
+        $this->result[] = new VideoResponse([
+            'name'     => 'source',
+            'url'      => $url,
+            'width'    => null,//$dimension->getWidth(),
+            'height'   => null,//$dimension->getHeight(),
+            'duration' => null,//ceil($firstStream->get('duration')),
+            'size'     => null,//$output->size
+        ]);
+        return true;
         $hash = md5($output->filename);
         $localSavedFile = PUBPATH . '/upload/' . $hash . '.' . $output->ext;
         if (strpos($url, '//') === 0 ) {
