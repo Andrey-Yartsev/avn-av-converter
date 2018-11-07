@@ -82,7 +82,6 @@ class ProcessController extends Controller
         $form = new UploadForm();
         if ($request->getContentType() == 'json') {
             $form->setAttributes(json_decode($request->getContent(), true));
-            $form->process();
         } elseif (isset($_FILES['file'])) {
             if ($_FILES['file']['error']) {
                 throw new BadRequestHttpException('Error upload', $_FILES['file']['error']);
