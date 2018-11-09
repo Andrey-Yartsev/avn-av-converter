@@ -133,7 +133,7 @@ class LocalDriver extends Driver
             return false;
         }
         $resizeBox = new Box($width, $height);
-        $image->thumbnail($resizeBox);
+        $image->resize($resizeBox);
         if ($blur)  {
             $image->effects()->blur($blur);
         }
