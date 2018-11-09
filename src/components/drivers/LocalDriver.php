@@ -12,6 +12,7 @@ use Imagine\Gd\Imagine as GdImagine;
 use Imagine\Gmagick\Imagine as GmagickImagine;
 use Imagine\Image\AbstractImagine;
 use Imagine\Image\Box;
+use Imagine\Image\Point;
 use Imagine\Imagick\Imagine as ImagickImagine;
 
 class LocalDriver extends Driver
@@ -132,7 +133,7 @@ class LocalDriver extends Driver
             return false;
         }
         $resizeBox = new Box($width, $height);
-        $image->resize($resizeBox);
+        $image->thumbnail($resizeBox);
         if ($blur)  {
             $image->effects()->blur($blur);
         }
