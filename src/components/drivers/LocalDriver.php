@@ -80,6 +80,7 @@ class LocalDriver extends Driver
             $name = $size['name'] ?? null;
             $this->resizeImage($localPath, $width, $height, $name, $blur);
         }
+        $needRemoved = true;
         if ($this->withSource) {
             if ($this->storage) {
                 $url = $this->storage->upload($localPath, $this->storage->generatePath($filePath));
