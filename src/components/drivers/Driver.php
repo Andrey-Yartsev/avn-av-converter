@@ -52,6 +52,8 @@ abstract class Driver
     
     abstract public function createVideoPreview($filePath);
     
+    abstract public function getStatus($processId);
+    
     /**
      * @param $presetName
      * @param $config

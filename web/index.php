@@ -24,12 +24,11 @@ if ($currentVerb == 'OPTIONS') {
 }
 
 $application = new Application();
-//$application->addPostRoute('/video/process', [VideoController::class, 'process']);
-//$application->addPostRoute('/video/start', [VideoController::class, 'start']);
 $application->addGetRoute('/video/cloudconvert/callback', [CloudConverterController::class, 'callback']);
 
 $application->addPostRoute('/file/upload', [ProcessController::class, 'upload']);
 $application->addPostRoute('/process/exists', [ProcessController::class, 'exists']);
 $application->addPostRoute('/process/start', [ProcessController::class, 'start']);
+$application->addGetRoute('/process/(\w+)/status', [ProcessController::class, 'status']);
 
 $application->run();

@@ -9,6 +9,7 @@ namespace Converter\components;
 
 use Converter\components\drivers\Driver;
 use Converter\helpers\FileHelper;
+use Converter\response\StatusResponse;
 use GuzzleHttp\Client;
 use Psr\Log\LogLevel;
 
@@ -33,6 +34,32 @@ class Process
             'previewFiles' => $previewFiles
         ]));
         return $processId;
+    }
+    
+    /**
+     * @param $processId
+     * @return bool|StatusResponse
+     */
+    public static function status($processId)
+    {
+        $queue = Redis::getInstance()->get('queue:' . $processId);
+        if ($queue) {
+            $queue = json_decode($queue, true);
+            $presets = Config::getInstance()->get('presets');
+            if (empty($presets[$queue['presetName']])) {
+                return false;
+            }
+            $preset = $presets[$queue['presetName']];
+            if (empty($preset[$queue['fileType']])) {
+                return false;
+            }
+    
+            $driver = Driver::loadByConfig($queue['presetName'], $preset[$queue['fileType']]);
+            if ($driver === null) {
+                return false;
+            }
+            return $driver->getStatus($processId);
+        }
     }
     
     /**

@@ -16,6 +16,11 @@ use Converter\forms\UploadForm;
 
 class ProcessController extends Controller
 {
+    public function actionStatus($processId)
+    {
+        return Process::status($processId);
+    }
+    
     public function actionExists()
     {
         $request = $this->getRequest();

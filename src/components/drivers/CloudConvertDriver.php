@@ -13,6 +13,7 @@ use Converter\components\Config;
 use Converter\components\Logger;
 use Converter\components\Redis;
 use Converter\helpers\FileHelper;
+use Converter\response\StatusResponse;
 use Converter\response\VideoResponse;
 use FFMpeg\Coordinate\TimeCode;
 use FFMpeg\FFMpeg;
@@ -37,7 +38,27 @@ class CloudConvertDriver extends Driver
     
     public function createPhotoPreview($filePath)
     {
-        // TODO: Implement createPhotoPreview() method.
+        throw new \Exception('Not implemented');
+    }
+    
+    public function getStatus($processId)
+    {
+        $options = Redis::getInstance()->get('cc:' . $processId);
+        if ($options) {
+            $options = json_decode($options, true);
+            $process = new Process($this->client, $options['url']);
+            $process->refresh();
+            if ($process->percent) {
+                return new StatusResponse([
+                    'id' => $processId,
+                    'percent' => $process->percent
+                ]);
+            }
+        }
+        return new StatusResponse([
+            'id' => $processId,
+            'percent' => 0
+        ]);
     }
     
     public function createVideoPreview($filePath)
@@ -75,14 +96,14 @@ class CloudConvertDriver extends Driver
         $url = $output->url;
         if ($this->withOutSave) {
             $this->result[] = new VideoResponse([
-                'name'     => 'source',
-                'url'      => $url
+                'name' => 'source',
+                'url'  => $url
             ]);
             return true;
         }
         $hash = md5($output->filename);
         $localSavedFile = PUBPATH . '/upload/' . $hash . '.' . $output->ext;
-        if (strpos($url, '//') === 0 ) {
+        if (strpos($url, '//') === 0) {
             $url = 'https:' . $url;
         }
         file_put_contents($localSavedFile, file_get_contents($url));
@@ -159,30 +180,32 @@ class CloudConvertDriver extends Driver
     public function processVideo($filePath, $callback, $processId = null)
     {
         $pathParts = pathinfo($filePath);
-        $process = $this->client->createProcess( [
-            'inputformat' => $pathParts['extension'],
+        $process = $this->client->createProcess([
+            'inputformat'  => $pathParts['extension'],
             'outputformat' => $this->outputFormat,
         ]);
         $process->start([
-            'outputformat' => $this->outputFormat,
+            'outputformat'     => $this->outputFormat,
             'converteroptions' => [
                 'command' => $this->command,
             ],
-            'input' => 'download',
-            'file' => $filePath,
-            'callback' => Config::getInstance()->get('baseUrl') . '/video/cloudconvert/callback?processId=' . $processId
+            'input'            => 'download',
+            'file'             => $filePath,
+            'callback'         => Config::getInstance()->get('baseUrl') . '/video/cloudconvert/callback?processId=' . $processId
         ]);
         $processId = $processId ? $processId : $process->id;
         Redis::getInstance()->set('cc:' . $processId, json_encode([
-            'callback' => $callback,
+            'callback'   => $callback,
             'presetName' => $this->presetName,
-            'fileType' => FileHelper::TYPE_VIDEO
+            'fileType'   => FileHelper::TYPE_VIDEO,
+            'url'        => $process->refresh()->url
         ]));
         Logger::send('converter.cc.sendToProvider', [
-            'file' => $filePath,
-            'callback' => $callback,
+            'file'       => $filePath,
+            'callback'   => $callback,
             'presetName' => $this->presetName,
-            'processId' => $processId,
+            'processId'  => $processId,
+            'url'        => $process->refresh()->url
         ]);
         return $processId;
     }

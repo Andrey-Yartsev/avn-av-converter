@@ -47,6 +47,11 @@ class AmazonDriver extends Driver
         throw new \Exception('Not implemented');
     }
     
+    public function getStatus($processId)
+    {
+        throw new \Exception('Not implemented');
+    }
+    
     /**
      * @return ElasticTranscoderClient
      */
