@@ -8,6 +8,8 @@ namespace Converter\components\drivers;
 
 
 use Converter\components\storages\FileStorage;
+use Imagine\Imagick\Image;
+use Imagine\Imagick\Imagine;
 
 abstract class Driver
 {
@@ -42,11 +44,11 @@ abstract class Driver
         return $this->storage;
     }
     
-    abstract public function processPhoto($filePath, $callback, $processId = null);
+    abstract public function processPhoto($filePath, $callback, $processId = null, $watermark = []);
 
-    abstract public function processAudio($filePath, $callback, $processId = null);
+    abstract public function processAudio($filePath, $callback, $processId = null, $watermark = []);
     
-    abstract public function processVideo($filePath, $callback, $processId = null);
+    abstract public function processVideo($filePath, $callback, $processId = null, $watermark = []);
     
     abstract public function createPhotoPreview($filePath);
     
@@ -75,5 +77,14 @@ abstract class Driver
     public function getResult()
     {
         return $this->result;
+    }
+    
+    public function generateWatermark($processId, $watermark)
+    {
+        if (isset($watermark['image'])) {
+            $localPath = PUBPATH . '/upload/watermark_' . $processId . basename($watermark['image']);
+            file_put_contents($localPath, file_get_contents($watermark['image']));
+            return $localPath;
+        }
     }
 }

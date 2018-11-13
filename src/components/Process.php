@@ -16,23 +16,13 @@ use Psr\Log\LogLevel;
 class Process
 {
     /**
-     * @param $callback
-     * @param $filePath
-     * @param $presetName
-     * @param $fileType
-     * @param $previewFiles
+     * @param array $params
      * @return string
      */
-    public static function createQueue($callback, $filePath, $presetName, $fileType, $previewFiles = [])
+    public static function createQueue($params = [])
     {
         $processId = uniqid() .  substr(md5(time()), 8, 8);
-        Redis::getInstance()->set('queue:' . $processId, json_encode([
-            'callback' => $callback,
-            'filePath' => $filePath,
-            'presetName' => $presetName,
-            'fileType' => $fileType,
-            'previewFiles' => $previewFiles
-        ]));
+        Redis::getInstance()->set('queue:' . $processId, json_encode($params));
         return $processId;
     }
     

@@ -13,12 +13,16 @@ class StatusResponse extends Response
 {
     public $id;
     public $percent;
+    public $step;
+    public $message;
     
     public function jsonSerialize()
     {
         return [
-            'id' => $this->id,
-            'percent' => (int) $this->percent,
+            'id'      => $this->id,
+            'percent' => floor($this->percent),
+            'step'    => $this->step,
+            'message' => $this->message
         ];
     }
 }

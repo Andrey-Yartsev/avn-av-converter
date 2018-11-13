@@ -20,6 +20,7 @@ class UploadForm extends Form
     public $preset;
     public $isDelay = false;
     public $fileType;
+    public $watermark = [];
     protected $mimeType;
     
     /**
@@ -94,7 +95,14 @@ class UploadForm extends Form
         
             }
             $previewFiles = $driver->getResult();
-            return Process::createQueue($this->callback, $fileUrl, $this->preset, $this->fileType, $previewFiles);
+            return Process::createQueue([
+                'callback' => $this->callback,
+                'filePath' => $fileUrl,
+                'presetName' => $this->preset,
+                'fileType' => $this->fileType,
+                'previewFiles' => $previewFiles,
+                'watermark' => $this->watermark
+            ]);
         } else {
             switch ($this->fileType) {
                 case FileHelper::TYPE_VIDEO:

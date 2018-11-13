@@ -49,14 +49,26 @@ class CloudConvertDriver extends Driver
             $process = new Process($this->client, $options['url']);
             $process->refresh();
             if ($process->percent) {
+                Logger::send('converter.cc.status', [
+                    'id'      => $processId,
+                    'percent' => $process->percent,
+                    'step'    => $process->step,
+                    'message' => $process->message
+                ]);
                 return new StatusResponse([
-                    'id' => $processId,
-                    'percent' => $process->percent
+                    'id'      => $processId,
+                    'percent' => $process->percent,
+                    'step'    => $process->step,
+                    'message' => $process->message
                 ]);
             }
         }
+        Logger::send('converter.cc.status', [
+            'id'      => $processId,
+            'percent' => 0
+        ]);
         return new StatusResponse([
-            'id' => $processId,
+            'id'      => $processId,
             'percent' => 0
         ]);
     }
@@ -177,7 +189,7 @@ class CloudConvertDriver extends Driver
      * @throws \CloudConvert\Exceptions\ApiException
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function processVideo($filePath, $callback, $processId = null)
+    public function processVideo($filePath, $callback, $processId = null, $watermark = [])
     {
         $pathParts = pathinfo($filePath);
         $process = $this->client->createProcess([
@@ -210,12 +222,12 @@ class CloudConvertDriver extends Driver
         return $processId;
     }
     
-    public function processAudio($filePath, $callback, $processId = null)
+    public function processAudio($filePath, $callback, $processId = null, $watermark = [])
     {
         throw new \Exception('Not implemented');
     }
     
-    public function processPhoto($filePath, $callback, $processId = null)
+    public function processPhoto($filePath, $callback, $processId = null, $watermark = [])
     {
         throw new \Exception('Not implemented');
     }

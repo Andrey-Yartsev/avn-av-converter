@@ -63,7 +63,7 @@ class LocalDriver extends Driver
         throw new \Exception('Not implemented');
     }
     
-    public function processAudio($filePath, $callback, $processId = null)
+    public function processAudio($filePath, $callback, $processId = null, $watermark = [])
     {
         throw new \Exception('Not implemented');
     }
@@ -73,13 +73,14 @@ class LocalDriver extends Driver
         throw new \Exception('Not implemented');
     }
     
-    public function processPhoto($filePath, $callback, $processId = null)
+    public function processPhoto($filePath, $callback, $processId = null, $watermark = [])
     {
         $localPath = str_replace(Config::getInstance()->get('baseUrl'), PUBPATH, $filePath);
         if (!file_exists($localPath)) {
             $localPath = PUBPATH . '/upload/' . md5($filePath) . basename($filePath);
             file_put_contents($localPath, file_get_contents($filePath));
         }
+        
         foreach ($this->thumbSizes as $size) {
             $this->resizeImage($localPath, $size);
         }
@@ -109,7 +110,7 @@ class LocalDriver extends Driver
         return $processId;
     }
     
-    public function processVideo($filePath, $callback, $processId = null)
+    public function processVideo($filePath, $callback, $processId = null, $watermark = [])
     {
         throw new \Exception('Not implemented');
     }

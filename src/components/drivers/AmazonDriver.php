@@ -25,7 +25,7 @@ class AmazonDriver extends Driver
      * @param null $processId
      * @return null|string
      */
-    public function processVideo($filePath, $callback, $processId = null)
+    public function processVideo($filePath, $callback, $processId = null, $watermark = [])
     {
         $processId = $processId ? $processId : uniqid() . time();
         Redis::getInstance()->sAdd('amazon:upload', json_encode([
@@ -37,12 +37,12 @@ class AmazonDriver extends Driver
         return $processId;
     }
     
-    public function processAudio($filePath, $callback, $processId = null)
+    public function processAudio($filePath, $callback, $processId = null, $watermark = [])
     {
         throw new \Exception('Not implemented');
     }
     
-    public function processPhoto($filePath, $callback, $processId = null)
+    public function processPhoto($filePath, $callback, $processId = null, $watermark = [])
     {
         throw new \Exception('Not implemented');
     }
