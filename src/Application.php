@@ -93,8 +93,6 @@ class Application
             'error' => [
                 'code'    => $code,
                 'message' => $message,
-                'file'    => $file,
-                'line'    => $line,
             ]
         ];
         if (!Config::getInstance()->get('isProd', true)) {
