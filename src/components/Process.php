@@ -19,9 +19,9 @@ class Process
      * @param array $params
      * @return string
      */
-    public static function createQueue($params = [])
+    public static function createQueue($params = [], $processId = null)
     {
-        $processId = uniqid() .  substr(md5(time()), 8, 8);
+        $processId = $processId ? $processId : uniqid() .  substr(md5(time()), 8, 8);
         Redis::getInstance()->set('queue:' . $processId, json_encode($params));
         return $processId;
     }
@@ -50,6 +50,9 @@ class Process
             }
             return $driver->getStatus($processId);
         }
+        return new StatusResponse([
+            'id' => $processId
+        ]);
     }
     
     /**

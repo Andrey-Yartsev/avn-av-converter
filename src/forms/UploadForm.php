@@ -118,6 +118,14 @@ class UploadForm extends Form
                     $this->setErrors(ucfirst($this->fileType) . ' can\'t handle. O.o');
                     return false;
             }
+            Process::createQueue([
+                'callback' => $this->callback,
+                'filePath' => $fileUrl,
+                'presetName' => $this->preset,
+                'fileType' => $this->fileType,
+                'previewFiles' => [],
+                'watermark' => $this->watermark
+            ], $processId);
             return $processId;
         }
     }
