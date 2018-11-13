@@ -5,6 +5,7 @@
  */
 
 return [
+    'isProd' => true,
     'baseUrl' => 'https://convert.onlyfans.com',
     'redis'   => [
         'host'     => '/var/run/redis/redis-server.sock',

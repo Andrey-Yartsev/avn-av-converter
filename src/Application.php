@@ -6,6 +6,7 @@
 
 namespace Converter;
 
+use Converter\components\Config;
 use Converter\components\Logger;
 use Converter\exceptions\HttpException;
 use Converter\exceptions\NotFoundHttpException;
@@ -96,6 +97,10 @@ class Application
                 'line'    => $line,
             ]
         ];
+        if (!Config::getInstance()->get('isProd', true)) {
+            $message['error']['file'] = $file;
+            $message['error']['line'] = $line;
+        }
         Logger::send('converter.fatal', [
             'fatalError' => $message
         ]);
