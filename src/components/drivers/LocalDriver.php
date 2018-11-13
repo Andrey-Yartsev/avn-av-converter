@@ -10,6 +10,7 @@ use Converter\components\Config;
 use Converter\response\ImageResponse;
 use Imagine\Gd\Imagine as GdImagine;
 use Imagine\Gmagick\Imagine as GmagickImagine;
+use Imagine\Image\AbstractImage;
 use Imagine\Image\AbstractImagine;
 use Imagine\Image\Box;
 use Imagine\Image\Point;
@@ -67,6 +68,11 @@ class LocalDriver extends Driver
         throw new \Exception('Not implemented');
     }
     
+    public function getStatus($processId)
+    {
+        throw new \Exception('Not implemented');
+    }
+    
     public function processPhoto($filePath, $callback, $processId = null)
     {
         $localPath = str_replace(Config::getInstance()->get('baseUrl'), PUBPATH, $filePath);
@@ -75,11 +81,7 @@ class LocalDriver extends Driver
             file_put_contents($localPath, file_get_contents($filePath));
         }
         foreach ($this->thumbSizes as $size) {
-            $width = $size['width'] ?? null;
-            $height = $size['height'] ?? null;
-            $blur = $size['blur'] ?? null;
-            $name = $size['name'] ?? null;
-            $this->resizeImage($localPath, $width, $height, $name, $blur);
+            $this->resizeImage($localPath, $size);
         }
         $needRemoved = true;
         if ($this->withSource) {
@@ -94,11 +96,11 @@ class LocalDriver extends Driver
             list($width, $height) = getimagesize($localPath);
             
             $this->result[] = new ImageResponse([
-                'name' => 'source',
-                'size' => $fileSize,
-                'width' => $width,
+                'name'   => 'source',
+                'size'   => $fileSize,
+                'width'  => $width,
                 'height' => $height,
-                'url' => $url
+                'url'    => $url
             ]);
         }
         if ($needRemoved) {
@@ -113,32 +115,31 @@ class LocalDriver extends Driver
     }
     
     /**
-     * @param $filePath
-     * @param $width
-     * @param $height
-     * @param null $name
-     * @param null $blur
+     * @param string $filePath
+     * @param array $size
      * @return bool
      */
-    protected function resizeImage($filePath, $width, $height, $name = null, $blur = null)
+    protected function resizeImage($filePath, $size)
     {
+        $width = $size['width'] ?? null;
+        $height = $size['height'] ?? null;
+        $blur = $size['blur'] ?? null;
+        $name = $size['name'] ?? null;
+        $maxSize = $size['maxSize'] ?? null;
         $image = $this->imagine->open($filePath);
-        if ($width && empty($height)) {
-            $imageSize = $image->getSize();
-            $height = ceil($imageSize->getHeight() / ($imageSize->getWidth() / $width));
-        } elseif ($height && empty($width)) {
-            $imageSize = $image->getSize();
-            $width = ceil($imageSize->getWidth() / ($imageSize->getHeight() / $height));
-        } elseif (empty($height) && empty($width)) {
-            return false;
+        
+        if ($maxSize) {
+            $this->resizeAdaptive($image, $maxSize);
+        } elseif ($height && $height == $width) {
+            $this->crop($image, $height);
         }
-        $resizeBox = new Box($width, $height);
-        $image->resize($resizeBox);
-        if ($blur)  {
+
+        if ($blur) {
             $image->effects()->blur($blur);
         }
     
-        $fileName = $width . 'x' . $height . '_' . urlencode(basename($filePath));
+        $imageSize = $image->getSize();
+        $fileName = $imageSize->getWidth() . 'x' . $imageSize->getHeight() . '_' . urlencode(basename($filePath));
         $savedPath = '/upload/' . $fileName;
         $image->save(PUBPATH . $savedPath);
         $fileSize = filesize(PUBPATH . $savedPath);
@@ -149,12 +150,80 @@ class LocalDriver extends Driver
             $url = Config::getInstance()->get('baseUrl') . $savedPath;
         }
         $this->result[] = new ImageResponse([
-            'name' => $name,
-            'size' => $fileSize,
-            'width' => $width,
+            'name'   => $name,
+            'size'   => $fileSize,
+            'width'  => $width,
             'height' => $height,
-            'url' => $url
+            'url'    => $url
         ]);
         return true;
+    }
+    
+    /**
+     * @param AbstractImage $image
+     * @param int $maxSize
+     * @return AbstractImage
+     */
+    protected function resizeAdaptive($image, $maxSize)
+    {
+        $portraitRatio = 4 / 3;
+        $landscapeRatio = 16 / 9;
+        $imageSize = $image->getSize();
+        $imageHeight = $imageSize->getHeight();
+        $imageWidth = $imageSize->getWidth();
+        
+        if ($imageHeight >= $imageWidth) {
+            $height = $imageHeight;
+            if ($imageHeight / $imageWidth > $portraitRatio) {
+                $height = $imageWidth * $portraitRatio;
+                $sizeBox = new Box($imageWidth, $height);
+                $cropPoint = new Point(0, ceil(($imageHeight - $height) / 2));
+                $image->crop($cropPoint, $sizeBox);
+            }
+            if ($height > $maxSize) {
+                $sizeBox = new Box(ceil($imageWidth / ($height / $maxSize)), $maxSize);
+                $image->resize($sizeBox);
+            }
+        } else {
+            $width = $imageWidth;
+            if ($imageWidth / $imageHeight > $landscapeRatio) {
+                $width = $imageHeight * $landscapeRatio;
+                $sizeBox = new Box($width, $imageHeight);
+                $cropPoint = new Point(ceil(($imageWidth - $width) / 2), 0);
+                $image->crop($cropPoint, $sizeBox);
+            }
+            if ($width > $maxSize) {
+                $sizeBox = new Box($maxSize, ceil($imageHeight / ($width / $maxSize)));
+                $image->resize($sizeBox);
+            }
+        }
+        
+        return $image;
+    }
+    
+    /**
+     * @param AbstractImage $image
+     * @param int $size
+     * @return AbstractImage
+     */
+    protected function crop($image, $size)
+    {
+        $imageSize = $image->getSize();
+        $imageHeight = $imageSize->getHeight();
+        $imageWidth = $imageSize->getWidth();
+        $width = $height = $size;
+        if ($imageWidth < $imageHeight) {
+            $height = ceil($imageHeight / ($imageWidth / $width));
+        } elseif ($imageWidth > $imageHeight) {
+            $width = ceil($imageWidth / ($imageHeight / $height));
+        }
+        $sizeBox = new Box($width, $height);
+        $image->resize($sizeBox);
+        
+        $cropPoint = new Point(0, 0);
+        $sizeBox = new Box($size, $size);
+        $image->crop($cropPoint, $sizeBox);
+        
+        return $image;
     }
 }
