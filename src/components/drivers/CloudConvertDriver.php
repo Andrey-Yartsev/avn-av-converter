@@ -196,10 +196,16 @@ class CloudConvertDriver extends Driver
             'inputformat'  => $pathParts['extension'],
             'outputformat' => $this->outputFormat,
         ]);
+        $watermarkString = '';
+        if (isset($watermark['text'])) {
+            $watermarkString = '-vf drawtext="fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf:text=\'' . $watermark['text'] . '\':x=w-tw-10:y=h-th-10:fontsize=20:fontcolor=Grey"';
+        }
         $process->start([
             'outputformat'     => $this->outputFormat,
             'converteroptions' => [
-                'command' => $this->command,
+                'command' => strtr($this->command, [
+                    '{watermark}' => $watermarkString
+                ]),
             ],
             'input'            => 'download',
             'file'             => $filePath,
