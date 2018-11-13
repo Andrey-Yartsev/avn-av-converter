@@ -106,13 +106,13 @@ class UploadForm extends Form
         } else {
             switch ($this->fileType) {
                 case FileHelper::TYPE_VIDEO:
-                    $processId = $driver->processVideo($fileUrl, $this->callback);
+                    $processId = $driver->processVideo($fileUrl, $this->callback, null, $this->watermark);
                     break;
                 case FileHelper::TYPE_IMAGE:
-                    $processId = $driver->processPhoto($fileUrl, $this->callback);
+                    $processId = $driver->processPhoto($fileUrl, $this->callback, null, $this->watermark);
                     break;
                 case FileHelper::TYPE_AUDIO:
-                    $processId = $driver->processAudio($fileUrl, $this->callback);
+                    $processId = $driver->processAudio($fileUrl, $this->callback, null, $this->watermark);
                     break;
                 default:
                     $this->setErrors(ucfirst($this->fileType) . ' can\'t handle. O.o');
