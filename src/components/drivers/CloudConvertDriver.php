@@ -198,7 +198,7 @@ class CloudConvertDriver extends Driver
         ]);
         $watermarkString = '';
         if (isset($watermark['text'])) {
-            $watermarkString = '-vf drawtext="fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf:text=\'' . $watermark['text'] . '\':x=w-tw-10:y=h-th-10:fontsize=20:fontcolor=Grey"';
+            $watermarkString = '-vf drawtext="fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf:text=\'' . addslashes($watermark['text']) . '\':x=w-tw-10:y=h-th-10:fontsize=20:fontcolor=Grey"';
         }
         $process->start([
             'outputformat'     => $this->outputFormat,
