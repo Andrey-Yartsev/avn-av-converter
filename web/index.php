@@ -6,8 +6,8 @@
 
 use Converter\Application;
 use Converter\controllers\CloudConverterController;
-use Converter\controllers\VideoController;
 use Converter\controllers\ProcessController;
+use Converter\controllers\SystemController;
 
 define('PUBPATH', __DIR__);
 
@@ -30,5 +30,7 @@ $application->addPostRoute('/file/upload', [ProcessController::class, 'upload'])
 $application->addPostRoute('/process/exists', [ProcessController::class, 'exists']);
 $application->addPostRoute('/process/start', [ProcessController::class, 'start']);
 $application->addGetRoute('/process/(\w+)/status', [ProcessController::class, 'status']);
+
+$application->addGetRoute('/status', [SystemController::class, 'status']);
 
 $application->run();
