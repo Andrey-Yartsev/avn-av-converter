@@ -5,6 +5,7 @@
  */
 
 use Converter\Application;
+use Converter\controllers\AmazonController;
 use Converter\controllers\CloudConverterController;
 use Converter\controllers\ProcessController;
 use Converter\controllers\SystemController;
@@ -25,6 +26,7 @@ if ($currentVerb == 'OPTIONS') {
 
 $application = new Application();
 $application->addGetRoute('/video/cloudconvert/callback', [CloudConverterController::class, 'callback']);
+$application->addPostRoute('/aws/sns', [AmazonController::class, 'sns']);
 
 $application->addPostRoute('/file/upload', [ProcessController::class, 'upload']);
 $application->addPostRoute('/process/exists', [ProcessController::class, 'exists']);

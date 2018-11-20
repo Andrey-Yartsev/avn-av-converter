@@ -32,28 +32,23 @@ class AmazonUploadCommand extends Command
         }
     
         $presents = Config::getInstance()->get('presets');
-        while (true) {
-            $uploads = Redis::getInstance()->sMembers('amazon:upload');
-            foreach ($uploads as $upload) {
-                $params = json_decode($upload, true);
-                $output->writeln('<info>Catch ' . $upload . '</info>');
-                $presetName = $params['presetName'];
-                if (empty($presents[$presetName]) || empty($presents[$presetName]['video'])) {
-                    Redis::getInstance()->sRem('amazon:upload', $upload);
-                    continue;
-                }
-    
-                $output->writeln('<info>Init amazon driver</info>');
-                $amazonDriver = new AmazonDriver($presetName, $presents[$presetName]['video']);
-                if ($amazonDriver->createJob($params['filePath'], $params['callback'], $params['processId'])) {
-                    Redis::getInstance()->sRem('amazon:upload', $upload);
-                    $output->writeln('<info>Process #' . $params['processId'] . ' uploaded</info>');
-                } else {
-                    $output->writeln('<error>:(</error>');
-                }
+        Redis::getInstance()->subscribe(['amazon:upload'], function ($redis, $channel, $msg) use ($output, $presents) {
+            $params = json_decode($msg, true);
+            $output->writeln('<info>Catch ' . $msg . '</info>');
+            $presetName = $params['presetName'];
+            if (empty($presents[$presetName]) || empty($presents[$presetName]['video'])) {
+                return false;
             }
-            sleep(1);
-        }
+    
+            $output->writeln('<info>Init amazon driver</info>');
+            $amazonDriver = new AmazonDriver($presetName, $presents[$presetName]['video']);
+            if ($amazonDriver->createJob($params['filePath'], $params['callback'], $params['processId'])) {
+                Redis::getInstance()->sRem('amazon:upload', $msg);
+                $output->writeln('<info>Process #' . $params['processId'] . ' uploaded</info>');
+            } else {
+                $output->writeln('<error>:(</error>');
+            }
+        });
         
         $this->release();
     
