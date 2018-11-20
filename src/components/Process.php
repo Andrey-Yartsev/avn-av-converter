@@ -98,6 +98,7 @@ class Process
                     'files'     => $driver->getResult()
                 ];
                 Logger::send('converter.callback.result', [
+                    'id' => $processId,
                     'resultBody' => json_encode($resultBody)
                 ]);
     
@@ -107,12 +108,14 @@ class Process
                         'json' => $resultBody
                     ]);
                     Logger::send('converter.callback.response', [
+                        'id' => $processId,
                         'response' => $response->getBody()
                     ]);
                     Redis::getInstance()->del('queue:' . $processId);
                     Redis::getInstance()->incr('status.success');
                 } catch (\Exception $e) {
                     Logger::send('converter.callback.send', [
+                        'id' => $processId,
                         'error' => $e->getMessage()
                     ], LogLevel::ERROR);
                 }

@@ -6,48 +6,23 @@
 
 namespace Converter\components;
 
-
-use Gelf\Publisher;
-use Gelf\Transport\UdpTransport;
 use Psr\Log\LogLevel;
 
 class Logger
 {
-    private static $instance;
-    
-    private function __construct()
-    {
-    
-    }
-    
-    /**
-     * @return \Gelf\Logger
-     */
-    public static function getInstance()
-    {
-        if (self::$instance === null) {
-            $config = Config::getInstance()->get('graylog');
-            $transport = new UdpTransport($config['connection']['host'], $config['connection']['port'], UdpTransport::CHUNK_SIZE_LAN);
-            $publisher = new Publisher();
-            $publisher->addTransport($transport);
-            self::$instance = new \Gelf\Logger($publisher, 'converter_' . $config['facility']);
-        }
-        
-        return self::$instance;
-    }
-    
     /**
      * @param $message
      * @param array $context
      * @param string $level
      */
-    public static function send($message, array $context = array(), $level = LogLevel::INFO)
+    public static function send($message, array $context = [], $level = LogLevel::INFO)
     {
-        $instance = self::getInstance();
-        $instance->log($level, $message, $context);
+        $folder = PUBPATH . '/../logs/' . date('Y') . '/' . date('m') . '/' . date('d') . '/';
+        if (!is_dir($folder)) {
+            mkdir($folder, 0777, true);
+        }
+        $f = fopen($folder . $message . '.log', 'at');
+        fwrite($f, date('H:i:s') . "\t" . json_encode($context) . PHP_EOL);
+        fclose($f);
     }
-    
-    private function __clone() {}
-    
-    private function __wakeup() {}
 }
