@@ -115,7 +115,7 @@ class AmazonDriver extends Driver
     public function createJob($filePath, $callback, $processId)
     {
         $pathParts = pathinfo($filePath);
-        $keyName = '/temp_video/' . parse_url($filePath, PHP_URL_HOST) . '/' . uniqid('', true) . '.' . $pathParts['extension'];
+        $keyName = 'temp_video/' . parse_url($filePath, PHP_URL_HOST) . '/' . uniqid('', true) . '.' . $pathParts['extension'];
     
         $s3Client = new S3Client([
             'version' => 'latest',
