@@ -38,12 +38,13 @@ class AmazonUploadCommand extends Command
                 $params = json_decode($upload, true);
                 $output->writeln('<info>Catch ' . $upload . '</info>');
                 $presetName = $params['presetName'];
-                if (empty($presents[$presetName])) {
+                if (empty($presents[$presetName]) || empty($presents[$presetName]['video'])) {
                     Redis::getInstance()->sRem('amazon:upload', $upload);
                     continue;
                 }
-                
-                $amazonDriver = new AmazonDriver($presetName, $presents[$presetName]);
+    
+                $output->writeln('<info>Init amazon driver</info>');
+                $amazonDriver = new AmazonDriver($presetName, $presents[$presetName]['video']);
                 if ($amazonDriver->createJob($params['filePath'], $params['callback'], $params['processId'])) {
                     Redis::getInstance()->sRem('amazon:upload', $upload);
                     $output->writeln('<info>Process #' . $params['processId'] . ' uploaded</info>');

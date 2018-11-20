@@ -11,6 +11,7 @@ use Aws\ElasticTranscoder\ElasticTranscoderClient;
 use Aws\S3\Exception\S3Exception;
 use Aws\S3\S3Client;
 use Converter\components\Redis;
+use Converter\response\VideoResponse;
 use GuzzleHttp\Client;
 
 class AmazonDriver extends Driver
@@ -76,6 +77,28 @@ class AmazonDriver extends Driver
                 'secret' => $this->transcoder['secret'],
             ]
         ]);
+    }
+    
+    public function readJob($jobId)
+    {
+        $transcoderClient = $this->getTranscoderClient();
+        $response = $transcoderClient->readJob(['Id' => $jobId]);
+        $jobData = (array) $response->get('Job');
+        if (!strtolower($jobData['Status']) == 'complete') {
+            return false;
+        }
+    
+        $output = $jobData['Output'];
+        $this->result[] = new VideoResponse([
+            'name'     => 'source',
+            'url'      => $this->url . '/files/' . $output['Key'],
+            'width'    => $output['Width'],
+            'height'   => $output['Height'],
+            'duration' => $output['Duration'],
+            'size'     => $output['FileSize']
+        ]);
+        
+        return true;
     }
     
     /**

@@ -38,18 +38,17 @@ class AmazonQueueCommand extends Command
                 $output->writeln('<info>Catch ' . $job . '</info>');
                 $options = json_decode($job, true);
                 $presetName = $options['presetName'];
-                $amazonDriver = new AmazonDriver($presetName, $presents[$presetName]);
-                $transcoderClient = $amazonDriver->getTranscoderClient();
-                $response = $transcoderClient->readJob(['Id' => $options['jobId']]);
-                $jobData = (array) $response->get('Job');
-                $output->writeln('Read job #' . $options['jobId'] . ', status: ' . strtolower($jobData['Status']));
-                if (strtolower($jobData['Status']) == 'complete') {
+                $amazonDriver = new AmazonDriver($presetName, $presents[$presetName]['video']);
+                
+                $output->writeln('Read job #' . $options['jobId']);
+                if ($amazonDriver->readJob($options['jobId'])) {
+                    $output->writeln('Job #' . $options['jobId'] . ' complete');
                     try {
                         $client = new Client();
                         $client->request('POST', $options['callback'], [
                             'json' => [
                                 'processId' => $options['processId'],
-                                'url' => $amazonDriver->url . '/files/' . $jobData['Output']['Key']
+                                'files' => $amazonDriver->getResult()
                             ]
                         ]);
                         $output->writeln('Read job #' . $options['jobId'] . ', status: ' . strtolower($jobData['Status']));
@@ -59,8 +58,6 @@ class AmazonQueueCommand extends Command
                         $output->writeln('<error>' . $e->getMessage() . '</error>');
                         Redis::getInstance()->sRem('amazon:queue', $job);
                     }
-                } elseif (strtolower($jobData['Status']) == 'error') {
-                    Redis::getInstance()->sRem('amazon:queue', $job);
                 }
             }
             sleep(2);
