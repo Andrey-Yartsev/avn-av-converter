@@ -31,6 +31,8 @@ class AmazonUploadCommand extends Command
             return 1;
         }
     
+        ini_set("default_socket_timeout", -1);
+    
         $presents = Config::getInstance()->get('presets');
         Redis::getInstance()->subscribe(['amazon:upload'], function ($redis, $channel, $msg) use ($output, $presents) {
             $params = json_decode($msg, true);
