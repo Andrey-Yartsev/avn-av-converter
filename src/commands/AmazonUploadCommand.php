@@ -10,7 +10,6 @@ namespace Converter\commands;
 use Converter\components\Config;
 use Converter\components\drivers\AmazonDriver;
 use Converter\components\Redis;
-use Converter\forms\AmazonForm;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Command\LockableTrait;
 use Symfony\Component\Console\Input\InputInterface;

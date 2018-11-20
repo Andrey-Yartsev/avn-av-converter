@@ -6,8 +6,6 @@
 
 namespace Converter\commands;
 
-
-use Aws\ElasticTranscoder\ElasticTranscoderClient;
 use Converter\components\Config;
 use Converter\components\drivers\AmazonDriver;
 use Converter\components\Redis;

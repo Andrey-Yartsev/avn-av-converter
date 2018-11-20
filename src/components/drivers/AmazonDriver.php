@@ -23,6 +23,7 @@ class AmazonDriver extends Driver
      * @param $filePath
      * @param $callback
      * @param null $processId
+     * @param array $watermark
      * @return null|string
      */
     public function processVideo($filePath, $callback, $processId = null, $watermark = [])
@@ -50,6 +51,16 @@ class AmazonDriver extends Driver
     public function getStatus($processId)
     {
         throw new \Exception('Not implemented');
+    }
+    
+    public function createPhotoPreview($filePath)
+    {
+        return;
+    }
+    
+    public function createVideoPreview($filePath)
+    {
+        return;
     }
     
     /**
