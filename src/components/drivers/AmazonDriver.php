@@ -10,6 +10,7 @@ namespace Converter\components\drivers;
 use Aws\ElasticTranscoder\ElasticTranscoderClient;
 use Aws\S3\Exception\S3Exception;
 use Aws\S3\S3Client;
+use Converter\components\Logger;
 use Converter\components\Redis;
 use Converter\response\VideoResponse;
 use GuzzleHttp\Client;
@@ -97,7 +98,7 @@ class AmazonDriver extends Driver
             'duration' => $output['Duration'] ?? 0,
             'size'     => $output['FileSize'] ?? 0
         ]);
-        
+        Logger::send('converter.aws.readJob', $jobData['Output']);
         return true;
     }
     

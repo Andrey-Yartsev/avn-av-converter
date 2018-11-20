@@ -7,6 +7,8 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
+define('PUBPATH', __DIR__ . '/../web');
+
 use Symfony\Component\Console\Application;
 
 $application = new Application();
