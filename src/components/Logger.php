@@ -10,6 +10,9 @@ use Psr\Log\LogLevel;
 
 class Logger
 {
+    static protected $logs = [];
+    static protected $id = null;
+    
     /**
      * @param $message
      * @param array $context
@@ -17,12 +20,26 @@ class Logger
      */
     public static function send($message, array $context = [], $level = LogLevel::INFO)
     {
+        if (!self::$id && isset($context['id'])) {
+            self::$id = $context['id'];
+        }
+        self::$logs[] = [
+            'message' => $message,
+            'context' => json_encode($context)
+        ];
+    }
+    
+    public function __destruct()
+    {
         $folder = PUBPATH . '/../logs/' . date('Y') . '/' . date('m') . '/' . date('d') . '/';
         if (!is_dir($folder)) {
             mkdir($folder, 0777, true);
         }
-        $f = fopen($folder . $message . '.log', 'at');
-        fwrite($f, date('H:i:s') . "\t" . json_encode($context) . PHP_EOL);
+        $fileName = microtime() . self::$id;
+        $f = fopen($folder . $fileName . '.log', 'at');
+        foreach (self::$logs as $row) {
+            fwrite($f, date('H:i:s') . "\t" . $row['message'] . "\t" . $row['context'] . PHP_EOL);
+        }
         fclose($f);
     }
 }
