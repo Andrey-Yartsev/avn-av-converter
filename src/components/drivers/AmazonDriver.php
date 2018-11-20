@@ -11,6 +11,7 @@ use Aws\ElasticTranscoder\ElasticTranscoderClient;
 use Aws\S3\Exception\S3Exception;
 use Aws\S3\S3Client;
 use Converter\components\Logger;
+use Converter\components\Process;
 use Converter\components\Redis;
 use Converter\response\VideoResponse;
 use GuzzleHttp\Client;
@@ -85,7 +86,10 @@ class AmazonDriver extends Driver
         $transcoderClient = $this->getTranscoderClient();
         $response = $transcoderClient->readJob(['Id' => $jobId]);
         $jobData = (array) $response->get('Job');
-        if (!strtolower($jobData['Status']) == 'complete') {
+        if (strtolower($jobData['Status']) != 'complete') {
+            if (strtolower($jobData['Status']) == 'error') {
+                Logger::send('converter.aws.readJob', $jobData['Output']);
+            }
             return false;
         }
     

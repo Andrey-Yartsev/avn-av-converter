@@ -58,6 +58,8 @@ class AmazonQueueCommand extends Command
                         $output->writeln('<error>' . $e->getMessage() . '</error>');
                         Redis::getInstance()->sRem('amazon:queue', $job);
                     }
+                } else {
+                    $output->writeln('<error>Job #' . $options['jobId'] . ' not complete</error>');
                 }
             }
             sleep(2);
