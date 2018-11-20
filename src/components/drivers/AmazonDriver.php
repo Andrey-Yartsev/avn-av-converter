@@ -92,10 +92,10 @@ class AmazonDriver extends Driver
         $this->result[] = new VideoResponse([
             'name'     => 'source',
             'url'      => $this->url . '/files/' . $output['Key'],
-            'width'    => $output['Width'],
-            'height'   => $output['Height'],
-            'duration' => $output['Duration'],
-            'size'     => $output['FileSize']
+            'width'    => $output['Width'] ?? 0,
+            'height'   => $output['Height'] ?? 0,
+            'duration' => $output['Duration'] ?? 0,
+            'size'     => $output['FileSize'] ?? 0
         ]);
         
         return true;
