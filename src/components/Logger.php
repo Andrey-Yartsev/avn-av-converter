@@ -29,7 +29,7 @@ class Logger
         ];
     }
     
-    public function __destruct()
+    public static function fire()
     {
         $folder = PUBPATH . '/../logs/' . date('Y') . '/' . date('m') . '/' . date('d') . '/';
         if (!is_dir($folder)) {
