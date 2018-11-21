@@ -18,6 +18,7 @@ abstract class Driver
     /** @var FileStorage */
     protected $storage;
     protected $result = [];
+    protected $error;
     
     public function __construct($presetName, $config = [])
     {
@@ -79,6 +80,19 @@ abstract class Driver
         return $this->result;
     }
     
+    /**
+     * @return string
+     */
+    public function getError()
+    {
+        return $this->error;
+    }
+    
+    /**
+     * @param $processId
+     * @param $watermark
+     * @return string
+     */
     public function generateWatermark($processId, $watermark)
     {
         if (isset($watermark['image'])) {

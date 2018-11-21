@@ -89,6 +89,7 @@ class AmazonDriver extends Driver
         if (strtolower($jobData['Status']) != 'complete') {
             if (strtolower($jobData['Status']) == 'error') {
                 Logger::send('converter.aws.readJob', $jobData['Output']);
+                $this->error = $jobData['Output']['StatusDetail'];
             }
             return false;
         }

@@ -59,7 +59,19 @@ class AmazonQueueCommand extends Command
                         Redis::getInstance()->sRem('amazon:queue', $job);
                     }
                 } else {
-                    $output->writeln('<error>Job #' . $options['jobId'] . ' not complete</error>');
+                    if (($error = $amazonDriver->getError())) {
+                        Redis::getInstance()->sRem('amazon:queue', $job);
+                        $client = new Client();
+                        $client->request('POST', $options['callback'], [
+                            'json' => [
+                                'processId' => $options['processId'],
+                                'error' => $error
+                            ]
+                        ]);
+                        $output->writeln('<error>Job #' . $options['jobId'] . ' error</error>');
+                    } else {
+                        $output->writeln('<error>Job #' . $options['jobId'] . ' not complete</error>');
+                    }
                 }
             }
             sleep(2);

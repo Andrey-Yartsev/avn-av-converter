@@ -31,44 +31,58 @@ class CloudConverterController extends Controller
         Logger::send('converter.cc.callback.init', [
             'params'  => $_GET
         ]);
-        if ($id && $request->get('step') == 'finished') {
+        if ($id) {
             $options = Redis::getInstance()->get('cc:' . $id);
             if ($options) {
                 $options = json_decode($options, true);
-                Logger::send('converter.cc.callback.findJob', $options);
-                $presents = Config::getInstance()->get('presets');
-                if (!empty($presents[$options['presetName']])) {
-                    $preset = $presents[$options['presetName']];
-                    
-                    if (!empty($preset[$options['fileType']])) {
-                        Logger::send('converter.cc.callback.findPreset', $preset);
-                        $driver = Driver::loadByConfig($options['presetName'], $preset[$options['fileType']]);
-                        if ($driver instanceof CloudConvertDriver) {
-                            try {
-                                $driver->saveVideo($request->get('url'));
-                                $client = new Client();
-                                $response = $client->request('POST', $options['callback'], [
-                                    'json' => [
-                                        'processId' => $id,
-                                        'files' => $driver->getResult()
-                                    ]
-                                ]);
-                                Logger::send('converter.cc.callback.sendCallback', [
-                                    'request' => [
-                                        'processId' => $id,
-                                        'files' => $driver->getResult()
-                                    ],
-                                    'response' => $response->getBody()
-                                ]);
-                                Redis::getInstance()->del('cc:' . $id, 'queue:' . $id);
-                                Redis::getInstance()->incr('status.success');
-                            } catch (\Exception $e) {
-                                Logger::send('converter.cc.callback.sendCallback', [
-                                    'error' => $e->getMessage()
-                                ], LogLevel::ERROR);
+                if ($request->get('step') == 'finished') {
+                    Logger::send('converter.cc.callback.findJob', $options);
+                    $presents = Config::getInstance()->get('presets');
+                    if (!empty($presents[$options['presetName']])) {
+                        $preset = $presents[$options['presetName']];
+                        if (!empty($preset[$options['fileType']])) {
+                            Logger::send('converter.cc.callback.findPreset', $preset);
+                            $driver = Driver::loadByConfig($options['presetName'], $preset[$options['fileType']]);
+                            if ($driver instanceof CloudConvertDriver) {
+                                try {
+                                    $driver->saveVideo($request->get('url'));
+                                    $client = new Client();
+                                    $response = $client->request('POST', $options['callback'], [
+                                        'json' => [
+                                            'processId' => $id,
+                                            'files' => $driver->getResult()
+                                        ]
+                                    ]);
+                                    Logger::send('converter.cc.callback.sendCallback', [
+                                        'request' => [
+                                            'processId' => $id,
+                                            'files' => $driver->getResult()
+                                        ],
+                                        'response' => $response->getBody()
+                                    ]);
+                                    Redis::getInstance()->del('cc:' . $id, 'queue:' . $id);
+                                    Redis::getInstance()->incr('status.success');
+                                } catch (\Exception $e) {
+                                    Logger::send('converter.cc.callback.sendCallback', [
+                                        'error' => $e->getMessage()
+                                    ], LogLevel::ERROR);
+                                }
                             }
                         }
                     }
+                } elseif ($request->get('step') == 'error') {
+                    $url = $request->get('url');
+                    if (strpos($url, '//') === 0) {
+                        $url = 'https:' . $url;
+                    }
+                    $response = json_decode(file_get_contents($url), true);
+                    $client = new Client();
+                    $response = $client->request('POST', $options['callback'], [
+                        'json' => [
+                            'processId' => $id,
+                            'error' => $response['message']
+                        ]
+                    ]);
                 }
             }
         } else {
