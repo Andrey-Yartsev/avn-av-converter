@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "543fe0f187e16161a13c0afcb42cc64f",
+    "content-hash": "1d8542734f625baf3847db64a054f927",
     "packages": [
         {
             "name": "alchemy/binary-driver",
@@ -68,6 +68,59 @@
                 "driver"
             ],
             "time": "2018-08-06T10:18:33+00:00"
+        },
+        {
+            "name": "aws/aws-php-sns-message-validator",
+            "version": "1.5.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/aws/aws-php-sns-message-validator.git",
+                "reference": "84e0f665d5825b0d9c546e0a0de89465b4c6b53a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/aws/aws-php-sns-message-validator/zipball/84e0f665d5825b0d9c546e0a0de89465b4c6b53a",
+                "reference": "84e0f665d5825b0d9c546e0a0de89465b4c6b53a",
+                "shasum": ""
+            },
+            "require": {
+                "ext-openssl": "*",
+                "php": ">=5.4",
+                "psr/http-message": "^1.0"
+            },
+            "require-dev": {
+                "guzzlehttp/psr7": "^1.4",
+                "phpunit/phpunit": "^4.0",
+                "squizlabs/php_codesniffer": "^2.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Aws\\Sns\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Amazon Web Services",
+                    "homepage": "http://aws.amazon.com"
+                }
+            ],
+            "description": "Amazon SNS message validation for PHP",
+            "homepage": "http://aws.amazon.com/sdkforphp",
+            "keywords": [
+                "SNS",
+                "amazon",
+                "aws",
+                "cloud",
+                "message",
+                "sdk",
+                "webhooks"
+            ],
+            "time": "2018-07-04T00:31:08+00:00"
         },
         {
             "name": "aws/aws-sdk-php",

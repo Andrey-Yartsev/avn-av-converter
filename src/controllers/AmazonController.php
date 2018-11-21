@@ -7,15 +7,38 @@
 namespace Converter\controllers;
 
 
+use Aws\Sns\Exception\InvalidSnsMessageException;
+use Aws\Sns\Message;
+use Aws\Sns\MessageValidator;
 use Converter\components\Controller;
-use Converter\components\Redis;
+use Converter\components\Logger;
+use Converter\exceptions\NotFoundHttpException;
 
 class AmazonController extends Controller
 {
     public function actionSns()
     {
-        $params = array_merge($_GET, $_POST);
-        Redis::getInstance()->set('amazon:sns:' . time(), json_encode($params));
-        return ['success' => true];
+        $message = Message::fromRawPostData();
+        $validator = new MessageValidator();
+        
+        try {
+            $validator->validate($message);
+        } catch (InvalidSnsMessageException $e) {
+            Logger::send('amazon.sns.validate', [
+                'error' => $e->getMessage()
+            ]);
+            throw new NotFoundHttpException();
+        }
+    
+        if ($message['Type'] === 'SubscriptionConfirmation') {
+            file_get_contents($message['SubscribeURL']);
+        } elseif ($message['Type'] === 'Notification') {
+            Logger::send('amazon.sns.notification', [
+                'id' => $message['MessageId'],
+                'message' => $message['Message']
+            ]);
+        }
+        
+        return true;
     }
 }

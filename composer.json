@@ -14,7 +14,8 @@
     "symfony/console": "^4.1",
     "graylog2/gelf-php": "^1.5",
     "imagine/imagine": "^0.7.1",
-    "php-ffmpeg/php-ffmpeg": "^0.13.0"
+    "php-ffmpeg/php-ffmpeg": "^0.13.0",
+    "aws/aws-php-sns-message-validator": "^1.5"
   },
   "autoload": {
     "psr-4": {
