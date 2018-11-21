@@ -32,7 +32,7 @@ class AmazonDriver extends Driver
     public function processVideo($filePath, $callback, $processId = null, $watermark = [])
     {
         $processId = $processId ? $processId : uniqid() . time();
-        Redis::getInstance()->publish('amazon:upload', json_encode([
+        Redis::getInstance()->sAdd('amazon:upload', json_encode([
             'presetName' => $this->presetName,
             'processId' => $processId,
             'callback' => $callback,

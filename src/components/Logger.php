@@ -31,15 +31,17 @@ class Logger
     
     public static function fire()
     {
-        $folder = PUBPATH . '/../logs/' . date('Y') . '/' . date('m') . '/' . date('d') . '/';
-        if (!is_dir($folder)) {
-            mkdir($folder, 0777, true);
+        if (self::$logs) {
+            $folder = PUBPATH . '/../logs/' . date('Y') . '/' . date('m') . '/' . date('d') . '/';
+            if (!is_dir($folder)) {
+                mkdir($folder, 0777, true);
+            }
+            $fileName = microtime(true) . self::$id;
+            $f = fopen($folder . $fileName . '.log', 'at');
+            foreach (self::$logs as $row) {
+                fwrite($f, date('H:i:s') . "\t" . $row['message'] . "\t" . $row['context'] . PHP_EOL);
+            }
+            fclose($f);
         }
-        $fileName = microtime() . self::$id;
-        $f = fopen($folder . $fileName . '.log', 'at');
-        foreach (self::$logs as $row) {
-            fwrite($f, date('H:i:s') . "\t" . $row['message'] . "\t" . $row['context'] . PHP_EOL);
-        }
-        fclose($f);
     }
 }
