@@ -75,7 +75,13 @@ class CloudConverterController extends Controller
                     if (strpos($url, '//') === 0) {
                         $url = 'https:' . $url;
                     }
-                    $response = json_decode(file_get_contents($url), true);
+                    $ch = curl_init();
+                    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch, CURLOPT_URL, $url);
+                    $response = curl_exec($ch);
+                    curl_close($ch);
+                    $response = json_decode($response, true);
                     $client = new Client();
                     $response = $client->request('POST', $options['callback'], [
                         'json' => [
