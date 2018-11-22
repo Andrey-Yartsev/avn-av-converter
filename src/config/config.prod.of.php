@@ -12,13 +12,6 @@ return [
         'port'     => null,
         'database' => 1
     ],
-    'graylog' => [
-        'facility'   => 'prod_of',
-        'connection' => [
-            'port' => 1517,
-            'host' => '163.237.242.4',
-        ]
-    ],
     'presets' => [
         'of' => [
             'video' => [
