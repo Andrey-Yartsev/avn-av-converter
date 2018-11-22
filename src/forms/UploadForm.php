@@ -82,8 +82,7 @@ class UploadForm extends Form
         if ($driver === false) {
             return false;
         }
-        $driver->generateWatermark($this->watermark);
-        die;
+
         $fileUrl = file_exists($this->filePath) ? Config::getInstance()->get('baseUrl') . '/upload/' . basename($this->filePath) : $this->filePath;
         if ($this->isDelay) {
             switch ($this->fileType) {
