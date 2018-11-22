@@ -111,7 +111,6 @@ class Application
      */
     public function sendResponse($httpCode = Response::HTTP_OK, $message)
     {
-        Logger::fire();
         $message = json_encode($message);
         if (php_sapi_name() !== 'cli') {
             header('Access-Control-Allow-Origin: *');
