@@ -148,7 +148,7 @@ class AmazonDriver extends Driver
         $dir = substr($processId, 0, 1) . '/' . substr($processId, 0, 2) . '/' . substr($processId, 0, 3) . '/' . $processId;
         
         $watermarkKey = $this->getWatermark($watermark);
-    
+        Logger::send('amazon.watermark', ['key' => $watermarkKey]);
         $transcoderClient = $this->getTranscoderClient();
         try {
             $outputSettings = [
@@ -200,6 +200,7 @@ class AmazonDriver extends Driver
      */
     protected function getWatermark($s3Client, $watermark = [])
     {
+        Logger::send('amazon.watermark', ['issetText' => isset($watermark['text'])]);
         if (isset($watermark['text'])) {
             $hash = md5($watermark['text']);
             $watermarkKey = 'watermarks/' . $hash . '.jpg';
@@ -216,6 +217,7 @@ class AmazonDriver extends Driver
                         @unlink($localPath);
                     }
                 } catch (S3Exception $e) {
+                    Logger::send('amazon.watermark', ['error' => $e->getMessage()]);
                     return null;
                 }
             }

@@ -17,5 +17,5 @@ Thumbs.db
 
 # composer vendor dir
 /vendor
-
+/logs
 /src/config/config.php
