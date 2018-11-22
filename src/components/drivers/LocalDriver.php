@@ -153,8 +153,8 @@ class LocalDriver extends Driver
         $this->result[] = new ImageResponse([
             'name'   => $name,
             'size'   => $fileSize,
-            'width'  => $width,
-            'height' => $height,
+            'width'  => $imageSize->getWidth(),
+            'height' => $imageSize->getHeight(),
             'url'    => $url
         ]);
         return true;
