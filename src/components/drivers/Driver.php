@@ -8,6 +8,9 @@ namespace Converter\components\drivers;
 
 
 use Converter\components\storages\FileStorage;
+use Imagine\Image\Box;
+use Imagine\Image\Palette\RGB;
+use Imagine\Image\Point;
 use Imagine\Imagick\Image;
 use Imagine\Imagick\Imagine;
 
@@ -89,15 +92,24 @@ abstract class Driver
     }
     
     /**
-     * @param $processId
      * @param $watermark
      * @return string
      */
-    public function generateWatermark($processId, $watermark)
+    public function generateWatermark($watermark)
     {
         if (isset($watermark['image'])) {
-            $localPath = PUBPATH . '/upload/watermark_' . $processId . basename($watermark['image']);
+            $localPath = PUBPATH . '/upload/' . uniqid('watermark_') . basename($watermark['image']);
             file_put_contents($localPath, file_get_contents($watermark['image']));
+            return $localPath;
+        } elseif ($watermark['text']) {
+            $localPath = PUBPATH . '/upload/' . uniqid('watermark_') . md5($watermark['text']) . '.png';
+            $palette = new RGB();
+            $imagine = new \Imagine\Gd\Imagine();
+            $font = $imagine->font(PUBPATH . '/fonts/OpenSans-Regular.ttf', 20, $palette->color('#808080'));
+            $box = $font->box($watermark['text'], 3);
+            $image = $imagine->create($box, $palette->color('#fff', 0));
+            $image->draw()->text($watermark['text'], $font, new Point(0, 0));
+            $image->save($localPath);
             return $localPath;
         }
     }

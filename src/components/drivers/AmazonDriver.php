@@ -36,7 +36,8 @@ class AmazonDriver extends Driver
             'presetName' => $this->presetName,
             'processId' => $processId,
             'callback' => $callback,
-            'filePath' => $filePath
+            'filePath' => $filePath,
+            'watermark' => $watermark
         ]));
         return $processId;
     }
@@ -111,9 +112,10 @@ class AmazonDriver extends Driver
      * @param $filePath
      * @param $callback
      * @param $processId
+     * @param array $watermark
      * @return bool
      */
-    public function createJob($filePath, $callback, $processId)
+    public function createJob($filePath, $callback, $processId, $watermark = [])
     {
         $pathParts = pathinfo($filePath);
         $keyName = 'temp_video/' . parse_url($filePath, PHP_URL_HOST) . '/' . uniqid('', true) . '.' . $pathParts['extension'];
@@ -144,13 +146,26 @@ class AmazonDriver extends Driver
         }
     
         $dir = substr($processId, 0, 1) . '/' . substr($processId, 0, 2) . '/' . substr($processId, 0, 3) . '/' . $processId;
+        
+        $watermarkKey = $this->getWatermark($watermark);
     
         $transcoderClient = $this->getTranscoderClient();
         try {
+            $outputSettings = [
+                'Key'      => $dir . '.mp4',
+                'Rotate'   => 'auto',
+                'PresetId' => $this->transcoder['preset'],
+            ];
+            if ($watermarkKey) {
+                $outputSettings['Watermarks'][] = [
+                    'InputKey' => $watermarkKey,
+                    'PresetWatermarkId' => 'BottomRight'
+                ];
+            }
             $job = $transcoderClient->createJob([
                 'PipelineId'      => $this->transcoder['pipeline'],
                 'OutputKeyPrefix' => 'files/',
-                'Input'           => [
+                'Input' => [
                     'Key'         => $keyName,
                     'FrameRate'   => 'auto',
                     'Resolution'  => 'auto',
@@ -158,12 +173,8 @@ class AmazonDriver extends Driver
                     'Interlaced'  => 'auto',
                     'Container'   => 'auto',
                 ],
-                'Outputs'         => [
-                    [
-                        'Key'      => $dir . '.mp4',
-                        'Rotate'   => 'auto',
-                        'PresetId' => $this->transcoder['preset'],
-                    ],
+                'Outputs' => [
+                    $outputSettings,
                 ],
             ]);
         } catch (\Exception $e) {
@@ -180,5 +191,37 @@ class AmazonDriver extends Driver
             ]));
             return true;
         }
+    }
+    
+    /**
+     * @param S3Client $s3Client
+     * @param array $watermark
+     * @return null|string
+     */
+    protected function getWatermark($s3Client, $watermark = [])
+    {
+        if (isset($watermark['text'])) {
+            $hash = md5($watermark['text']);
+            $watermarkKey = 'watermarks/' . $hash . '.jpg';
+            $fileExists = $s3Client->doesObjectExist($this->s3['bucket'], $watermarkKey);
+            if (!$fileExists) {
+                $localPath = $this->generateWatermark($watermark);
+                try {
+                    $s3Client->putObject([
+                        'Bucket' => $this->s3['bucket'],
+                        'Key' => $watermarkKey,
+                        'SourceFile' => $localPath,
+                    ]);
+                    if (file_exists($localPath)) {
+                        @unlink($localPath);
+                    }
+                } catch (S3Exception $e) {
+                    return null;
+                }
+            }
+            return $watermarkKey;
+        }
+        
+        return null;
     }
 }

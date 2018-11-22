@@ -15,21 +15,14 @@ class SystemController extends Controller
     public function actionStatus()
     {
         $redis = Redis::getInstance();
-        $queues = [];
-        
-        foreach ($redis->keys('cc:*') as $key) {
-            $queues[$key] = json_decode($redis->get($key));
-        }
-    
-        foreach ($redis->keys('queue:*') as $key) {
-            $queues[$key] = json_decode($redis->get($key));
-        }
         
         return [
             'requests' => (int) $redis->get('status.requests'),
             'success' => (int) $redis->get('status.success'),
-            'queue' => count($redis->keys('queue:*')),
-            'queues' => $queues
+            'queues' => [
+                'cc' => count($redis->keys('cc:*')),
+                'general' => count($redis->keys('queue:*')),
+            ]
         ];
     }
 }
