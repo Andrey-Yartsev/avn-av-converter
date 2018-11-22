@@ -21,7 +21,7 @@ class Logger
         if (!is_dir($folder)) {
             mkdir($folder, 0777, true);
         }
-        $f = fopen($message . '.log', 'at');
+        $f = fopen($folder . $message . '.log', 'at');
         fwrite($f, date('H:i:s') . "\t" . json_encode($context) . PHP_EOL);
         fclose($f);
     }
