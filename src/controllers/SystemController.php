@@ -20,6 +20,10 @@ class SystemController extends Controller
         foreach ($redis->keys('cc:*') as $key) {
             $queues[$key] = json_decode($redis->get($key));
         }
+    
+        foreach ($redis->keys('queue:*') as $key) {
+            $queues[$key] = json_decode($redis->get($key));
+        }
         
         return [
             'requests' => (int) $redis->get('status.requests'),

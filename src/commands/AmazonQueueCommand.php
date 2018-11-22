@@ -53,6 +53,7 @@ class AmazonQueueCommand extends Command
                         ]);
                         $output->writeln(json_encode($amazonDriver->getResult()));
                         Redis::getInstance()->sRem('amazon:queue', $job);
+                        Redis::getInstance()->incr('status.success');
                         // @TODO removed original file
                     } catch (\Exception $e) {
                         $output->writeln('<error>' . $e->getMessage() . '</error>');

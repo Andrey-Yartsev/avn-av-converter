@@ -89,6 +89,7 @@ class CloudConverterController extends Controller
                             'error' => $response['message']
                         ]
                     ]);
+                    Redis::getInstance()->del('cc:' . $id, 'queue:' . $id);
                 }
             }
         } else {
