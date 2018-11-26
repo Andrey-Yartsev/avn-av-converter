@@ -113,7 +113,7 @@ class ProcessController extends Controller
             $form->filePath = $filePath . '.' . $extension;
         }
     
-        $result = $form->process();
+        $result = $form->process($request->get('id'));
         
         if ($result === false) {
             throw new BadRequestHttpException($form);

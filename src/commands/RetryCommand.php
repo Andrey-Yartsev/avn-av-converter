@@ -35,6 +35,9 @@ class RetryCommand extends Command
         $httpClient = new Client();
         
         foreach ($keys as $key) {
+            if (strpos($key, 'count')) {
+                continue;
+            }
             $options = Redis::getInstance()->get($key);
             $options = json_decode($options, true);
             $countKey = 'retry:' . $options['processId'] . ':count';
@@ -50,11 +53,13 @@ class RetryCommand extends Command
                     'response' => $response->getBody()
                 ]);
                 if ($response->getStatusCode() == 200) {
+                    Redis::getInstance()->incr('status.success');
                     Redis::getInstance()->del($key, $countKey);
                 }
             } catch (\Exception $e) {
                 Logger::send('converter.cc.callback.sendCallback', [
                     'type' => 'retry',
+                    'options' => $options,
                     'error' => $e->getMessage()
                 ]);
             }

@@ -8,6 +8,7 @@ namespace Converter\commands;
 
 use Converter\components\Config;
 use Converter\components\drivers\AmazonDriver;
+use Converter\components\Logger;
 use Converter\components\Redis;
 use GuzzleHttp\Client;
 use Symfony\Component\Console\Command\Command;
@@ -45,7 +46,7 @@ class AmazonQueueCommand extends Command
                     $output->writeln('Job #' . $options['jobId'] . ' complete');
                     try {
                         $client = new Client();
-                        $client->request('POST', $options['callback'], [
+                        $response = $client->request('POST', $options['callback'], [
                             'json' => [
                                 'processId' => $options['processId'],
                                 'files' => $amazonDriver->getResult()
@@ -59,17 +60,29 @@ class AmazonQueueCommand extends Command
                     } catch (\Exception $e) {
                         $output->writeln('<error>' . $e->getMessage() . '</error>');
                         Redis::getInstance()->sRem('amazon:queue', $job);
+                        $this->failedCallback($e->getMessage(), $options['callback'], $options['processId'], [
+                            'processId' => $options['processId'],
+                            'files' => $amazonDriver->getResult()
+                        ]);
                     }
                 } else {
                     if (($error = $amazonDriver->getError())) {
                         Redis::getInstance()->sRem('amazon:queue', $job);
-                        $client = new Client();
-                        $client->request('POST', $options['callback'], [
-                            'json' => [
+                        try {
+                            $client = new Client();
+                            $response = $client->request('POST', $options['callback'], [
+                                'json' => [
+                                    'processId' => $options['processId'],
+                                    'error' => $error
+                                ]
+                            ]);
+                        } catch (\Exception $e) {
+                            $this->failedCallback($e->getMessage(), $options['callback'], $options['processId'], [
                                 'processId' => $options['processId'],
                                 'error' => $error
-                            ]
-                        ]);
+                            ]);
+                        }
+                        
                         $output->writeln('<error>Job #' . $options['jobId'] . ' error</error>');
                     } else {
                         $output->writeln('<error>Job #' . $options['jobId'] . ' not complete</error>');
@@ -81,5 +94,27 @@ class AmazonQueueCommand extends Command
         $this->release();
         
         return 2;
+    }
+    
+    /**
+     * @param $error
+     * @param $url
+     * @param $processId
+     * @param $body
+     */
+    protected function failedCallback($error, $url, $processId, $body)
+    {
+        $params = [
+            'url' => $url,
+            'processId' => $processId,
+            'body' => $body
+        ];
+        Redis::getInstance()->set('retry:' . $processId, json_encode($params));
+        Redis::getInstance()->incr('retry:' . $processId . ':count');
+        Logger::send('converter.cc.callback.sendCallback', [
+            'type' => 'main',
+            'params' => $params,
+            'error' => $error
+        ]);
     }
 }

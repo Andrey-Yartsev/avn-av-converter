@@ -141,6 +141,7 @@ class CloudConverterController extends Controller
         Redis::getInstance()->incr('retry:' . $processId . ':count');
         Logger::send('converter.cc.callback.sendCallback', [
             'type' => 'main',
+            'params' => $params,
             'error' => $error
         ], LogLevel::ERROR);
     }
