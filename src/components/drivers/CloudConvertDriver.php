@@ -99,12 +99,28 @@ class CloudConvertDriver extends Driver
     
     public function saveVideo($url)
     {
-        $process = new Process($this->client, $url);
-        $output = $process->refresh()->output;
-        Logger::send('converter.cc.callback.output', [
-            'url'   => $url,
-            'debug' => json_encode($output)
-        ]);
+        try {
+            $process = new Process($this->client, $url);
+            $output = $process->refresh()->output;
+            Logger::send('converter.cc.callback.output', [
+                'url'   => $url,
+                'debug' => json_encode($output)
+            ]);
+        } catch (\Exception $e) {
+            Logger::send('converter.cc.error', [
+                'error' => $e->getMessage(),
+                'loc' => 'ClodConvertDriver:saveVideo()'
+            ]);
+            return false;
+        }
+        
+        if (empty($output->url)) {
+            Logger::send('converter.cc.error', [
+                'error' => 'Empty $url',
+                'loc' => 'ClodConvertDriver:saveVideo()'
+            ]);
+            return false;
+        }
         $url = $output->url;
         if ($this->withOutSave) {
             $this->result[] = new VideoResponse([

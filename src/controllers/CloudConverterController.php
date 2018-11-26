@@ -44,52 +44,32 @@ class CloudConverterController extends Controller
                             Logger::send('converter.cc.callback.findPreset', $preset);
                             $driver = Driver::loadByConfig($options['presetName'], $preset[$options['fileType']]);
                             if ($driver instanceof CloudConvertDriver) {
+                                if ($driver->saveVideo($request->get('url')) == false) {
+                                    $this->sendError('Could not get processed file', $id, $options['callback']);
+                                }
+                                $json = [
+                                    'processId' => $id,
+                                    'files' => $driver->getResult()
+                                ];
                                 try {
-                                    $driver->saveVideo($request->get('url'));
                                     $client = new Client();
                                     $response = $client->request('POST', $options['callback'], [
-                                        'json' => [
-                                            'processId' => $id,
-                                            'files' => $driver->getResult()
-                                        ]
+                                        'json' => $json
                                     ]);
                                     Logger::send('converter.cc.callback.sendCallback', [
-                                        'request' => [
-                                            'processId' => $id,
-                                            'files' => $driver->getResult()
-                                        ],
+                                        'request' => $json,
+                                        'httpCode' => $response->getStatusCode(),
                                         'response' => $response->getBody()
                                     ]);
-                                    Redis::getInstance()->del('cc:' . $id, 'queue:' . $id);
-                                    Redis::getInstance()->incr('status.success');
                                 } catch (\Exception $e) {
-                                    Logger::send('converter.cc.callback.sendCallback', [
-                                        'error' => $e->getMessage()
-                                    ], LogLevel::ERROR);
+                                    $this->failedCallback($e->getMessage(), $options['callback'], $id, $json);
                                 }
+                                Redis::getInstance()->del('cc:' . $id, 'queue:' . $id);
                             }
                         }
                     }
                 } elseif ($request->get('step') == 'error') {
-                    $url = $request->get('url');
-                    if (strpos($url, '//') === 0) {
-                        $url = 'https:' . $url;
-                    }
-                    $ch = curl_init();
-                    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                    curl_setopt($ch, CURLOPT_URL, $url);
-                    $response = curl_exec($ch);
-                    curl_close($ch);
-                    $response = json_decode($response, true);
-                    $client = new Client();
-                    $response = $client->request('POST', $options['callback'], [
-                        'json' => [
-                            'processId' => $id,
-                            'error' => $response['message']
-                        ]
-                    ]);
-                    Redis::getInstance()->del('cc:' . $id, 'queue:' . $id);
+                    $this->sendError($request->get('url'), $id, $options['callback']);
                 }
             }
         } else {
@@ -102,5 +82,63 @@ class CloudConverterController extends Controller
                 'answer' => file_get_contents($url)
             ]);
         }
+    }
+    
+    /**
+     * @param $url
+     * @param $id
+     * @param $callback
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    protected function sendError($url, $id, $callback)
+    {
+        if (strpos($url, '//') === 0) {
+            $url = 'https:' . $url;
+        }
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        $response = curl_exec($ch);
+        curl_close($ch);
+        $response = json_decode($response, true);
+        $json = [
+            'processId' => $id,
+            'error' => $response['message']
+        ];
+        Redis::getInstance()->del('cc:' . $id, 'queue:' . $id);
+        try {
+            $client = new Client();
+            $response = $client->request('POST', $callback, [
+                'json' => $json
+            ]);
+            Logger::send('converter.cc.callback.sendCallback', [
+                'request' => $json,
+                'httpCode' => $response->getStatusCode(),
+                'response' => $response->getBody()
+            ], LogLevel::ERROR);
+        } catch (\Exception $e) {
+            $this->failedCallback($e->getMessage(), $callback, $id, $json);
+        }
+    }
+    
+    /**
+     * @param $error
+     * @param $url
+     * @param $processId
+     * @param $body
+     */
+    protected function failedCallback($error, $url, $processId, $body)
+    {
+        $params = [
+            'url' => $url,
+            'processId' => $processId,
+            'body' => $body
+        ];
+        Redis::getInstance()->set('retry:' . $processId, json_encode($params));
+        Redis::getInstance()->incr('retry:' . $processId . ':count');
+        Logger::send('converter.cc.callback.sendCallback', [
+            'error' => $error
+        ], LogLevel::ERROR);
     }
 }

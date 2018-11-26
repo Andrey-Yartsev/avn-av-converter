@@ -15,6 +15,11 @@ class SystemController extends Controller
     public function actionStatus()
     {
         $redis = Redis::getInstance();
+        $retries = [];
+        
+        foreach ($redis->keys('retry:*') as $key) {
+            $retries[$key] = (int) $redis->get($key . ':count');
+        }
         
         return [
             'requests' => (int) $redis->get('status.requests'),
@@ -22,7 +27,8 @@ class SystemController extends Controller
             'queues' => [
                 'cc' => count($redis->keys('cc:*')),
                 'general' => count($redis->keys('queue:*')),
-            ]
+            ],
+            'retries' => $retries
         ];
     }
 }
