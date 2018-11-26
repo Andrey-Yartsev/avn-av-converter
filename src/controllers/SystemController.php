@@ -18,6 +18,9 @@ class SystemController extends Controller
         $retries = [];
         
         foreach ($redis->keys('retry:*') as $key) {
+            if (strpos($key, 'count')) {
+                continue;
+            }
             $retries[$key] = (int) $redis->get($key . ':count');
         }
         

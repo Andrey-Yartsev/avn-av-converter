@@ -44,6 +44,7 @@ class RetryCommand extends Command
                     'json' => $options['body']
                 ]);
                 Logger::send('converter.cc.callback.sendCallback', [
+                    'type' => 'retry',
                     'request' => $options['body'],
                     'httpCode' => $response->getStatusCode(),
                     'response' => $response->getBody()
@@ -53,6 +54,7 @@ class RetryCommand extends Command
                 }
             } catch (\Exception $e) {
                 Logger::send('converter.cc.callback.sendCallback', [
+                    'type' => 'retry',
                     'error' => $e->getMessage()
                 ]);
             }

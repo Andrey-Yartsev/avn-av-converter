@@ -57,6 +57,7 @@ class CloudConverterController extends Controller
                                         'json' => $json
                                     ]);
                                     Logger::send('converter.cc.callback.sendCallback', [
+                                        'type' => 'main',
                                         'request' => $json,
                                         'httpCode' => $response->getStatusCode(),
                                         'response' => $response->getBody()
@@ -113,6 +114,7 @@ class CloudConverterController extends Controller
                 'json' => $json
             ]);
             Logger::send('converter.cc.callback.sendCallback', [
+                'type' => 'main',
                 'request' => $json,
                 'httpCode' => $response->getStatusCode(),
                 'response' => $response->getBody()
@@ -138,6 +140,7 @@ class CloudConverterController extends Controller
         Redis::getInstance()->set('retry:' . $processId, json_encode($params));
         Redis::getInstance()->incr('retry:' . $processId . ':count');
         Logger::send('converter.cc.callback.sendCallback', [
+            'type' => 'main',
             'error' => $error
         ], LogLevel::ERROR);
     }
