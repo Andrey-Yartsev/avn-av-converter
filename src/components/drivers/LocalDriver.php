@@ -140,7 +140,7 @@ class LocalDriver extends Driver
         }
     
         $imageSize = $image->getSize();
-        $fileName = $imageSize->getWidth() . 'x' . $imageSize->getHeight() . '_' . urlencode(basename($filePath));
+        $fileName = $imageSize->getWidth() . 'x' . $imageSize->getHeight() . '_' . urlencode(pathinfo($filePath, PATHINFO_FILENAME)) . '.jpg';
         $savedPath = '/upload/' . $fileName;
         $image->save(PUBPATH . $savedPath);
         $fileSize = filesize(PUBPATH . $savedPath);
