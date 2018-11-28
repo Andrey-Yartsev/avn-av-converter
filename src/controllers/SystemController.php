@@ -23,6 +23,11 @@ class SystemController extends Controller
             }
             $retries[$key] = (int) $redis->get($key . ':count');
         }
+    
+        $queues = [];
+        foreach ($redis->keys('cc:*') as $key) {
+            $queues[] = json_decode($redis->get($key));
+        }
         
         return [
             'requests' => (int) $redis->get('status.requests'),

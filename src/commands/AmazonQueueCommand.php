@@ -45,13 +45,24 @@ class AmazonQueueCommand extends Command
                 if ($amazonDriver->readJob($options['jobId'])) {
                     $output->writeln('Job #' . $options['jobId'] . ' complete');
                     try {
-                        $client = new Client();
-                        $response = $client->request('POST', $options['callback'], [
-                            'json' => [
-                                'processId' => $options['processId'],
-                                'files' => $amazonDriver->getResult()
-                            ]
-                        ]);
+                        $json = [
+                            'processId' => $options['processId'],
+                            'files' => $amazonDriver->getResult()
+                        ];
+                        try {
+                            $client = new Client();
+                            $response = $client->request('POST', $options['callback'], [
+                                'json' => $json
+                            ]);
+                            Logger::send('converter.cc.callback.sendCallback', [
+                                'type' => 'amazon_main',
+                                'request' => $json,
+                                'httpCode' => $response->getStatusCode(),
+                                'response' => $response->getBody()
+                            ]);
+                        } catch (\Exception $e) {
+                            $this->failedCallback($e->getMessage(), $options['callback'], $options['processId'], $json);
+                        }
                         $output->writeln(json_encode($amazonDriver->getResult()));
                         Redis::getInstance()->sRem('amazon:queue', $job);
                         Redis::getInstance()->incr('status.success');
@@ -76,6 +87,15 @@ class AmazonQueueCommand extends Command
                                     'error' => $error
                                 ]
                             ]);
+                            Logger::send('converter.cc.callback.sendCallback', [
+                                'type' => 'amazon_main',
+                                'request' => [
+                                    'processId' => $options['processId'],
+                                    'error' => $error
+                                ],
+                                'httpCode' => $response->getStatusCode(),
+                                'response' => $response->getBody()
+                            ]);
                         } catch (\Exception $e) {
                             $this->failedCallback($e->getMessage(), $options['callback'], $options['processId'], [
                                 'processId' => $options['processId'],
@@ -89,7 +109,7 @@ class AmazonQueueCommand extends Command
                     }
                 }
             }
-            sleep(2);
+            sleep(3);
         }
         $this->release();
         
