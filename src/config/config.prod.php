@@ -5,6 +5,7 @@
  */
 
 return [
+    'isProd' => false,
     'baseUrl' => 'https://converter.imageservice.me',
     'redis'   => [
         'host'     => '127.0.0.1',
