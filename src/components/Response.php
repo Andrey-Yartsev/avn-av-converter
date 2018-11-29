@@ -9,7 +9,7 @@ namespace Converter\components;
 
 abstract class Response implements \JsonSerializable
 {
-    public function __construct($values)
+    public function __construct($values = [])
     {
         foreach ($values as $key => $value) {
             $this->{$key} = $value;

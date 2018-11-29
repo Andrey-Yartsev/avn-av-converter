@@ -34,7 +34,7 @@ class UploadForm extends Form
             return false;
         }
         $preset = $presets[$this->preset];
-    
+        
         if (!$this->fileType) {
             $mimeType = mime_content_type($this->filePath);
             if ($mimeType == false) {
@@ -59,14 +59,15 @@ class UploadForm extends Form
             return false;
         }
         
+        
         return $driver;
     }
-
+    
     public function process($processId = null)
     {
         $rules = [
             'required' => ['preset', 'filePath'],
-            'url' => ['callback'],
+            'url'      => ['callback'],
         ];
         
         if (!$this->validate($rules)) {
@@ -82,26 +83,16 @@ class UploadForm extends Form
         if ($driver === false) {
             return false;
         }
-
+        
         $fileUrl = file_exists($this->filePath) ? Config::getInstance()->get('baseUrl') . '/upload/' . basename($this->filePath) : $this->filePath;
         if ($this->isDelay) {
-            switch ($this->fileType) {
-                case FileHelper::TYPE_VIDEO:
-                    $driver->createVideoPreview($fileUrl);
-                    break;
-                case FileHelper::TYPE_IMAGE:
-                    $driver->createPhotoPreview($fileUrl);
-                    break;
-        
-            }
-            $previewFiles = $driver->getResult();
             return Process::createQueue([
-                'callback' => $this->callback,
-                'filePath' => $fileUrl,
+                'callback'   => $this->callback,
+                'filePath'   => $fileUrl,
                 'presetName' => $this->preset,
-                'fileType' => $this->fileType,
-                'previewFiles' => $previewFiles,
-                'watermark' => $this->watermark
+                'fileType'   => $this->fileType,
+                'file'       => FileHelper::getFileResponse($fileUrl, $this->fileType),
+                'watermark'  => $this->watermark
             ]);
         } else {
             switch ($this->fileType) {
@@ -119,12 +110,12 @@ class UploadForm extends Form
                     return false;
             }
             Process::createQueue([
-                'callback' => $this->callback,
-                'filePath' => $fileUrl,
+                'callback'   => $this->callback,
+                'filePath'   => $fileUrl,
                 'presetName' => $this->preset,
-                'fileType' => $this->fileType,
-                'previewFiles' => [],
-                'watermark' => $this->watermark
+                'fileType'   => $this->fileType,
+                'file'       => [],
+                'watermark'  => $this->watermark
             ], $processId);
             return $processId;
         }
