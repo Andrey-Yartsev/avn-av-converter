@@ -86,12 +86,30 @@ class UploadForm extends Form
         
         $fileUrl = file_exists($this->filePath) ? Config::getInstance()->get('baseUrl') . '/upload/' . basename($this->filePath) : $this->filePath;
         if ($this->isDelay) {
+            $files = [
+                FileHelper::getFileResponse($fileUrl, $this->fileType)
+            ];
+            switch ($this->fileType) {
+                case FileHelper::TYPE_VIDEO:
+                    $driver->createVideoPreview($fileUrl);
+                    break;
+                case FileHelper::TYPE_IMAGE:
+                    $driver->createPhotoPreview($fileUrl);
+                    break;
+        
+            }
+            
+            if ($this->fileType == FileHelper::TYPE_VIDEO) {
+                $driver->createVideoPreview($fileUrl);
+                $files = array_merge($files, $driver->getResult());
+            }
+            
             return Process::createQueue([
                 'callback'   => $this->callback,
                 'filePath'   => $fileUrl,
                 'presetName' => $this->preset,
                 'fileType'   => $this->fileType,
-                'file'       => FileHelper::getFileResponse($fileUrl, $this->fileType),
+                'files'       => $files,
                 'watermark'  => $this->watermark
             ]);
         } else {
@@ -114,7 +132,7 @@ class UploadForm extends Form
                 'filePath'   => $fileUrl,
                 'presetName' => $this->preset,
                 'fileType'   => $this->fileType,
-                'file'       => [],
+                'files'      => [],
                 'watermark'  => $this->watermark
             ], $processId);
             return $processId;

@@ -45,6 +45,7 @@ class FileHelper
             return null;
         }
         $response->url = $fileUrl;
+        $response->name = 'source';
         return $response;
     }
 }

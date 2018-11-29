@@ -66,7 +66,7 @@ class ProcessController extends Controller
                 if (isset($queue['file'])) {
                     $response[] = [
                         'processId' => $processId,
-                        'files' => [$queue['file']]
+                        'files'     => $queue['files']
                     ];
                 }
             }
@@ -112,13 +112,13 @@ class ProcessController extends Controller
             rename($filePath, $filePath . '.' . $extension);
             $form->filePath = $filePath . '.' . $extension;
         }
-    
+        
         $result = $form->process($request->get('id'));
         
         if ($result === false) {
             throw new BadRequestHttpException($form);
         }
-    
+        
         Redis::getInstance()->incr('status.requests');
         return [
             'processId' => $result
