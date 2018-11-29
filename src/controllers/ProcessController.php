@@ -63,7 +63,7 @@ class ProcessController extends Controller
             $queue = Redis::getInstance()->get('queue:' . $processId);
             if ($queue) {
                 $queue = json_decode($queue, true);
-                if (isset($queue['file'])) {
+                if (isset($queue['files'])) {
                     $response[] = [
                         'processId' => $processId,
                         'files'     => $queue['files']

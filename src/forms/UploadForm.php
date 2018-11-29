@@ -109,7 +109,7 @@ class UploadForm extends Form
                 'filePath'   => $fileUrl,
                 'presetName' => $this->preset,
                 'fileType'   => $this->fileType,
-                'files'       => $files,
+                'files'      => $files,
                 'watermark'  => $this->watermark
             ]);
         } else {
