@@ -118,7 +118,7 @@ class AmazonDriver extends Driver
     public function createJob($filePath, $callback, $processId, $watermark = [])
     {
         $pathParts = pathinfo($filePath);
-        $keyName = 'temp_video/' . parse_url($filePath, PHP_URL_HOST) . '/' . uniqid('', true) . '.' . $pathParts['extension'];
+        $keyName = 'temp_video/' . parse_url($filePath, PHP_URL_HOST) . '/' . date('Y_m_d') . '/' . uniqid('', true) . '.' . $pathParts['extension'];
     
         $s3Client = new S3Client([
             'version' => 'latest',
@@ -145,7 +145,7 @@ class AmazonDriver extends Driver
             return false;
         }
     
-        $dir = substr($processId, 0, 1) . '/' . substr($processId, 0, 2) . '/' . substr($processId, 0, 3) . '/' . $processId;
+        $dir = date('Y_m_d') . '/' . substr($processId, 0, 2) . '/' . substr($processId, 0, 3) . '/' . $processId;
         
         $watermarkKey = $this->getWatermark($s3Client, $watermark);
         Logger::send('amazon.watermark', ['key' => $watermarkKey]);
