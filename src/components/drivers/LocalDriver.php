@@ -181,8 +181,8 @@ class LocalDriver extends Driver
                 $cropPoint = new Point(0, ceil(($imageHeight - $height) / 2));
                 $image->crop($cropPoint, $sizeBox);
             }
-            if ($height > $maxSize) {
-                $sizeBox = new Box(ceil($imageWidth / ($height / $maxSize)), $maxSize);
+            if ($imageWidth > $maxSize) {
+                $sizeBox = new Box($maxSize, ceil($height / ($imageWidth / $maxSize)));
                 $image->resize($sizeBox);
             }
         } else {
