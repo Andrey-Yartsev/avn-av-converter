@@ -244,9 +244,43 @@ class CloudConvertDriver extends Driver
         return $processId;
     }
     
+    /**
+     * @param $filePath
+     * @param $callback
+     * @param null $processId
+     * @return null|object
+     * @throws \CloudConvert\Exceptions\ApiException
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function processAudio($filePath, $callback, $processId = null, $watermark = [])
     {
-        throw new \Exception('Not implemented');
+        $pathParts = pathinfo($filePath);
+        $process = $this->client->createProcess([
+            'inputformat'  => $pathParts['extension'],
+            'outputformat' => $this->outputFormat,
+        ]);
+        $process->start([
+            'outputformat'     => $this->outputFormat,
+            'converteroptions' => [],
+            'input'            => 'download',
+            'file'             => $filePath,
+            'callback'         => Config::getInstance()->get('baseUrl') . '/video/cloudconvert/callback?processId=' . $processId
+        ]);
+        $processId = $processId ? $processId : $process->id;
+        Redis::getInstance()->set('cc:' . $processId, json_encode([
+            'callback'   => $callback,
+            'presetName' => $this->presetName,
+            'fileType'   => FileHelper::TYPE_AUDIO,
+            'url'        => $process->refresh()->url
+        ]));
+        Logger::send('converter.cc.sendToProvider', [
+            'file'       => $filePath,
+            'callback'   => $callback,
+            'presetName' => $this->presetName,
+            'id'         => $processId,
+            'url'        => $process->refresh()->url
+        ]);
+        return $processId;
     }
     
     public function processPhoto($filePath, $callback, $processId = null, $watermark = [])
