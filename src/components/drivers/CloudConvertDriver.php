@@ -123,13 +123,11 @@ class CloudConvertDriver extends Driver
             return false;
         }
         $url = $output->url;
-        if ($this->withOutSave) {
-            $this->result[] = new AudioResponse([
-                'name' => 'source',
-                'url'  => $url
-            ]);
-            return true;
-        }
+        $this->result[] = new AudioResponse([
+            'name' => 'source',
+            'url'  => $url
+        ]);
+        return true;
     }
     
     public function saveVideo($url)

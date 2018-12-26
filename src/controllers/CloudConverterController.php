@@ -43,7 +43,7 @@ class CloudConverterController extends Controller
                         if (!empty($preset[$options['fileType']])) {
                             $fileType = $preset[$options['fileType']];
                             Logger::send('converter.cc.callback.findPreset', $preset);
-                            $driver = Driver::loadByConfig($options['presetName'], $preset[$options['fileType']]);
+                            $driver = Driver::loadByConfig($options['presetName'], $fileType);
                             if ($driver instanceof CloudConvertDriver) {
                                 if ($fileType == FileHelper::TYPE_AUDIO) {
                                     if ($driver->saveAudio($request->get('url')) == false) {
