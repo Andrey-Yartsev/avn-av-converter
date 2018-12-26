@@ -56,7 +56,7 @@ class CloudConverterController extends Controller
                                         $this->sendError('Could not get processed file', $id, $options['callback']);
                                     }
                                 } else {
-                                    $debug = '3';
+                                    $debug = '3' . $fileType;
                                 }
                                 
                                 $json = [
