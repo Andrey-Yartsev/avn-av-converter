@@ -41,26 +41,21 @@ class CloudConverterController extends Controller
                     if (!empty($presents[$options['presetName']])) {
                         $preset = $presents[$options['presetName']];
                         if (!empty($preset[$options['fileType']])) {
-                            $fileType = $preset[$options['fileType']];
+                            $fileType = $options['fileType'];
                             Logger::send('converter.cc.callback.findPreset', $preset);
-                            $driver = Driver::loadByConfig($options['presetName'], $fileType);
+                            $driver = Driver::loadByConfig($options['presetName'], $preset[$fileType]);
                             if ($driver instanceof CloudConvertDriver) {
                                 if ($fileType == FileHelper::TYPE_AUDIO) {
-                                    $debug = '1';
                                     if ($driver->saveAudio($request->get('url')) == false) {
                                         $this->sendError('Could not get processed file', $id, $options['callback']);
                                     }
                                 } elseif ($fileType == FileHelper::TYPE_VIDEO) {
-                                    $debug = '2';
                                     if ($driver->saveVideo($request->get('url')) == false) {
                                         $this->sendError('Could not get processed file', $id, $options['callback']);
                                     }
-                                } else {
-                                    $debug = $fileType;
                                 }
                                 
                                 $json = [
-                                    'debug' => $debug,
                                     'processId' => $id,
                                     'files' => $driver->getResult()
                                 ];
