@@ -35,7 +35,13 @@ return [
                 'token'        => 'TnjiK5KWTh4PU9ceXIiQ9PoRGK_PXZOyR7whEi3rpAK8mweQJyuq650aWorqA2p78ohq2MYoHH9PjrEkzQEG7w',
                 'outputFormat' => 'mp4',
                 'command'      => "-i {INPUTFILE} {watermark} {OUTPUTFILE} -c:v libx264 -pix_fmt yuv420p -profile:v main -level 4.1 -crf 23 -preset slow -c:a aac -strict experimental -movflags +faststart -threads 0"
-            ]
+            ],
+            'audio' => [
+                'driver'       => \Converter\components\drivers\CloudConvertDriver::class,
+                'withOutSave'  => true,
+                'token'        => 'TnjiK5KWTh4PU9ceXIiQ9PoRGK_PXZOyR7whEi3rpAK8mweQJyuq650aWorqA2p78ohq2MYoHH9PjrEkzQEG7w',
+                'outputFormat' => 'mp3',
+            ],
         ],
         'ofamazon' => [
             'video' => [

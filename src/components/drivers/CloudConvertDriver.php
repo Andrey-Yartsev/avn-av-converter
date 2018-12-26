@@ -13,6 +13,7 @@ use Converter\components\Config;
 use Converter\components\Logger;
 use Converter\components\Redis;
 use Converter\helpers\FileHelper;
+use Converter\response\AudioResponse;
 use Converter\response\StatusResponse;
 use Converter\response\VideoResponse;
 use FFMpeg\Coordinate\TimeCode;
@@ -95,6 +96,40 @@ class CloudConvertDriver extends Driver
             $this->result[] = $result;
         }
         return true;
+    }
+    
+    public function saveAudio($url)
+    {
+        try {
+            $process = new Process($this->client, $url);
+            $output = $process->refresh()->output;
+            Logger::send('converter.cc.callback.output', [
+                'url'   => $url,
+                'debug' => json_encode($output)
+            ]);
+        } catch (\Exception $e) {
+            Logger::send('converter.cc.error', [
+                'error' => $e->getMessage(),
+                'loc' => 'ClodConvertDriver:saveAudio()'
+            ]);
+            return false;
+        }
+    
+        if (empty($output->url)) {
+            Logger::send('converter.cc.error', [
+                'error' => 'Empty $url',
+                'loc' => 'ClodConvertDriver:saveAudio()'
+            ]);
+            return false;
+        }
+        $url = $output->url;
+        if ($this->withOutSave) {
+            $this->result[] = new AudioResponse([
+                'name' => 'source',
+                'url'  => $url
+            ]);
+            return true;
+        }
     }
     
     public function saveVideo($url)

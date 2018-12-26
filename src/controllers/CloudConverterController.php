@@ -15,7 +15,7 @@ use Converter\components\drivers\CloudConvertDriver;
 use Converter\components\drivers\Driver;
 use Converter\components\Logger;
 use Converter\components\Redis;
-use Converter\components\storages\FileStorage;
+use Converter\helpers\FileHelper;
 use GuzzleHttp\Client;
 use Psr\Log\LogLevel;
 
@@ -41,12 +41,20 @@ class CloudConverterController extends Controller
                     if (!empty($presents[$options['presetName']])) {
                         $preset = $presents[$options['presetName']];
                         if (!empty($preset[$options['fileType']])) {
+                            $fileType = $preset[$options['fileType']];
                             Logger::send('converter.cc.callback.findPreset', $preset);
                             $driver = Driver::loadByConfig($options['presetName'], $preset[$options['fileType']]);
                             if ($driver instanceof CloudConvertDriver) {
-                                if ($driver->saveVideo($request->get('url')) == false) {
-                                    $this->sendError('Could not get processed file', $id, $options['callback']);
+                                if ($fileType == FileHelper::TYPE_AUDIO) {
+                                    if ($driver->saveAudio($request->get('url')) == false) {
+                                        $this->sendError('Could not get processed file', $id, $options['callback']);
+                                    }
+                                } elseif ($fileType == FileHelper::TYPE_VIDEO) {
+                                    if ($driver->saveVideo($request->get('url')) == false) {
+                                        $this->sendError('Could not get processed file', $id, $options['callback']);
+                                    }
                                 }
+                                
                                 $json = [
                                     'processId' => $id,
                                     'files' => $driver->getResult()
