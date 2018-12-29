@@ -55,7 +55,7 @@ class AmazonDriver extends Driver
 
     public function getStatus($processId)
     {
-        Logger::send('converter.cc.status', [
+        Logger::send('converter.amazon.status', [
             'id'      => $processId,
             'percent' => 7
         ]);
