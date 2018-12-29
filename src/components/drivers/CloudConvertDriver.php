@@ -47,20 +47,29 @@ class CloudConvertDriver extends Driver
         $options = Redis::getInstance()->get('cc:' . $processId);
         if ($options) {
             $options = json_decode($options, true);
-            $process = new Process($this->client, $options['url']);
-            $process->refresh();
-            if ($process->percent) {
-                Logger::send('converter.cc.status', [
-                    'id' => $processId,
-                    'percent'   => $process->percent,
-                    'step'      => $process->step,
-                    'message'   => $process->message
-                ]);
-                return new StatusResponse([
-                    'id'      => $processId,
-                    'percent' => $process->percent,
-                    'step'    => $process->step,
-                    'message' => $process->message
+            try {
+                $process = new Process($this->client, $options['url']);
+                $process->refresh();
+                if ($process->percent) {
+                    Logger::send('converter.cc.status', [
+                        'id' => $processId,
+                        'percent'   => $process->percent,
+                        'step'      => $process->step,
+                        'message'   => $process->message
+                    ]);
+                    return new StatusResponse([
+                        'id'      => $processId,
+                        'percent' => $process->percent,
+                        'step'    => $process->step,
+                        'message' => $process->message
+                    ]);
+                }
+            } catch (\CloudConvert\Exceptions\InvalidParameterException |
+                \CloudConvert\Exceptions\ApiException |
+                \GuzzleHttp\Exception\GuzzleException $e) {
+                Logger::send('converter.cc.error', [
+                    'error' => $e->getMessage(),
+                    'loc' => 'ClodConvertDriver:getStatus()'
                 ]);
             }
         }

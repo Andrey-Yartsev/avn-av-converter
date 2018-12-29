@@ -13,6 +13,7 @@ use Aws\S3\S3Client;
 use Converter\components\Logger;
 use Converter\components\Process;
 use Converter\components\Redis;
+use Converter\response\StatusResponse;
 use Converter\response\VideoResponse;
 use GuzzleHttp\Client;
 
@@ -54,7 +55,14 @@ class AmazonDriver extends Driver
 
     public function getStatus($processId)
     {
-        throw new \Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
+        Logger::send('converter.cc.status', [
+            'id'      => $processId,
+            'percent' => 7
+        ]);
+        return new StatusResponse([
+            'id'      => $processId,
+            'percent' => 7
+        ]);
     }
 
     public function createPhotoPreview($filePath)
