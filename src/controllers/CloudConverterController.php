@@ -7,8 +7,6 @@
 namespace Converter\controllers;
 
 
-use CloudConvert\Api;
-use CloudConvert\Process;
 use Converter\components\Config;
 use Converter\components\Controller;
 use Converter\components\drivers\CloudConvertDriver;
@@ -24,12 +22,13 @@ class CloudConverterController extends Controller
     public function actionCallBack()
     {
         $request = $this->getRequest();
-        $id = $request->get('processId');
+        $id      = $request->get('processId');
+        $url     = $request->get('url', '');
         if (!$id) {
             $id = $request->get('id');
         }
         Logger::send('converter.cc.callback.init', [
-            'params'  => $_GET
+            'params' => $_GET
         ]);
         if ($id) {
             $options = Redis::getInstance()->get('cc:' . $id);
@@ -37,40 +36,41 @@ class CloudConverterController extends Controller
                 $options = json_decode($options, true);
                 if ($request->get('step') == 'finished') {
                     Logger::send('converter.cc.callback.findJob', $options);
-                    $presents = Config::getInstance()->get('presets');
-                    if (!empty($presents[$options['presetName']])) {
-                        $preset = $presents[$options['presetName']];
-                        if (!empty($preset[$options['fileType']])) {
-                            $fileType = $options['fileType'];
+                    $presets    = Config::getInstance()->get('presets');
+                    $presetName = $options['presetName'] ?? '';
+                    if ($presetName && !empty($presets[$presetName])) {
+                        $preset   = $presets[$presetName];
+                        $fileType = $options['fileType'] ?? '';
+                        if ($fileType && in_array($fileType, FileHelper::getAllowedTypes()) && !empty($preset[$fileType])) {
                             Logger::send('converter.cc.callback.findPreset', $preset);
-                            $driver = Driver::loadByConfig($options['presetName'], $preset[$fileType]);
+                            $driver = Driver::loadByConfig($presetName, $preset[$fileType]);
                             if ($driver instanceof CloudConvertDriver) {
+                                $success = true;
                                 if ($fileType == FileHelper::TYPE_AUDIO) {
-                                    if ($driver->saveAudio($request->get('url')) == false) {
-                                        $this->sendError('Could not get processed file', $id, $options['callback']);
-                                    }
+                                    $success = $driver->saveAudio($url);
                                 } elseif ($fileType == FileHelper::TYPE_VIDEO) {
-                                    if ($driver->saveVideo($request->get('url')) == false) {
-                                        $this->sendError('Could not get processed file', $id, $options['callback']);
-                                    }
+                                    $success = $driver->saveVideo($url);
                                 }
-                                
+                                if (!$success) {
+                                    $this->sendError('Could not get processed file', $id, $options['callback']);
+                                }
+
                                 $json = [
                                     'processId' => $id,
-                                    'files' => $driver->getResult()
+                                    'files'     => $driver->getResult()
                                 ];
                                 try {
-                                    $client = new Client();
+                                    $client   = new Client();
                                     $response = $client->request('POST', $options['callback'], [
                                         'json' => $json
                                     ]);
                                     Logger::send('converter.cc.callback.sendCallback', [
-                                        'type' => 'main',
-                                        'request' => $json,
+                                        'type'     => 'main',
+                                        'request'  => $json,
                                         'httpCode' => $response->getStatusCode(),
                                         'response' => $response->getBody()
                                     ]);
-                                } catch (\Exception $e) {
+                                } catch (\GuzzleHttp\Exception\GuzzleException | \Exception $e) {
                                     $this->failedCallback($e->getMessage(), $options['callback'], $id, $json);
                                 }
                                 Redis::getInstance()->del('cc:' . $id, 'queue:' . $id);
@@ -78,26 +78,24 @@ class CloudConverterController extends Controller
                         }
                     }
                 } elseif ($request->get('step') == 'error') {
-                    $this->sendError($request->get('url'), $id, $options['callback']);
+                    $this->sendError($url, $id, $options['callback']);
                 }
             }
         } else {
-            $url = $request->get('url');
             if (strpos($url, '//') === 0) {
                 $url = 'http:' . $url;
             }
             Logger::send('converter.cc.callback.error', [
-                'url'   => $url,
+                'url'    => $url,
                 'answer' => file_get_contents($url)
             ]);
         }
     }
-    
+
     /**
      * @param $url
      * @param $id
      * @param $callback
-     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     protected function sendError($url, $id, $callback)
     {
@@ -111,27 +109,27 @@ class CloudConverterController extends Controller
         $response = curl_exec($ch);
         curl_close($ch);
         $response = json_decode($response, true);
-        $json = [
+        $json     = [
             'processId' => $id,
-            'error' => $response['message']
+            'error'     => $response['message'] ?? ''
         ];
         Redis::getInstance()->del('cc:' . $id, 'queue:' . $id);
         try {
-            $client = new Client();
-            $response = $client->request('POST', $callback, [
+            $client         = new Client();
+            $guzzleResponse = $client->request('POST', $callback, [
                 'json' => $json
             ]);
             Logger::send('converter.cc.callback.sendCallback', [
-                'type' => 'main',
-                'request' => $json,
-                'httpCode' => $response->getStatusCode(),
-                'response' => $response->getBody()
+                'type'     => 'main',
+                'request'  => $json,
+                'httpCode' => $guzzleResponse->getStatusCode(),
+                'response' => $guzzleResponse->getBody()
             ], LogLevel::ERROR);
-        } catch (\Exception $e) {
+        } catch (\GuzzleHttp\Exception\GuzzleException | \Exception $e) {
             $this->failedCallback($e->getMessage(), $callback, $id, $json);
         }
     }
-    
+
     /**
      * @param $error
      * @param $url
@@ -141,16 +139,16 @@ class CloudConverterController extends Controller
     protected function failedCallback($error, $url, $processId, $body)
     {
         $params = [
-            'url' => $url,
+            'url'       => $url,
             'processId' => $processId,
-            'body' => $body
+            'body'      => $body
         ];
         Redis::getInstance()->set('retry:' . $processId, json_encode($params));
         Redis::getInstance()->incr('retry:' . $processId . ':count');
         Logger::send('converter.cc.callback.sendCallback', [
-            'type' => 'main',
+            'type'   => 'main',
             'params' => $params,
-            'error' => $error
+            'error'  => $error
         ], LogLevel::ERROR);
     }
 }

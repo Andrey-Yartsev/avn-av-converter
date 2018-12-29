@@ -15,7 +15,19 @@ class FileHelper
     const TYPE_VIDEO = 'video';
     const TYPE_IMAGE = 'image';
     const TYPE_AUDIO = 'audio';
-    
+
+    /**
+     * @return array
+     */
+    public static function getAllowedTypes()
+    {
+        return [
+            self::TYPE_AUDIO,
+            self::TYPE_VIDEO,
+            self::TYPE_IMAGE,
+        ];
+    }
+
     /**
      * @param $mimeType
      * @return bool|string
@@ -29,7 +41,7 @@ class FileHelper
         }
         return false;
     }
-    
+
     /**
      * @param $fileUrl
      * @param $fileType

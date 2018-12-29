@@ -29,19 +29,19 @@ class CloudConvertDriver extends Driver
     public $command;
     public $withOutSave = false;
     public $previews = [];
-    
+
     public function __construct($presetName, $config = [])
     {
         Logger::send('converter.cc.init');
         parent::__construct($presetName, $config);
         $this->client = new Api($this->token);
     }
-    
+
     public function createPhotoPreview($filePath)
     {
         throw new \Exception('Not implemented');
     }
-    
+
     public function getStatus($processId)
     {
         $options = Redis::getInstance()->get('cc:' . $processId);
@@ -73,7 +73,7 @@ class CloudConvertDriver extends Driver
             'percent' => 0
         ]);
     }
-    
+
     public function createVideoPreview($filePath)
     {
         $localPath = str_replace(Config::getInstance()->get('baseUrl'), PUBPATH, $filePath);
@@ -97,7 +97,7 @@ class CloudConvertDriver extends Driver
         }
         return true;
     }
-    
+
     public function saveAudio($url)
     {
         try {
@@ -114,7 +114,7 @@ class CloudConvertDriver extends Driver
             ]);
             return false;
         }
-    
+
         if (empty($output->url)) {
             Logger::send('converter.cc.error', [
                 'error' => 'Empty $url',
@@ -129,7 +129,7 @@ class CloudConvertDriver extends Driver
         ]);
         return true;
     }
-    
+
     public function saveVideo($url)
     {
         try {
@@ -139,14 +139,14 @@ class CloudConvertDriver extends Driver
                 'url'   => $url,
                 'debug' => json_encode($output)
             ]);
-        } catch (\Exception $e) {
+        } catch (\GuzzleHttp\Exception\GuzzleException | \Exception $e) {
             Logger::send('converter.cc.error', [
                 'error' => $e->getMessage(),
                 'loc' => 'ClodConvertDriver:saveVideo()'
             ]);
             return false;
         }
-        
+
         if (empty($output->url)) {
             Logger::send('converter.cc.error', [
                 'error' => 'Empty $url',
@@ -208,7 +208,7 @@ class CloudConvertDriver extends Driver
         }
         return true;
     }
-    
+
     public function makePreview($localSavedFile)
     {
         $pathInfo = pathinfo($localSavedFile);
@@ -229,7 +229,7 @@ class CloudConvertDriver extends Driver
             $this->result[] = $result;
         }
     }
-    
+
     /**
      * @param $filePath
      * @param $callback
@@ -276,7 +276,7 @@ class CloudConvertDriver extends Driver
         ]);
         return $processId;
     }
-    
+
     /**
      * @param $filePath
      * @param $callback
@@ -315,7 +315,7 @@ class CloudConvertDriver extends Driver
         ]);
         return $processId;
     }
-    
+
     public function processPhoto($filePath, $callback, $processId = null, $watermark = [])
     {
         throw new \Exception('Not implemented');
