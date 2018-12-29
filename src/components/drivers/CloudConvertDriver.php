@@ -39,7 +39,7 @@ class CloudConvertDriver extends Driver
 
     public function createPhotoPreview($filePath)
     {
-        throw new \Exception('Not implemented');
+        throw new \Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
     }
 
     public function getStatus($processId)
@@ -318,6 +318,6 @@ class CloudConvertDriver extends Driver
 
     public function processPhoto($filePath, $callback, $processId = null, $watermark = [])
     {
-        throw new \Exception('Not implemented');
+        throw new \Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
     }
 }

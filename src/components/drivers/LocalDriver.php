@@ -22,7 +22,7 @@ class LocalDriver extends Driver
     public $withSource = false;
     /** @var AbstractImagine */
     protected $image;
-    
+
     public function __construct($presetName, array $config = [])
     {
         parent::__construct($presetName, $config);
@@ -41,7 +41,7 @@ class LocalDriver extends Driver
                 throw new \Exception();
         }
     }
-    
+
     public function createPhotoPreview($filePath)
     {
         $localPath = str_replace(Config::getInstance()->get('baseUrl'), PUBPATH, $filePath);
@@ -57,22 +57,22 @@ class LocalDriver extends Driver
         $this->resizeImage($localPath, $width, $height, $name, $blur);
         return true;
     }
-    
+
     public function createVideoPreview($filePath)
     {
-        throw new \Exception('Not implemented');
+        throw new \Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
     }
-    
+
     public function processAudio($filePath, $callback, $processId = null, $watermark = [])
     {
-        throw new \Exception('Not implemented');
+        throw new \Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
     }
-    
+
     public function getStatus($processId)
     {
-        throw new \Exception('Not implemented');
+        throw new \Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
     }
-    
+
     public function processPhoto($filePath, $callback, $processId = null, $watermark = [])
     {
         $localPath = str_replace(Config::getInstance()->get('baseUrl'), PUBPATH, $filePath);
@@ -80,7 +80,7 @@ class LocalDriver extends Driver
             $localPath = PUBPATH . '/upload/' . md5($filePath) . basename($filePath);
             file_put_contents($localPath, file_get_contents($filePath));
         }
-        
+
         foreach ($this->thumbSizes as $size) {
             $this->resizeImage($localPath, $size);
         }
@@ -95,7 +95,7 @@ class LocalDriver extends Driver
             }
             $fileSize = filesize($localPath);
             list($width, $height) = getimagesize($localPath);
-            
+
             $this->result[] = new ImageResponse([
                 'name'   => 'source',
                 'size'   => $fileSize,
@@ -109,12 +109,12 @@ class LocalDriver extends Driver
         }
         return $processId;
     }
-    
+
     public function processVideo($filePath, $callback, $processId = null, $watermark = [])
     {
-        throw new \Exception('Not implemented');
+        throw new \Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
     }
-    
+
     /**
      * @param string $filePath
      * @param array $size
@@ -128,7 +128,7 @@ class LocalDriver extends Driver
         $name = $size['name'] ?? null;
         $maxSize = $size['maxSize'] ?? null;
         $image = $this->imagine->open($filePath);
-        
+
         if ($maxSize) {
             $this->resizeAdaptive($image, $maxSize);
         } elseif ($height && $height == $width) {
@@ -138,7 +138,7 @@ class LocalDriver extends Driver
         if ($blur) {
             $image->effects()->blur($blur);
         }
-    
+
         $imageSize = $image->getSize();
         $fileName = $imageSize->getWidth() . 'x' . $imageSize->getHeight() . '_' . urlencode(pathinfo($filePath, PATHINFO_FILENAME)) . '.jpg';
         $savedPath = '/upload/' . $fileName;
@@ -159,7 +159,7 @@ class LocalDriver extends Driver
         ]);
         return true;
     }
-    
+
     /**
      * @param AbstractImage $image
      * @param int $maxSize
@@ -172,7 +172,7 @@ class LocalDriver extends Driver
         $imageSize = $image->getSize();
         $imageHeight = $imageSize->getHeight();
         $imageWidth = $imageSize->getWidth();
-        
+
         if ($imageHeight >= $imageWidth) {
             $height = $imageHeight;
             if ($imageHeight / $imageWidth > $portraitRatio) {
@@ -198,10 +198,10 @@ class LocalDriver extends Driver
                 $image->resize($sizeBox);
             }
         }
-        
+
         return $image;
     }
-    
+
     /**
      * @param AbstractImage $image
      * @param int $size
@@ -220,11 +220,11 @@ class LocalDriver extends Driver
         }
         $sizeBox = new Box($width, $height);
         $image->resize($sizeBox);
-        
+
         $cropPoint = new Point(0, 0);
         $sizeBox = new Box($size, $size);
         $image->crop($cropPoint, $sizeBox);
-        
+
         return $image;
     }
 }

@@ -21,7 +21,7 @@ class AmazonDriver extends Driver
     public $url;
     public $s3;
     public $transcoder;
-    
+
     /**
      * @param $filePath
      * @param $callback
@@ -41,32 +41,32 @@ class AmazonDriver extends Driver
         ]));
         return $processId;
     }
-    
+
     public function processAudio($filePath, $callback, $processId = null, $watermark = [])
     {
-        throw new \Exception('Not implemented');
+        throw new \Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
     }
-    
+
     public function processPhoto($filePath, $callback, $processId = null, $watermark = [])
     {
-        throw new \Exception('Not implemented');
+        throw new \Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
     }
-    
+
     public function getStatus($processId)
     {
-        throw new \Exception('Not implemented');
+        throw new \Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
     }
-    
+
     public function createPhotoPreview($filePath)
     {
         return;
     }
-    
+
     public function createVideoPreview($filePath)
     {
         return;
     }
-    
+
     /**
      * @return ElasticTranscoderClient
      */
@@ -81,7 +81,7 @@ class AmazonDriver extends Driver
             ]
         ]);
     }
-    
+
     public function readJob($jobId)
     {
         $transcoderClient = $this->getTranscoderClient();
@@ -94,7 +94,7 @@ class AmazonDriver extends Driver
             }
             return false;
         }
-    
+
         $output = $jobData['Output'];
         $this->result[] = new VideoResponse([
             'name'     => 'source',
@@ -107,7 +107,7 @@ class AmazonDriver extends Driver
         Logger::send('converter.aws.readJob', $jobData['Output']);
         return true;
     }
-    
+
     /**
      * @param $filePath
      * @param $callback
@@ -119,7 +119,7 @@ class AmazonDriver extends Driver
     {
         $pathParts = pathinfo($filePath);
         $keyName = 'temp_video/' . parse_url($filePath, PHP_URL_HOST) . '/' . date('Y_m_d') . '/' . uniqid('', true) . '.' . $pathParts['extension'];
-    
+
         $s3Client = new S3Client([
             'version' => 'latest',
             'region'  => $this->s3['region'],
@@ -128,7 +128,7 @@ class AmazonDriver extends Driver
                 'secret' => $this->s3['secret']
             ]
         ]);
-    
+
         try {
             $client = new Client();
             $response = $client->get($filePath);
@@ -144,9 +144,9 @@ class AmazonDriver extends Driver
         } catch (S3Exception $e) {
             return false;
         }
-    
+
         $dir = date('Y_m_d') . '/' . substr($processId, 0, 2) . '/' . substr($processId, 0, 3) . '/' . $processId;
-        
+
         $watermarkKey = $this->getWatermark($s3Client, $watermark);
         Logger::send('amazon.watermark', ['key' => $watermarkKey]);
         $transcoderClient = $this->getTranscoderClient();
@@ -180,7 +180,7 @@ class AmazonDriver extends Driver
         } catch (\Exception $e) {
             return false;
         }
-    
+
         $job = (array)$job->get('Job');
         if (strtolower($job['Status']) == 'submitted') {
             Redis::getInstance()->sAdd('amazon:queue', json_encode([
@@ -192,7 +192,7 @@ class AmazonDriver extends Driver
             return true;
         }
     }
-    
+
     /**
      * @param S3Client $s3Client
      * @param array $watermark
@@ -223,7 +223,7 @@ class AmazonDriver extends Driver
             }
             return $watermarkKey;
         }
-        
+
         return null;
     }
 }
