@@ -57,11 +57,11 @@ class AmazonDriver extends Driver
     {
         Logger::send('converter.amazon.status', [
             'id'      => $processId,
-            'percent' => 7
+            'percent' => 0
         ]);
         return new StatusResponse([
             'id'      => $processId,
-            'percent' => 7
+            'percent' => 0
         ]);
     }
 
