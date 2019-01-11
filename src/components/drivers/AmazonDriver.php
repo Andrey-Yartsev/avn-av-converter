@@ -211,6 +211,7 @@ class AmazonDriver extends Driver
         Logger::send('amazon.watermark', ['settings' => $watermark]);
         if (isset($watermark['text'])) {
             $hash = md5($watermark['text']);
+            $hash .= $watermark['size'] ?? 20;
             $watermarkKey = 'watermarks/' . $hash . '.jpg';
             $fileExists = $s3Client->doesObjectExist($this->s3['bucket'], $watermarkKey);
             if (!$fileExists) {

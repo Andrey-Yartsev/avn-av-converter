@@ -103,9 +103,10 @@ abstract class Driver
             return $localPath;
         } elseif ($watermark['text']) {
             $localPath = PUBPATH . '/upload/' . uniqid('watermark_') . md5($watermark['text']) . '.png';
+            $fontSize = $watermark['size'] ?? 20;
             $palette = new RGB();
             $imagine = new \Imagine\Gd\Imagine();
-            $font = $imagine->font(PUBPATH . '/fonts/OpenSans-Regular.ttf', 20, $palette->color('#808080'));
+            $font = $imagine->font(PUBPATH . '/fonts/OpenSans-Regular.ttf', $fontSize, $palette->color('#808080'));
             $box = $font->box($watermark['text'], 3);
             $image = $imagine->create($box, $palette->color('#fff', 0));
             $image->draw()->text($watermark['text'], $font, new Point(0, 0));
