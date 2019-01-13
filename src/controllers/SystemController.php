@@ -23,18 +23,17 @@ class SystemController extends Controller
             }
             $retries[$key] = (int) $redis->get($key . ':count');
         }
-    
-        $queues = [];
-        foreach ($redis->keys('cc:*') as $key) {
-            $queues[] = json_decode($redis->get($key));
-        }
         
         return [
-            'requests' => (int) $redis->get('status.requests'),
-            'success' => (int) $redis->get('status.success'),
-            'queues' => [
-                'cc' => count($redis->keys('cc:*')),
-                'general' => count($redis->keys('queue:*')),
+            'amazon' => [
+                'queues' => count($redis->sMembers('amazon:queue')),
+                'upload' => count($redis->sMembers('amazon:upload')),
+            ],
+            'cloudconvert' => [
+                'queues' => count($redis->keys('cc:*')),
+            ],
+            'general' => [
+                'queues' => count($redis->keys('queue:*')),
             ],
             'retries' => $retries
         ];

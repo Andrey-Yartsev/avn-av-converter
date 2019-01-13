@@ -53,7 +53,6 @@ class RetryCommand extends Command
                     'response' => $response->getBody()
                 ]);
                 if ($response->getStatusCode() == 200) {
-                    Redis::getInstance()->incr('status.success');
                     Redis::getInstance()->del($key, $countKey);
                 }
             } catch (\Exception $e) {

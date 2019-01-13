@@ -119,7 +119,6 @@ class ProcessController extends Controller
             throw new BadRequestHttpException($form);
         }
         
-        Redis::getInstance()->incr('status.requests');
         return [
             'processId' => $result
         ];

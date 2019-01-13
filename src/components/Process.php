@@ -112,7 +112,6 @@ class Process
                         'response' => $response->getBody()
                     ]);
                     Redis::getInstance()->del('queue:' . $processId);
-                    Redis::getInstance()->incr('status.success');
                 } catch (\Exception $e) {
                     Logger::send('converter.callback.send', [
                         'id' => $processId,
