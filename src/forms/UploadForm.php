@@ -98,9 +98,9 @@ class UploadForm extends Form
                     break;
             }
             
-            if ($this->fileType == FileHelper::TYPE_VIDEO) {
-                $driver->createVideoPreview($fileUrl);
-                $files = array_merge($files, $driver->getResult());
+            $result = $driver->getResult();
+            if ($result) {
+                $files = array_merge($files, $result);
             }
             
             return Process::createQueue([
