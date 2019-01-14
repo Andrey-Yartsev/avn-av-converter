@@ -28,6 +28,7 @@ class SystemController extends Controller
             'amazon' => [
                 'queues' => count($redis->sMembers('amazon:queue')),
                 'upload' => count($redis->sMembers('amazon:upload')),
+                'workers' => exec('ps aux | grep worker:upload | wc -l')
             ],
             'cloudconvert' => [
                 'queues' => count($redis->keys('cc:*')),
