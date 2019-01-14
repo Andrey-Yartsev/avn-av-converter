@@ -50,11 +50,7 @@ class LocalDriver extends Driver
             file_put_contents($localPath, file_get_contents($filePath));
         }
         $size = current($this->thumbSizes);
-        $width = $size['width'] ?? null;
-        $height = $size['height'] ?? null;
-        $blur = $size['blur'] ?? null;
-        $name = $size['name'] ?? null;
-        $this->resizeImage($localPath, $width, $height, $name, $blur);
+        $this->resizeImage($localPath, $size);
         return true;
     }
 
@@ -114,6 +110,29 @@ class LocalDriver extends Driver
     {
         throw new \Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
     }
+    
+    /**
+     * @param $localPath
+     * @return AbstractImage
+     */
+    protected function fixedOrientation($localPath)
+    {
+        $image = $this->imagine->open($localPath);
+        $exif = exif_read_data($localPath);
+        $orientation = $exif['Orientation'] ?? null;
+        switch ($orientation) {
+            case 3:
+                $image->rotate(180);
+                break;
+            case 6:
+                $image->rotate(270);
+                break;
+            case 8:
+                $image->rotate(90);
+                break;
+        }
+        return $image;
+    }
 
     /**
      * @param string $filePath
@@ -127,7 +146,7 @@ class LocalDriver extends Driver
         $blur = $size['blur'] ?? null;
         $name = $size['name'] ?? null;
         $maxSize = $size['maxSize'] ?? null;
-        $image = $this->imagine->open($filePath);
+        $image = $this->fixedOrientation($filePath);
 
         if ($maxSize) {
             $this->resizeAdaptive($image, $maxSize);

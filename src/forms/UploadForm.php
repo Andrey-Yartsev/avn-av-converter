@@ -96,7 +96,6 @@ class UploadForm extends Form
                 case FileHelper::TYPE_IMAGE:
                     $driver->createPhotoPreview($fileUrl);
                     break;
-        
             }
             
             if ($this->fileType == FileHelper::TYPE_VIDEO) {
