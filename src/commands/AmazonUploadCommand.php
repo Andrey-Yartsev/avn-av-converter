@@ -35,29 +35,26 @@ class AmazonUploadCommand extends Command
         $presents = Config::getInstance()->get('presets');
         while (true) {
             $uploads = Redis::getInstance()->sRandMember('amazon:upload', 10);
-            if (empty($uploads)) {
-                sleep(1);
-            } else {
-                foreach ($uploads as $upload) {
-                    $params = json_decode($upload, true);
-                    $output->writeln('<info>Catch ' . $upload . '</info>');
-                    $presetName = $params['presetName'];
-                    if (empty($presents[$presetName]) || empty($presents[$presetName]['video'])) {
-                        Redis::getInstance()->sRem('amazon:upload', $upload);
-                        continue;
-                    }
-                    $countWorkers = exec('ps aux | grep worker:upload | wc -l');
-                    if ($countWorkers < 10) {
-                        Redis::getInstance()->sRem('amazon:upload', $upload);
-                        $command = 'php ' . __DIR__ . '/../../console/index.php worker:upload \'' . $upload . '\' &';
-                        Logger::send('worker.upload.run', [
-                            'command' => $command,
-                            'count' => $countWorkers
-                        ]);
-                        exec($command);
-                    }
+            foreach ($uploads as $upload) {
+                $params = json_decode($upload, true);
+                $output->writeln('<info>Catch ' . $upload . '</info>');
+                $presetName = $params['presetName'];
+                if (empty($presents[$presetName]) || empty($presents[$presetName]['video'])) {
+                    Redis::getInstance()->sRem('amazon:upload', $upload);
+                    continue;
+                }
+                $countWorkers = exec('ps aux | grep worker:upload | wc -l');
+                if ($countWorkers < 10) {
+                    Redis::getInstance()->sRem('amazon:upload', $upload);
+                    $command = 'php ' . __DIR__ . '/../../console/index.php worker:upload \'' . $upload . '\' &';
+                    Logger::send('worker.upload.run', [
+                        'command' => $command,
+                        'count' => $countWorkers
+                    ]);
+                    exec($command);
                 }
             }
+            sleep(1);
         }
 
         $this->release();
