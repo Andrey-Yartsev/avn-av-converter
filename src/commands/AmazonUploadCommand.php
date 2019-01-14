@@ -9,6 +9,7 @@ namespace Converter\commands;
 
 use Converter\components\Config;
 use Converter\components\drivers\AmazonDriver;
+use Converter\components\Logger;
 use Converter\components\Redis;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Command\LockableTrait;
@@ -45,9 +46,15 @@ class AmazonUploadCommand extends Command
                         Redis::getInstance()->sRem('amazon:upload', $upload);
                         continue;
                     }
-                    if (exec('ps aux | grep worker:upload | wc -l') < 10) {
+                    $countWorkers = exec('ps aux | grep worker:upload | wc -l');
+                    if ($countWorkers < 10) {
                         Redis::getInstance()->sRem('amazon:upload', $upload);
-                        exec('php ' . __DIR__ . '/../../console/index.php worker:upload ' . $upload . ' &');
+                        $command = 'php ' . __DIR__ . '/../../console/index.php worker:upload \'' . $upload . '\' &';
+                        Logger::send('worker.upload.run', [
+                            'command' => $command,
+                            'count' => $countWorkers
+                        ]);
+                        exec($command);
                     }
                 }
             }

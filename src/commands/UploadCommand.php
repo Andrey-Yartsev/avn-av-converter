@@ -9,6 +9,7 @@ namespace Converter\commands;
 
 use Converter\components\Config;
 use Converter\components\drivers\AmazonDriver;
+use Converter\components\Logger;
 use Converter\components\Redis;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -30,12 +31,19 @@ class UploadCommand extends Command
             $presents = Config::getInstance()->get('presets');
             $params = json_decode($upload, true);
             $presetName = $params['presetName'];
-            $output->writeln('<info>Init amazon driver</info>');
             $amazonDriver = new AmazonDriver($presetName, $presents[$presetName]['video']);
+            Logger::send('worker.upload.run', [
+                'step' => $params['processId'] . ' init amazon driver'
+            ]);
             if ($amazonDriver->createJob($params['filePath'], $params['callback'], $params['processId'], $params['watermark'])) {
-                $output->writeln('<info>Process #' . $params['processId'] . ' uploaded</info>');
+                Logger::send('worker.upload.run', [
+                    'step' => $params['processId'] . ' success file uploaded'
+                ]);
             } else {
-                $output->writeln('<error>:(</error>');
+                Logger::send('worker.upload.run', [
+                    'step' => $params['processId'] . ' failed file uploaded'
+                ]);
+                Redis::getInstance()->sAdd('amazon:upload', $upload);
             }
         } catch (\Exception $e) {
             Redis::getInstance()->sAdd('amazon:upload', $upload);
