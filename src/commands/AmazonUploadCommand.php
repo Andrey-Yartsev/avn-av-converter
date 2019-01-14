@@ -47,7 +47,7 @@ class AmazonUploadCommand extends Command
                     }
                     if (exec('ps aux | grep worker:upload | wc -l') < 10) {
                         Redis::getInstance()->sRem('amazon:upload', $upload);
-                        exec('php ' . __DIR__ . '/../../console/index.php upload ' . $upload . ' &');
+                        exec('php ' . __DIR__ . '/../../console/index.php worker:upload ' . $upload . ' &');
                     }
                 }
             }
