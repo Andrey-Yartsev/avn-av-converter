@@ -8,11 +8,15 @@ namespace Converter\components\drivers;
 
 use Converter\components\Config;
 use Converter\response\ImageResponse;
+use GuzzleHttp\Promise\Coroutine;
+use Imagine\Filter\Basic\Autorotate;
+use Imagine\Filter\Basic\WebOptimization;
 use Imagine\Gd\Imagine as GdImagine;
 use Imagine\Gmagick\Imagine as GmagickImagine;
 use Imagine\Image\AbstractImage;
 use Imagine\Image\AbstractImagine;
 use Imagine\Image\Box;
+use Imagine\Image\Metadata\ExifMetadataReader;
 use Imagine\Image\Point;
 use Imagine\Imagick\Imagine as ImagickImagine;
 
@@ -118,20 +122,8 @@ class LocalDriver extends Driver
     protected function fixedOrientation($localPath)
     {
         $image = $this->imagine->open($localPath);
-        $exif = exif_read_data($localPath);
-        $orientation = $exif['Orientation'] ?? null;
-        switch ($orientation) {
-            case 3:
-                $image->rotate(180);
-                break;
-            case 6:
-                $image->rotate(270);
-                break;
-            case 8:
-                $image->rotate(90);
-                break;
-        }
-        return $image;
+        $filter = new Autorotate();
+        return $filter->apply($image);
     }
 
     /**
@@ -161,7 +153,8 @@ class LocalDriver extends Driver
         $imageSize = $image->getSize();
         $fileName = $imageSize->getWidth() . 'x' . $imageSize->getHeight() . '_' . urlencode(pathinfo($filePath, PATHINFO_FILENAME)) . '.jpg';
         $savedPath = '/upload/' . $fileName;
-        $image->save(PUBPATH . $savedPath);
+        $webFilter = new WebOptimization(PUBPATH . $savedPath);
+        $webFilter->apply($image);
         $fileSize = filesize(PUBPATH . $savedPath);
         if ($this->storage) {
             $url = $this->storage->upload(PUBPATH . $savedPath, $this->storage->generatePath($fileName));
