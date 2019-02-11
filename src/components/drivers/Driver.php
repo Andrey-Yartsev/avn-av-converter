@@ -71,7 +71,7 @@ abstract class Driver
         $pathInfo = pathinfo($localPath);
         $fileName = $pathInfo['filename'] ?? md5($localPath);
         $tempPreviewFile = PUBPATH . '/upload/' . $fileName . '_preview.jpg';
-        $video = FFM::create([
+        $video = FFMpeg::create([
             'ffmpeg.binaries'  => exec('which ffmpeg'),
             'ffprobe.binaries' => exec('which ffprobe')
         ])->open($localPath);
