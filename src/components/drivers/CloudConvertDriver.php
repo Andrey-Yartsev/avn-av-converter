@@ -16,9 +16,6 @@ use Converter\helpers\FileHelper;
 use Converter\response\AudioResponse;
 use Converter\response\StatusResponse;
 use Converter\response\VideoResponse;
-use FFMpeg\Coordinate\TimeCode;
-use FFMpeg\FFMpeg;
-use FFMpeg\FFProbe;
 
 class CloudConvertDriver extends Driver
 {
@@ -28,7 +25,6 @@ class CloudConvertDriver extends Driver
     public $outputFormat;
     public $command;
     public $withOutSave = false;
-    public $previews = [];
 
     public function __construct($presetName, $config = [])
     {
@@ -81,30 +77,6 @@ class CloudConvertDriver extends Driver
             'id'      => $processId,
             'percent' => 0
         ]);
-    }
-
-    public function createVideoPreview($filePath)
-    {
-        $localPath = str_replace(Config::getInstance()->get('baseUrl'), PUBPATH, $filePath);
-        if (!file_exists($localPath)) {
-            $localPath = PUBPATH . '/upload/' . md5($filePath) . basename($filePath);
-            file_put_contents($localPath, file_get_contents($filePath));
-        }
-        $pathInfo = pathinfo($localPath);
-        $fileName = $pathInfo['filename'] ?? md5($localPath);
-        $tempPreviewFile = PUBPATH . '/upload/' . $fileName . '_preview.jpg';
-        $video = FFMpeg::create([
-            'ffmpeg.binaries'  => exec('which ffmpeg'),
-            'ffprobe.binaries' => exec('which ffprobe')
-        ])->open($localPath);
-        $video->frame(TimeCode::fromSeconds(1))
-            ->save($tempPreviewFile);
-        $driver = Driver::loadByConfig($this->presetName, $this->previews);
-        $driver->createPhotoPreview($tempPreviewFile);
-        foreach ($driver->getResult() as $result) {
-            $this->result[] = $result;
-        }
-        return true;
     }
 
     public function saveAudio($url)

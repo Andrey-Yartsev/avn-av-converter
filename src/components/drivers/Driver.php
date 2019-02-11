@@ -7,16 +7,21 @@
 namespace Converter\components\drivers;
 
 
+use Converter\components\Config;
 use Converter\components\storages\FileStorage;
 use Imagine\Image\Box;
 use Imagine\Image\Palette\RGB;
 use Imagine\Image\Point;
 use Imagine\Imagick\Image;
 use Imagine\Imagick\Imagine;
+use FFMpeg\Coordinate\TimeCode;
+use FFMpeg\FFMpeg;
+use FFMpeg\FFProbe;
 
 abstract class Driver
 {
     public $presetName;
+    public $previews = [];
     
     /** @var FileStorage */
     protected $storage;
@@ -56,7 +61,29 @@ abstract class Driver
     
     abstract public function createPhotoPreview($filePath);
     
-    abstract public function createVideoPreview($filePath);
+    public function createVideoPreview($filePath)
+    {
+        $localPath = str_replace(Config::getInstance()->get('baseUrl'), PUBPATH, $filePath);
+        if (!file_exists($localPath)) {
+            $localPath = PUBPATH . '/upload/' . md5($filePath) . basename($filePath);
+            file_put_contents($localPath, file_get_contents($filePath));
+        }
+        $pathInfo = pathinfo($localPath);
+        $fileName = $pathInfo['filename'] ?? md5($localPath);
+        $tempPreviewFile = PUBPATH . '/upload/' . $fileName . '_preview.jpg';
+        $video = FFM::create([
+            'ffmpeg.binaries'  => exec('which ffmpeg'),
+            'ffprobe.binaries' => exec('which ffprobe')
+        ])->open($localPath);
+        $video->frame(TimeCode::fromSeconds(1))
+            ->save($tempPreviewFile);
+        $driver = Driver::loadByConfig($this->presetName, $this->previews);
+        $driver->createPhotoPreview($tempPreviewFile);
+        foreach ($driver->getResult() as $result) {
+            $this->result[] = $result;
+        }
+        return true;
+    }
     
     abstract public function getStatus($processId);
     
