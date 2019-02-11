@@ -16,6 +16,9 @@ use Converter\helpers\FileHelper;
 use Converter\response\AudioResponse;
 use Converter\response\StatusResponse;
 use Converter\response\VideoResponse;
+use FFMpeg\Coordinate\TimeCode;
+use FFMpeg\FFMpeg;
+use FFMpeg\FFProbe;
 
 class CloudConvertDriver extends Driver
 {
