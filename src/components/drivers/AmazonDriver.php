@@ -70,11 +70,6 @@ class AmazonDriver extends Driver
         return;
     }
 
-    public function createVideoPreview($filePath)
-    {
-        return;
-    }
-
     /**
      * @return ElasticTranscoderClient
      */

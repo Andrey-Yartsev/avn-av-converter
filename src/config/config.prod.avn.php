@@ -51,30 +51,6 @@ return [
                     ]
                 ]
             ],
-            'video'    => [
-                'driver'       => \Converter\components\drivers\CloudConvertDriver::class,
-                'token'        => 'fYu7Qu2yue99aZ_yRBnJM4WJtHDAMGyEef6s_KZAUeqDAy34YkcfmPXb-eFrtf2lgraBOCLtQ38A-no0fdrkjQ',
-                'outputFormat' => 'mp4',
-                'command'      => "-i {INPUTFILE} {OUTPUTFILE} -f mp4 -vcodec libx264 -movflags +faststart -pix_fmt yuv420p -preset veryslow -b:v 512k -maxrate 512k -profile:v high -level 4.2 -acodec aac -threads 0",
-                'previews'     => [
-                    'driver'     => \Converter\components\drivers\LocalDriver::class,
-                    'engine'     => 'imagick',
-                    'thumbSizes' => [
-                        [
-                            'name'    => 'preview',
-                            'maxSize' => 760,
-                        ], [
-                            'name'   => 'thumb',
-                            'width'  => 440,
-                            'height' => 440,
-                        ], [
-                            'name'    => 'locked',
-                            'maxSize' => 50,
-                            'blur'    => 10
-                        ]
-                    ]
-                ]
-            ],
             'image'    => [
                 'driver'     => \Converter\components\drivers\LocalDriver::class,
                 'engine'     => 'imagick',
