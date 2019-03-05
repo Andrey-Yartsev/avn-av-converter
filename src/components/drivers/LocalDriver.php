@@ -85,6 +85,12 @@ class LocalDriver extends Driver
         }
         $needRemoved = true;
         if ($this->withSource) {
+            if (!empty($watermark['text'])) {
+                $fontSize = $watermark['size'] ?? 20;
+                $font = PUBPATH . '/fonts/OpenSans-Regular.ttf';
+                $command = 'convert "' . $localPath . '"  -pointsize ' . $fontSize . ' -font "' . $font . '"  -draw "gravity southeast fill grey text 4,4 \'' . $watermark['text'] . '\'" "' . $localPath . '"';
+                @exec($command);
+            }
             if ($this->storage) {
                 $url = $this->storage->upload($localPath, $this->storage->generatePath($filePath));
                 $needRemoved = true;
