@@ -152,8 +152,14 @@ class LocalDriver extends Driver
         $imageSize = $image->getSize();
         $fileName = $imageSize->getWidth() . 'x' . $imageSize->getHeight() . '_' . urlencode(pathinfo($filePath, PATHINFO_FILENAME)) . '.jpg';
         $savedPath = '/upload/' . $fileName;
+
+        if (!empty($watermark) && is_array($watermark)) {
+            $image = $this->watermark($image, $watermark);
+        }
+
         $webFilter = new WebOptimization(PUBPATH . $savedPath);
         $webFilter->apply($image);
+        
         $fileSize = filesize(PUBPATH . $savedPath);
         if ($this->storage) {
             $url = $this->storage->upload(PUBPATH . $savedPath, $this->storage->generatePath($fileName));
