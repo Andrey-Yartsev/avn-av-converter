@@ -154,19 +154,15 @@ class LocalDriver extends Driver
         $fileName = $imageSize->getWidth() . 'x' . $imageSize->getHeight() . '_' . urlencode(pathinfo($filePath, PATHINFO_FILENAME)) . '.jpg';
         $savedPath = '/upload/' . $fileName;
 
-        Logger::send('debug', $watermark);
+        $webFilter = new WebOptimization(PUBPATH . $savedPath);
+        $webFilter->apply($image);
+        
         if (!empty($watermark['text'])) {
             $fontSize = $watermark['size'] ?? 20;
             $font = PUBPATH . '/fonts/OpenSans-Regular.ttf';
             $command = 'convert "' . PUBPATH . $savedPath . '"  -pointsize ' . $fontSize . ' -font "' . $font . '"  -draw "gravity southeast fill grey text 4,4 \'' . $watermark['text'] . '\'" "' . PUBPATH . $savedPath . '"';
             @exec($command);
-            Logger::send('debug', [
-                'command' => $command
-            ]);
         }
-
-        $webFilter = new WebOptimization(PUBPATH . $savedPath);
-        $webFilter->apply($image);
         
         $fileSize = filesize(PUBPATH . $savedPath);
         if ($this->storage) {
