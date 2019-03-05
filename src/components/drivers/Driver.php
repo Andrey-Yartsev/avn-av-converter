@@ -59,9 +59,9 @@ abstract class Driver
     
     abstract public function processVideo($filePath, $callback, $processId = null, $watermark = []);
     
-    abstract public function createPhotoPreview($filePath);
+    abstract public function createPhotoPreview($filePath, $watermark = []);
     
-    public function createVideoPreview($filePath)
+    public function createVideoPreview($filePath, $watermark = [])
     {
         $localPath = str_replace(Config::getInstance()->get('baseUrl'), PUBPATH, $filePath);
         if (!file_exists($localPath)) {

@@ -91,10 +91,10 @@ class UploadForm extends Form
             ];
             switch ($this->fileType) {
                 case FileHelper::TYPE_VIDEO:
-                    $driver->createVideoPreview($fileUrl);
+                    $driver->createVideoPreview($fileUrl, $this->watermark);
                     break;
                 case FileHelper::TYPE_IMAGE:
-                    $driver->createPhotoPreview($fileUrl);
+                    $driver->createPhotoPreview($fileUrl, $this->watermark);
                     break;
             }
             

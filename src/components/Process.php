@@ -77,16 +77,18 @@ class Process
             if ($driver === null) {
                 return false;
             }
+            
+            $watermark = $queue['watermark'] ?? [];
     
             switch ($queue['fileType']) {
                 case FileHelper::TYPE_VIDEO:
-                    $driver->processVideo($queue['filePath'], $queue['callback'], $processId);
+                    $driver->processVideo($queue['filePath'], $queue['callback'], $processId, $watermark);
                     break;
                 case FileHelper::TYPE_IMAGE:
-                    $driver->processPhoto($queue['filePath'], $queue['callback'], $processId);
+                    $driver->processPhoto($queue['filePath'], $queue['callback'], $processId, $watermark);
                     break;
                 case FileHelper::TYPE_AUDIO:
-                    $driver->processAudio($queue['filePath'], $queue['callback'], $processId);
+                    $driver->processAudio($queue['filePath'], $queue['callback'], $processId, $watermark);
                     break;
                 default:
                     return false;

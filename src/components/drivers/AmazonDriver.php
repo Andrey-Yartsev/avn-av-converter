@@ -65,7 +65,7 @@ class AmazonDriver extends Driver
         ]);
     }
 
-    public function createPhotoPreview($filePath)
+    public function createPhotoPreview($filePath, $watermark = [])
     {
         return;
     }

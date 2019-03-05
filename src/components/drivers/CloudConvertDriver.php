@@ -36,7 +36,7 @@ class CloudConvertDriver extends Driver
         $this->client = new Api($this->token);
     }
 
-    public function createPhotoPreview($filePath)
+    public function createPhotoPreview($filePath, $watermark = [])
     {
         throw new \Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
     }

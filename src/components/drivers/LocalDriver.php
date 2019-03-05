@@ -8,15 +8,13 @@ namespace Converter\components\drivers;
 
 use Converter\components\Config;
 use Converter\response\ImageResponse;
-use GuzzleHttp\Promise\Coroutine;
 use Imagine\Filter\Basic\Autorotate;
 use Imagine\Filter\Basic\WebOptimization;
 use Imagine\Gd\Imagine as GdImagine;
 use Imagine\Gmagick\Imagine as GmagickImagine;
-use Imagine\Image\AbstractImage;
-use Imagine\Image\AbstractImagine;
 use Imagine\Image\Box;
-use Imagine\Image\Metadata\ExifMetadataReader;
+use Imagine\Image\ImageInterface;
+use Imagine\Image\Palette\RGB;
 use Imagine\Image\Point;
 use Imagine\Imagick\Imagine as ImagickImagine;
 
@@ -24,8 +22,8 @@ class LocalDriver extends Driver
 {
     public $thumbSizes = [];
     public $withSource = false;
-    /** @var AbstractImagine */
-    protected $image;
+    /** @var GdImagine|GmagickImagine|ImagickImagine */
+    protected $imagine;
 
     public function __construct($presetName, array $config = [])
     {
@@ -46,7 +44,7 @@ class LocalDriver extends Driver
         }
     }
 
-    public function createPhotoPreview($filePath)
+    public function createPhotoPreview($filePath, $watermark = [])
     {
         $localPath = str_replace(Config::getInstance()->get('baseUrl'), PUBPATH, $filePath);
         if (!file_exists($localPath)) {
@@ -54,11 +52,11 @@ class LocalDriver extends Driver
             file_put_contents($localPath, file_get_contents($filePath));
         }
         $size = current($this->thumbSizes);
-        $this->resizeImage($localPath, $size);
+        $this->resizeImage($localPath, $size, $watermark);
         return true;
     }
 
-    public function createVideoPreview($filePath)
+    public function createVideoPreview($filePath, $watermark = [])
     {
         throw new \Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
     }
@@ -129,9 +127,10 @@ class LocalDriver extends Driver
     /**
      * @param string $filePath
      * @param array $size
+     * @param array $watermark
      * @return bool
      */
-    protected function resizeImage($filePath, $size)
+    protected function resizeImage($filePath, $size, $watermark = [])
     {
         $width = $size['width'] ?? null;
         $height = $size['height'] ?? null;
@@ -237,6 +236,23 @@ class LocalDriver extends Driver
         $sizeBox = new Box($size, $size);
         $image->crop($cropPoint, $sizeBox);
 
+        return $image;
+    }
+    
+    /**
+     * @param ImageInterface $image
+     * @param array $watermarkSettings
+     * @return ImageInterface
+     */
+    protected function watermark($image, $watermarkSettings = [])
+    {
+        if (empty($watermarkSettings['text'])) {
+            return $image;
+        }
+        $fontSize = $watermarkSettings['size'] ?? 20;
+        $palette = new RGB();
+        $font = $this->imagine->font(PUBPATH . '/fonts/OpenSans-Regular.ttf', $fontSize, $palette->color('#808080'));
+        $image->draw()->text($watermarkSettings['text'], $font, new Point(10, 10));
         return $image;
     }
 }
