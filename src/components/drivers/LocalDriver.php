@@ -153,8 +153,11 @@ class LocalDriver extends Driver
         $fileName = $imageSize->getWidth() . 'x' . $imageSize->getHeight() . '_' . urlencode(pathinfo($filePath, PATHINFO_FILENAME)) . '.jpg';
         $savedPath = '/upload/' . $fileName;
 
-        if (!empty($watermark) && is_array($watermark)) {
-            $image = $this->watermark($image, $watermark);
+        if (!empty($watermark['text'])) {
+            $fontSize = $watermark['size'] ?? 20;
+            $font = PUBPATH . '/fonts/OpenSans-Regular.ttf';
+            $command = 'convert "' . PUBPATH . $savedPath . '"  -pointsize ' . $fontSize . ' -font "' . $font . '"  -draw "gravity southeast fill grey text 4,4 \'' . $watermark['text'] . '\'" "' . PUBPATH . $savedPath . '"';
+            @exec($command);
         }
 
         $webFilter = new WebOptimization(PUBPATH . $savedPath);
@@ -242,23 +245,6 @@ class LocalDriver extends Driver
         $sizeBox = new Box($size, $size);
         $image->crop($cropPoint, $sizeBox);
 
-        return $image;
-    }
-    
-    /**
-     * @param ImageInterface $image
-     * @param array $watermarkSettings
-     * @return ImageInterface
-     */
-    protected function watermark($image, $watermarkSettings = [])
-    {
-        if (empty($watermarkSettings['text'])) {
-            return $image;
-        }
-        $fontSize = $watermarkSettings['size'] ?? 20;
-        $palette = new RGB();
-        $font = $this->imagine->font(PUBPATH . '/fonts/OpenSans-Regular.ttf', $fontSize, $palette->color('#808080'));
-        $image->draw()->text($watermarkSettings['text'], $font, new Point(10, 10));
         return $image;
     }
 }
