@@ -80,7 +80,7 @@ class LocalDriver extends Driver
         }
 
         foreach ($this->thumbSizes as $size) {
-            $this->resizeImage($localPath, $size);
+            $this->resizeImage($localPath, $size, $watermark);
         }
         $needRemoved = true;
         if ($this->withSource) {
