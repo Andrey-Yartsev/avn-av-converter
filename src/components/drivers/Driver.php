@@ -124,9 +124,9 @@ abstract class Driver
      */
     public function generateWatermark($watermark)
     {
-        if (isset($watermark['image'])) {
-            $localPath = PUBPATH . '/upload/' . uniqid('watermark_') . basename($watermark['image']);
-            file_put_contents($localPath, file_get_contents($watermark['image']));
+        if (isset($watermark['imagePath'])) {
+            $localPath = PUBPATH . '/upload/' . uniqid('watermark_') . basename($watermark['imagePath']);
+            file_put_contents($localPath, file_get_contents($watermark['imagePath']));
             return $localPath;
         } elseif ($watermark['text']) {
             $localPath = PUBPATH . '/upload/' . uniqid('watermark_') . md5($watermark['text']) . '.png';

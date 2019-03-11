@@ -7,15 +7,12 @@
 namespace Converter\components\drivers;
 
 use Converter\components\Config;
-use Converter\components\Logger;
 use Converter\response\ImageResponse;
 use Imagine\Filter\Basic\Autorotate;
 use Imagine\Filter\Basic\WebOptimization;
 use Imagine\Gd\Imagine as GdImagine;
 use Imagine\Gmagick\Imagine as GmagickImagine;
 use Imagine\Image\Box;
-use Imagine\Image\ImageInterface;
-use Imagine\Image\Palette\RGB;
 use Imagine\Image\Point;
 use Imagine\Imagick\Imagine as ImagickImagine;
 
@@ -91,6 +88,17 @@ class LocalDriver extends Driver
                 $font = PUBPATH . '/fonts/OpenSans-Regular.ttf';
                 $command = 'convert "' . $localPath . '"  -pointsize ' . $fontSize . ' -font "' . $font . '"  -draw "gravity southeast fill grey text 4,4 \'' . $watermark['text'] . '\'" "' . $localPath . '"';
                 @exec($command);
+            } elseif (!empty($watermark['imagePath'])) {
+                try {
+                    $watermark = $this->imagine->open($watermark['imagePath']);
+                    $image     = $this->imagine->open(PUBPATH . $localPath);
+                    $size      = $image->getSize();
+                    $wSize     = $watermark->getSize();
+                    $bottomRight = new Point($size->getWidth() - $wSize->getWidth(), $size->getHeight() - $wSize->getHeight());
+                    $image->paste($watermark, $bottomRight)->save();
+                } catch (\Exception $e) {
+        
+                }
             }
             if ($this->storage) {
                 $url = $this->storage->upload($localPath, $this->storage->generatePath($filePath));
@@ -169,6 +177,17 @@ class LocalDriver extends Driver
             $font = PUBPATH . '/fonts/OpenSans-Regular.ttf';
             $command = 'convert "' . PUBPATH . $savedPath . '"  -pointsize ' . $fontSize . ' -font "' . $font . '"  -draw "gravity southeast fill grey text 4,4 \'' . $watermark['text'] . '\'" "' . PUBPATH . $savedPath . '"';
             @exec($command);
+        } elseif (!empty($watermark['imagePath'])) {
+            try {
+                $watermark = $this->imagine->open($watermark['imagePath']);
+                $image     = $this->imagine->open(PUBPATH . $savedPath);
+                $size      = $image->getSize();
+                $wSize     = $watermark->getSize();
+                $bottomRight = new Point($size->getWidth() - $wSize->getWidth(), $size->getHeight() - $wSize->getHeight());
+                $image->paste($watermark, $bottomRight)->save();
+            } catch (\Exception $e) {
+            
+            }
         }
         
         $fileSize = filesize(PUBPATH . $savedPath);
