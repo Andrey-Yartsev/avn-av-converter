@@ -78,7 +78,7 @@ abstract class Driver
         $video->frame(TimeCode::fromSeconds(1))
             ->save($tempPreviewFile);
         $driver = Driver::loadByConfig($this->presetName, $this->previews);
-        $driver->createPhotoPreview($tempPreviewFile);
+        $driver->createPhotoPreview($tempPreviewFile, $watermark);
         foreach ($driver->getResult() as $result) {
             $this->result[] = $result;
         }

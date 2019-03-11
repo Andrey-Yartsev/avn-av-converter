@@ -30,35 +30,9 @@ return [
                     'key'      => 'AKIAJQCE37RKJ3OTOIZA',
                     'secret'   => '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',
                     'pipeline' => '1535375850253-dxzlpd',
-                    'preset'   => '1535376372750-5aclv6'
+                    'preset'   => '1552337470087-x0jvu6'
                 ],
                 'previews'   => [
-                    'driver'     => \Converter\components\drivers\LocalDriver::class,
-                    'engine'     => 'imagick',
-                    'thumbSizes' => [
-                        [
-                            'name'    => 'preview',
-                            'maxSize' => 760,
-                        ],
-                        [
-                            'name'   => 'thumb',
-                            'width'  => 440,
-                            'height' => 440,
-                        ],
-                        [
-                            'name'    => 'locked',
-                            'maxSize' => 50,
-                            'blur'    => 10
-                        ]
-                    ]
-                ]
-            ],
-            'video'    => [
-                'driver'       => \Converter\components\drivers\CloudConvertDriver::class,
-                'token'        => 'fYu7Qu2yue99aZ_yRBnJM4WJtHDAMGyEef6s_KZAUeqDAy34YkcfmPXb-eFrtf2lgraBOCLtQ38A-no0fdrkjQ',
-                'outputFormat' => 'mp4',
-                'command'      => "-i {INPUTFILE} {OUTPUTFILE} -f mp4 -vcodec libx264 -movflags +faststart -pix_fmt yuv420p -preset veryslow -b:v 512k -maxrate 512k -profile:v high -level 4.2 -acodec aac -threads 0",
-                'previews'     => [
                     'driver'     => \Converter\components\drivers\LocalDriver::class,
                     'engine'     => 'imagick',
                     'thumbSizes' => [
