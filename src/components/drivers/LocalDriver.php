@@ -52,8 +52,9 @@ class LocalDriver extends Driver
             $localPath = PUBPATH . '/upload/' . md5($filePath) . basename($filePath);
             file_put_contents($localPath, file_get_contents($filePath));
         }
-        $size = current($this->thumbSizes);
-        $this->resizeImage($localPath, $size, $watermark);
+        foreach ($this->thumbSizes as $size) {
+            $this->resizeImage($localPath, $size, $watermark);
+        }
         return true;
     }
 
