@@ -83,23 +83,7 @@ class LocalDriver extends Driver
         }
         $needRemoved = true;
         if ($this->withSource) {
-            if (!empty($watermark['text'])) {
-                $fontSize = $watermark['size'] ?? 20;
-                $font = PUBPATH . '/fonts/OpenSans-Regular.ttf';
-                $command = 'convert "' . $localPath . '"  -pointsize ' . $fontSize . ' -font "' . $font . '"  -draw "gravity southeast fill grey text 4,4 \'' . $watermark['text'] . '\'" "' . $localPath . '"';
-                @exec($command);
-            } elseif (!empty($watermark['imagePath'])) {
-                try {
-                    $watermark = $this->imagine->open($watermark['imagePath']);
-                    $image     = $this->imagine->open($localPath);
-                    $size      = $image->getSize();
-                    $wSize     = $watermark->getSize();
-                    $bottomRight = new Point($size->getWidth() - $wSize->getWidth(), $size->getHeight() - $wSize->getHeight());
-                    $image->paste($watermark, $bottomRight)->save();
-                } catch (\Exception $e) {
-        
-                }
-            }
+            $this->setWatermark($localPath, $watermark);
             if ($this->storage) {
                 $url = $this->storage->upload($localPath, $this->storage->generatePath($filePath));
                 $needRemoved = true;
@@ -172,23 +156,7 @@ class LocalDriver extends Driver
         $webFilter = new WebOptimization(PUBPATH . $savedPath);
         $webFilter->apply($image);
         
-        if (!empty($watermark['text'])) {
-            $fontSize = $watermark['size'] ?? 20;
-            $font = PUBPATH . '/fonts/OpenSans-Regular.ttf';
-            $command = 'convert "' . PUBPATH . $savedPath . '"  -pointsize ' . $fontSize . ' -font "' . $font . '"  -draw "gravity southeast fill grey text 4,4 \'' . $watermark['text'] . '\'" "' . PUBPATH . $savedPath . '"';
-            @exec($command);
-        } elseif (!empty($watermark['imagePath'])) {
-            try {
-                $watermark = $this->imagine->open($watermark['imagePath']);
-                $image     = $this->imagine->open(PUBPATH . $savedPath);
-                $size      = $image->getSize();
-                $wSize     = $watermark->getSize();
-                $bottomRight = new Point($size->getWidth() - $wSize->getWidth(), $size->getHeight() - $wSize->getHeight());
-                $image->paste($watermark, $bottomRight)->save();
-            } catch (\Exception $e) {
-            
-            }
-        }
+        $this->setWatermark(PUBPATH . $savedPath, $watermark);
         
         $fileSize = filesize(PUBPATH . $savedPath);
         if ($this->storage) {
@@ -273,5 +241,28 @@ class LocalDriver extends Driver
         $image->crop($cropPoint, $sizeBox);
 
         return $image;
+    }
+    
+    protected function setWatermark($localPath, $watermark = [])
+    {
+        if (!empty($watermark['text'])) {
+            $fontSize = $watermark['size'] ?? 20;
+            $font = PUBPATH . '/fonts/OpenSans-Regular.ttf';
+            $command = 'convert "' . $localPath . '"  -pointsize ' . $fontSize . ' -font "' . $font . '"  -draw "gravity southeast fill grey text 4,4 \'' . $watermark['text'] . '\'" "' . $localPath . '"';
+            @exec($command);
+        } elseif (!empty($watermark['imagePath'])) {
+            try {
+                $watermark = $this->imagine->open($watermark['imagePath']);
+                $image     = $this->imagine->open($localPath);
+                $size      = $image->getSize();
+                $wSize     = $watermark->getSize();
+                $width     = $size->getWidth();
+                $height    = $size->getHeight();
+                $bottomRight = new Point($width - ($width * 0.05) - $wSize->getWidth(), $height - ($height * 0.05) - $wSize->getHeight());
+                $image->paste($watermark, $bottomRight)->save();
+            } catch (\Exception $e) {
+            
+            }
+        }
     }
 }
