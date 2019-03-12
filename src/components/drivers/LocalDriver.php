@@ -91,7 +91,7 @@ class LocalDriver extends Driver
             } elseif (!empty($watermark['imagePath'])) {
                 try {
                     $watermark = $this->imagine->open($watermark['imagePath']);
-                    $image     = $this->imagine->open(PUBPATH . $localPath);
+                    $image     = $this->imagine->open($localPath);
                     $size      = $image->getSize();
                     $wSize     = $watermark->getSize();
                     $bottomRight = new Point($size->getWidth() - $wSize->getWidth(), $size->getHeight() - $wSize->getHeight());
