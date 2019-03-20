@@ -45,7 +45,7 @@ class UploadForm extends Form
         }
         
         if (empty($preset[$this->fileType])) {
-            $this->setErrors(ucfirst($this->fileType) . ' can\'t handle.');
+            $this->setErrors(ucfirst($this->fileType) . '   can\'t handle. ' . $mimeType . ' not supported.');
             return false;
         }
         

@@ -34,7 +34,7 @@ class FileHelper
      */
     public static function getTypeFile($mimeType)
     {
-        if (preg_match('/video\/*/', $mimeType) || $mimeType == 'image/gif') {
+        if (preg_match('/video\/*/', $mimeType) || $mimeType == 'image/gif' || strpos($mimeType, 'stream')) {
             return self::TYPE_VIDEO;
         } elseif (preg_match('/image\/*/', $mimeType)) {
             return self::TYPE_IMAGE;
