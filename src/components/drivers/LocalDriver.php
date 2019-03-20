@@ -84,14 +84,12 @@ class LocalDriver extends Driver
         foreach ($this->thumbSizes as $size) {
             $this->resizeImage($localPath, $size);
         }
-        $needRemoved = true;
+
         if ($this->withSource) {
             if ($this->storage) {
                 $url = $this->storage->upload($localPath, $this->storage->generatePath($filePath));
-                $needRemoved = true;
             } else {
                 $url = str_replace(PUBPATH, Config::getInstance()->get('baseUrl'), $localPath);
-                $needRemoved = false;
             }
             $fileSize = filesize($localPath);
             list($width, $height) = getimagesize($localPath);
@@ -103,9 +101,6 @@ class LocalDriver extends Driver
                 'height' => $height,
                 'url'    => $url
             ]);
-        }
-        if ($needRemoved) {
-            @unlink($localPath);
         }
         return $processId;
     }

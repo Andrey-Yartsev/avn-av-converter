@@ -9,14 +9,10 @@ namespace Converter\components\drivers;
 
 use Converter\components\Config;
 use Converter\components\storages\FileStorage;
-use Imagine\Image\Box;
 use Imagine\Image\Palette\RGB;
 use Imagine\Image\Point;
-use Imagine\Imagick\Image;
-use Imagine\Imagick\Imagine;
 use FFMpeg\Coordinate\TimeCode;
 use FFMpeg\FFMpeg;
-use FFMpeg\FFProbe;
 
 abstract class Driver
 {
