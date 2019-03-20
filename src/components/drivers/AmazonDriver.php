@@ -142,7 +142,7 @@ class AmazonDriver extends Driver
             ]);
             $filePath = PUBPATH . '/upload/' . basename($filePath);
             if (file_exists($filePath)) {
-                @unlink($filePath);
+//                @unlink($filePath);
             }
         } catch (S3Exception $e) {
             return false;
