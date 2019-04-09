@@ -79,6 +79,7 @@ class LocalDriver extends Driver
             file_put_contents($localPath, file_get_contents($filePath));
         }
     
+        $this->fixedOrientation($localPath);
         $this->setWatermark($localPath, $watermark);
         
         foreach ($this->thumbSizes as $size) {

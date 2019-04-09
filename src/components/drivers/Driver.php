@@ -126,7 +126,10 @@ abstract class Driver
             return $localPath;
         } elseif ($watermark['text']) {
             $localPath = PUBPATH . '/upload/' . uniqid('watermark_') . md5($watermark['text']) . '.png';
-            $fontSize = $watermark['size'] ?? 20;
+            $fontSize = (int) $watermark['size'];
+            if (!$fontSize) {
+                $fontSize = 20;
+            }
             $palette = new RGB();
             $imagine = new \Imagine\Gd\Imagine();
             $font = $imagine->font(PUBPATH . '/fonts/OpenSans-Regular.ttf', $fontSize, $palette->color('#808080'));

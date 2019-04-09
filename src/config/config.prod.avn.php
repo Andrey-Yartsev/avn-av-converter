@@ -17,7 +17,7 @@ return [
             'callback' => 'https://stars.avn.com/api2/v2/converter/ready',
             'video'    => [
                 'driver'     => \Converter\components\drivers\AmazonDriver::class,
-                'url'        => 'https://avnsocial-media.s3.amazonaws.com',
+                'url'        => 'https://avnstars-media.s3.amazonaws.com',
                 's3'         => [
                     'region' => 'us-east-1',
                     'bucket' => 'avnstars-media',
