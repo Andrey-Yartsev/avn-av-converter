@@ -70,12 +70,15 @@ abstract class Driver
         $driver = Driver::loadByConfig($this->presetName, $this->thumbs);
         for ($i = 1; $i <= $this->thumbs['maxCount']; $i++) {
             $tempPreviewFile = $this->getVideoFrame($filePath, $i * $step);
-            $driver->createPhotoPreview($tempPreviewFile);
+            if ($tempPreviewFile) {
+                $driver->createPhotoPreview($tempPreviewFile);
+            }
+            
         }
         $result = [];
         foreach ($driver->getResult() as $index => $item) {
             $result[] = [
-                'index' => $index,
+                'index' => ++$index,
                 'url' => $item->url
             ];
         }
@@ -169,6 +172,6 @@ abstract class Driver
         ])->open($localPath);
         $video->frame(TimeCode::fromSeconds($seconds))
             ->save($tempPreviewFile);
-        return $tempPreviewFile;
+        return file_exists($tempPreviewFile) ? $tempPreviewFile : false;
     }
 }
