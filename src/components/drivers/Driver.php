@@ -73,10 +73,10 @@ abstract class Driver
             $driver->createPhotoPreview($tempPreviewFile);
         }
         $result = [];
-        foreach ($driver->getResult() as $index => $result) {
+        foreach ($driver->getResult() as $index => $item) {
             $result[] = [
                 'index' => $index,
-                'url' => $result->url
+                'url' => $item->url
             ];
         }
         return $result;
