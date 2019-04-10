@@ -32,6 +32,18 @@ return [
                     'pipeline' => '1535375850253-dxzlpd',
                     'preset'   => '1552337470087-x0jvu6'
                 ],
+                'thumbs' => [
+                    'driver'     => \Converter\components\drivers\LocalDriver::class,
+                    'engine'     => 'imagick',
+                    'maxCount'   => 5,
+                    'thumbSizes' => [
+                        [
+                            'name'   => 'thumb',
+                            'width'  => 100,
+                            'height' => 100,
+                        ],
+                    ]
+                ],
                 'previews'   => [
                     'driver'     => \Converter\components\drivers\LocalDriver::class,
                     'engine'     => 'imagick',

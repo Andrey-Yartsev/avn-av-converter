@@ -35,17 +35,8 @@ class Process
         $queue = Redis::getInstance()->get('queue:' . $processId);
         if ($queue) {
             $queue = json_decode($queue, true);
-            $presets = Config::getInstance()->get('presets');
-            if (empty($presets[$queue['presetName']])) {
-                return false;
-            }
-            $preset = $presets[$queue['presetName']];
-            if (empty($preset[$queue['fileType']])) {
-                return false;
-            }
-    
-            $driver = Driver::loadByConfig($queue['presetName'], $preset[$queue['fileType']]);
-            if ($driver === null) {
+            $driver = self::getDriver($queue);
+            if (!$driver) {
                 return false;
             }
             return $driver->getStatus($processId);
@@ -64,20 +55,10 @@ class Process
         $queue = Redis::getInstance()->get('queue:' . $processId);
         if ($queue) {
             $queue = json_decode($queue, true);
-            $presets = Config::getInstance()->get('presets');
-            if (empty($presets[$queue['presetName']])) {
+            $driver = self::getDriver($queue);
+            if (!$driver) {
                 return false;
             }
-            $preset = $presets[$queue['presetName']];
-            if (empty($preset[$queue['fileType']])) {
-                return false;
-            }
-    
-            $driver = Driver::loadByConfig($queue['presetName'], $preset[$queue['fileType']]);
-            if ($driver === null) {
-                return false;
-            }
-            
             $watermark = $queue['watermark'] ?? [];
     
             switch ($queue['fileType']) {
@@ -125,6 +106,28 @@ class Process
             return true;
         }
         return false;
+    }
+    
+    /**
+     * @param $queue
+     * @return bool|Driver
+     */
+    public static function getDriver($queue)
+    {
+        $presets = Config::getInstance()->get('presets');
+        if (empty($presets[$queue['presetName']])) {
+            return false;
+        }
+        $preset = $presets[$queue['presetName']];
+        if (empty($preset[$queue['fileType']])) {
+            return false;
+        }
+    
+        $driver = Driver::loadByConfig($queue['presetName'], $preset[$queue['fileType']]);
+        if ($driver === null) {
+            return false;
+        }
+        return $driver;
     }
     
     /**

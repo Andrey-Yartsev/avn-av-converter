@@ -9,6 +9,8 @@ namespace Converter\components\drivers;
 
 use Converter\components\Config;
 use Converter\components\storages\FileStorage;
+use Converter\helpers\FileHelper;
+use FFMpeg\FFProbe;
 use Imagine\Image\Palette\RGB;
 use Imagine\Image\Point;
 use FFMpeg\Coordinate\TimeCode;
@@ -18,6 +20,7 @@ abstract class Driver
 {
     public $presetName;
     public $previews = [];
+    public $thumbs = [];
     
     /** @var FileStorage */
     protected $storage;
@@ -57,22 +60,31 @@ abstract class Driver
     
     abstract public function createPhotoPreview($filePath, $watermark = []);
     
-    public function createVideoPreview($filePath, $watermark = [])
+    public function createThumbsFormVideo($filePath)
     {
-        $localPath = str_replace(Config::getInstance()->get('baseUrl'), PUBPATH, $filePath);
-        if (!file_exists($localPath)) {
-            $localPath = PUBPATH . '/upload/' . md5($filePath) . basename($filePath);
-            file_put_contents($localPath, file_get_contents($filePath));
+        if (empty($this->thumbs)) {
+            return false;
         }
-        $pathInfo = pathinfo($localPath);
-        $fileName = $pathInfo['filename'] ?? md5($localPath);
-        $tempPreviewFile = PUBPATH . '/upload/' . $fileName . '_preview.jpg';
-        $video = FFMpeg::create([
-            'ffmpeg.binaries'  => exec('which ffmpeg'),
-            'ffprobe.binaries' => exec('which ffprobe')
-        ])->open($localPath);
-        $video->frame(TimeCode::fromSeconds(1))
-            ->save($tempPreviewFile);
+        $duration = FileHelper::getVideoDuration($filePath);
+        $step = floor($duration / $this->thumbs['maxCount']);
+        $driver = Driver::loadByConfig($this->presetName, $this->thumbs);
+        for ($i = 1; $i <= $this->thumbs['maxCount']; $i++) {
+            $tempPreviewFile = $this->getVideoFrame($filePath, $i * $step);
+            $driver->createPhotoPreview($tempPreviewFile);
+        }
+        $result = [];
+        foreach ($driver->getResult() as $index => $result) {
+            $result[] = [
+                'index' => $index,
+                'url' => $result->url
+            ];
+        }
+        return $result;
+    }
+    
+    public function createVideoPreview($filePath, $watermark = [], $seconds = 1)
+    {
+        $tempPreviewFile = $this->getVideoFrame($filePath, $seconds);
         $driver = Driver::loadByConfig($this->presetName, $this->previews);
         $driver->createPhotoPreview($tempPreviewFile, $watermark);
         foreach ($driver->getResult() as $result) {
@@ -139,5 +151,24 @@ abstract class Driver
             $image->save($localPath);
             return $localPath;
         }
+    }
+    
+    protected function getVideoFrame($filePath, $seconds)
+    {
+        $localPath = str_replace(Config::getInstance()->get('baseUrl'), PUBPATH, $filePath);
+        if (!file_exists($localPath)) {
+            $localPath = PUBPATH . '/upload/' . md5($filePath) . basename($filePath);
+            file_put_contents($localPath, file_get_contents($filePath));
+        }
+        $pathInfo = pathinfo($localPath);
+        $fileName = $pathInfo['filename'] ?? md5($localPath);
+        $tempPreviewFile = PUBPATH . '/upload/' . $fileName . '_preview.jpg';
+        $video = FFMpeg::create([
+            'ffmpeg.binaries'  => exec('which ffmpeg'),
+            'ffprobe.binaries' => exec('which ffprobe')
+        ])->open($localPath);
+        $video->frame(TimeCode::fromSeconds($seconds))
+            ->save($tempPreviewFile);
+        return $tempPreviewFile;
     }
 }

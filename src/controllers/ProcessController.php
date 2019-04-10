@@ -13,6 +13,7 @@ use Converter\components\Process;
 use Converter\components\Redis;
 use Converter\exceptions\BadRequestHttpException;
 use Converter\forms\UploadForm;
+use Converter\helpers\FileHelper;
 
 class ProcessController extends Controller
 {
@@ -50,25 +51,44 @@ class ProcessController extends Controller
     {
         $request = $this->getRequest();
         $postData = $request->getContentType() == 'json' ? json_decode($request->getContent(), true) : [];
-        if (empty($postData['processId']) && empty($postData['processIds'])) {
-            throw new BadRequestHttpException('ProcessId is required');
-        }
-        if (isset($postData['processIds']) && is_array($postData['processIds'])) {
-            $processIds = $postData['processIds'];
-        } else {
-            $processIds[] = $postData['processId'];
+        if (empty($postData['processes'])) {
+            throw new BadRequestHttpException('Processes is required');
         }
         $response = [];
-        foreach ($processIds as $processId) {
-            $queue = Redis::getInstance()->get('queue:' . $processId);
+        $processIds = [];
+        foreach ($postData['processes'] as $process) {
+            if (empty($process['id'])) {
+                continue;
+            }
+            $queue = Redis::getInstance()->get('queue:' . $process['id']);
             if ($queue) {
                 $queue = json_decode($queue, true);
-                if (isset($queue['files'])) {
-                    $response[] = [
-                        'processId' => $processId,
-                        'files'     => $queue['files']
-                    ];
+                $processIds[] = $process['id'];
+                $driver = Process::getDriver($queue);
+                if (!$driver) {
+                    continue;
                 }
+                $files = [
+                    FileHelper::getFileResponse($queue['filePath'], $queue['fileType'])
+                ];
+                switch ($queue['fileType']) {
+                    case FileHelper::TYPE_VIDEO:
+                        $second = 1;
+                        if (isset($process['thumbId']) && isset($driver->thumbs['maxCount'])) {
+                            $duration = FileHelper::getVideoDuration($queue['filePath']);
+                            $second = $process['thumbId'] * floor($duration / $driver->thumbs['maxCount']);
+                        }
+                        $driver->createVideoPreview($queue['filePath'], $queue['watermark'], $second);
+                        break;
+                    case FileHelper::TYPE_IMAGE:
+                        $driver->createPhotoPreview($queue['filePath'], $queue['watermark']);
+                        break;
+                }
+                $files = array_merge($files, $driver->getResult());
+                $response[] = [
+                    'processId' => $process['id'],
+                    'files'     => $files
+                ];
             }
         }
         $content = json_encode($response);
@@ -119,8 +139,12 @@ class ProcessController extends Controller
             throw new BadRequestHttpException($form);
         }
         
-        return [
+        $response = [
             'processId' => $result
         ];
+        if ($form->needThumbs) {
+            $response['thumbs'] = $form->getThumbs();
+        }
+        return $response;
     }
 }

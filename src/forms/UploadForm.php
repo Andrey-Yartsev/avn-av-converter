@@ -19,9 +19,11 @@ class UploadForm extends Form
     public $callback;
     public $preset;
     public $isDelay = false;
+    public $needThumbs = false;
     public $fileType;
     public $watermark = [];
     protected $mimeType;
+    protected $thumbs = [];
     
     /**
      * @return Driver|bool
@@ -86,21 +88,8 @@ class UploadForm extends Form
         
         $fileUrl = file_exists($this->filePath) ? Config::getInstance()->get('baseUrl') . '/upload/' . basename($this->filePath) : $this->filePath;
         if ($this->isDelay) {
-            $files = [
-                FileHelper::getFileResponse($fileUrl, $this->fileType)
-            ];
-            switch ($this->fileType) {
-                case FileHelper::TYPE_VIDEO:
-                    $driver->createVideoPreview($fileUrl, $this->watermark);
-                    break;
-                case FileHelper::TYPE_IMAGE:
-                    $driver->createPhotoPreview($fileUrl, $this->watermark);
-                    break;
-            }
-            
-            $result = $driver->getResult();
-            if ($result) {
-                $files = array_merge($files, $result);
+            if ($this->needThumbs && $this->fileType == FileHelper::TYPE_VIDEO) {
+                $this->thumbs = $driver->createThumbsFormVideo($fileUrl);
             }
             
             return Process::createQueue([
@@ -108,7 +97,6 @@ class UploadForm extends Form
                 'filePath'   => $fileUrl,
                 'presetName' => $this->preset,
                 'fileType'   => $this->fileType,
-                'files'      => $files,
                 'watermark'  => $this->watermark
             ]);
         } else {
@@ -131,11 +119,15 @@ class UploadForm extends Form
                 'filePath'   => $fileUrl,
                 'presetName' => $this->preset,
                 'fileType'   => $this->fileType,
-                'files'      => [],
                 'watermark'  => $this->watermark
             ], $processId);
             return $processId;
         }
+    }
+    
+    public function getThumbs()
+    {
+        return $this->thumbs;
     }
     
     /**

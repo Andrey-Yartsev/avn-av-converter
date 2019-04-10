@@ -9,6 +9,7 @@ namespace Converter\helpers;
 
 use Converter\response\ImageResponse;
 use Converter\response\VideoResponse;
+use FFMpeg\FFProbe;
 
 class FileHelper
 {
@@ -59,5 +60,20 @@ class FileHelper
         $response->url = $fileUrl;
         $response->name = 'source';
         return $response;
+    }
+    
+    /**
+     * @param $filePath
+     * @return float
+     */
+    public static function getVideoDuration($filePath)
+    {
+        $firstStream = FFProbe::create([
+            'ffmpeg.binaries'  => exec('which ffmpeg'),
+            'ffprobe.binaries' => exec('which ffprobe')
+        ])->streams($filePath)
+            ->videos()
+            ->first();
+        return ceil($firstStream->get('duration'));
     }
 }
