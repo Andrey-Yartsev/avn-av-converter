@@ -56,7 +56,7 @@ class LocalDriver extends Driver
         return true;
     }
 
-    public function createVideoPreview($filePath, $watermark = [])
+    public function createVideoPreview($filePath, $watermark = [], $seconds = 1)
     {
         throw new \Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
     }
