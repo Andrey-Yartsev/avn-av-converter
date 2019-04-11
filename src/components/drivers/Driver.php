@@ -8,6 +8,7 @@ namespace Converter\components\drivers;
 
 
 use Converter\components\Config;
+use Converter\components\Process;
 use Converter\components\storages\FileStorage;
 use Converter\helpers\FileHelper;
 use FFMpeg\FFProbe;
@@ -66,18 +67,21 @@ abstract class Driver
             return false;
         }
         $duration = FileHelper::getVideoDuration($filePath);
-        $step = floor($duration / $this->thumbs['maxCount']);
-        $driver = Driver::loadByConfig($this->presetName, $this->thumbs);
-        if ($step) {
-            for ($i = 1; $i <= $this->thumbs['maxCount']; $i++) {
-                $tempPreviewFile = $this->getVideoFrame($filePath, $i * $step);
-                if ($tempPreviewFile) {
-                    $driver->createPhotoPreview($tempPreviewFile);
-                }
-            }
+        
+        if ($duration > $this->thumbs['maxCount']) {
+            $maxCount = $this->thumbs['maxCount'];
+            $step = floor($duration / $this->thumbs['maxCount']);
         } else {
-            $tempPreviewFile = $this->getVideoFrame($filePath, 1);
-            $driver->createPhotoPreview($tempPreviewFile);
+            $maxCount = $duration;
+            $step = 1;
+        }
+        
+        $driver = Driver::loadByConfig($this->presetName, $this->thumbs);
+        for ($i = 1; $i <= $maxCount; $i++) {
+            $tempPreviewFile = $this->getVideoFrame($filePath, $i * $step);
+            if ($tempPreviewFile) {
+                $driver->createPhotoPreview($tempPreviewFile);
+            }
         }
         
         $result = [];
