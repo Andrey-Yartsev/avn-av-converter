@@ -68,13 +68,18 @@ abstract class Driver
         $duration = FileHelper::getVideoDuration($filePath);
         $step = floor($duration / $this->thumbs['maxCount']);
         $driver = Driver::loadByConfig($this->presetName, $this->thumbs);
-        for ($i = 1; $i <= $this->thumbs['maxCount']; $i++) {
-            $tempPreviewFile = $this->getVideoFrame($filePath, $i * $step);
-            if ($tempPreviewFile) {
-                $driver->createPhotoPreview($tempPreviewFile);
+        if ($step) {
+            for ($i = 1; $i <= $this->thumbs['maxCount']; $i++) {
+                $tempPreviewFile = $this->getVideoFrame($filePath, $i * $step);
+                if ($tempPreviewFile) {
+                    $driver->createPhotoPreview($tempPreviewFile);
+                }
             }
-            
+        } else {
+            $tempPreviewFile = $this->getVideoFrame($filePath, 1);
+            $driver->createPhotoPreview($tempPreviewFile);
         }
+        
         $result = [];
         foreach ($driver->getResult() as $index => $item) {
             $result[] = [
