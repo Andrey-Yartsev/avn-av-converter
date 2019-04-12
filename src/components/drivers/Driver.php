@@ -85,7 +85,7 @@ abstract class Driver
         $result = [];
         foreach ($driver->getResult() as $index => $item) {
             $result[] = [
-                'index' => ++$index,
+                'id'  => ++$index,
                 'url' => $item->url
             ];
         }
