@@ -95,6 +95,9 @@ abstract class Driver
     public function createVideoPreview($filePath, $watermark = [], $seconds = 1)
     {
         $tempPreviewFile = $this->getVideoFrame($filePath, $seconds);
+        if (!$tempPreviewFile) {
+            return false;
+        }
         $driver = Driver::loadByConfig($this->presetName, $this->previews);
         $driver->createPhotoPreview($tempPreviewFile, $watermark);
         foreach ($driver->getResult() as $result) {
