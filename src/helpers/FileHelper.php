@@ -74,6 +74,11 @@ class FileHelper
         ])->streams($filePath)
             ->videos()
             ->first();
-        return ceil($firstStream->get('duration'));
+        $duration = ceil($firstStream->get('duration'));
+        // @TODO: change for better solution for GIF that gives duration = 0
+        if ($duration == 0) {
+            $duration = 1;
+        }
+        return $duration;
     }
 }
