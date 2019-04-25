@@ -74,7 +74,7 @@ class ProcessController extends Controller
                 switch ($queue['fileType']) {
                     case FileHelper::TYPE_VIDEO:
                         $duration = FileHelper::getVideoDuration($queue['filePath']);
-    
+
                         if (isset($driver->thumbs['maxCount'])) {
                             if ($duration > $driver->thumbs['maxCount']) {
                                 $maxCount = $driver->thumbs['maxCount'];
@@ -86,11 +86,15 @@ class ProcessController extends Controller
                         } else {
                             $maxCount = $step = 1;
                         }
-                        
-                        for ($i = 1; $i <= $maxCount; $i++) {
-                            $driver->createVideoPreview($queue['filePath'], $queue['watermark'], $i * $step);
+
+                        if ($duration == 0) {
+                            $driver->createVideoPreview($queue['filePath'], $queue['watermark'], $duration);
+                        } else {
+                            for ($i = 0; $i < $maxCount; $i++) {
+                                $driver->createVideoPreview($queue['filePath'], $queue['watermark'], $i * $step);
+                            }
                         }
-                        
+
                         break;
                     case FileHelper::TYPE_IMAGE:
                         $driver->createPhotoPreview($queue['filePath'], $queue['watermark']);
