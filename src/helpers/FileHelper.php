@@ -74,6 +74,6 @@ class FileHelper
         ])->streams($filePath)
             ->videos()
             ->first();
-        return ceil($firstStream->get('duration'));
+        return floor($firstStream->get('duration'));
     }
 }

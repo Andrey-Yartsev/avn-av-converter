@@ -81,7 +81,7 @@ abstract class Driver
                 $driver->createPhotoPreview($tempPreviewFile);
             }
         } else {
-            for ($i = 1; $i <= $maxCount; $i++) {
+            for ($i = 0; $i < $maxCount; $i++) {
                 $tempPreviewFile = $this->getVideoFrame($filePath, $i * $step);
                 if ($tempPreviewFile) {
                     $driver->createPhotoPreview($tempPreviewFile);

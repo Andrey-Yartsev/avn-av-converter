@@ -39,7 +39,7 @@ class Config
      */
     public function get($name, $default = null)
     {
-        return $this->config[$name] ?: $default;
+        return $this->config[$name] ?? $default;
     }
     
     private function __clone() {}
