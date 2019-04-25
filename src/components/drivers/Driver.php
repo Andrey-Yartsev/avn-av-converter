@@ -65,7 +65,7 @@ abstract class Driver
             return false;
         }
         $duration = FileHelper::getVideoDuration($filePath);
-        
+
         if ($duration > $this->thumbs['maxCount']) {
             $maxCount = $this->thumbs['maxCount'];
             $step = floor($duration / $this->thumbs['maxCount']);
@@ -73,15 +73,22 @@ abstract class Driver
             $maxCount = $duration;
             $step = 1;
         }
-        
+
         $driver = Driver::loadByConfig($this->presetName, $this->thumbs);
-        for ($i = 1; $i <= $maxCount; $i++) {
-            $tempPreviewFile = $this->getVideoFrame($filePath, $i * $step);
+        if ($duration == 0) {
+            $tempPreviewFile = $this->getVideoFrame($filePath, $duration);
             if ($tempPreviewFile) {
                 $driver->createPhotoPreview($tempPreviewFile);
             }
+        } else {
+            for ($i = 1; $i <= $maxCount; $i++) {
+                $tempPreviewFile = $this->getVideoFrame($filePath, $i * $step);
+                if ($tempPreviewFile) {
+                    $driver->createPhotoPreview($tempPreviewFile);
+                }
+            }
         }
-        
+
         $result = [];
         foreach ($driver->getResult() as $index => $item) {
             $result[] = [
