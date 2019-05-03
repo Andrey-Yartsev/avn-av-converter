@@ -105,6 +105,9 @@ class UploadForm extends Form
                     $processId = $driver->processVideo($fileUrl, $this->callback, $processId, $this->watermark);
                     break;
                 case FileHelper::TYPE_IMAGE:
+                    if (file_exists($this->filePath)) {
+                        $driver->fixedOrientation($this->filePath);
+                    }
                     $processId = $driver->processPhoto($fileUrl, $this->callback, $processId, $this->watermark);
                     break;
                 case FileHelper::TYPE_AUDIO:

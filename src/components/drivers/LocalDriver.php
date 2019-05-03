@@ -50,6 +50,7 @@ class LocalDriver extends Driver
             $localPath = PUBPATH . '/upload/' . md5($filePath) . basename($filePath);
             file_put_contents($localPath, file_get_contents($filePath));
         }
+        $this->fixedOrientation($localPath);
         foreach ($this->thumbSizes as $size) {
             $this->resizeImage($localPath, $size, $watermark);
         }
@@ -77,8 +78,8 @@ class LocalDriver extends Driver
         if (!file_exists($localPath)) {
             $localPath = PUBPATH . '/upload/' . md5($filePath) . basename($filePath);
             file_put_contents($localPath, file_get_contents($filePath));
+            $this->fixedOrientation($localPath);
         }
-        $this->fixedOrientation($localPath);
         
         foreach ($this->thumbSizes as $size) {
             $this->resizeImage($localPath, $size, $watermark);
@@ -114,7 +115,7 @@ class LocalDriver extends Driver
      * @param $localPath
      * @return \Imagine\Image\ImageInterface
      */
-    protected function fixedOrientation($localPath)
+    public function fixedOrientation($localPath)
     {
         $image = $this->imagine->open($localPath);
         $filter = new Autorotate();
