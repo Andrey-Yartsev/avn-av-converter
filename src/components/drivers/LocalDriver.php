@@ -7,6 +7,7 @@
 namespace Converter\components\drivers;
 
 use Converter\components\Config;
+use Converter\components\Logger;
 use Converter\response\ImageResponse;
 use Imagine\Filter\Basic\Autorotate;
 use Imagine\Filter\Basic\WebOptimization;
@@ -50,7 +51,7 @@ class LocalDriver extends Driver
             file_put_contents($localPath, file_get_contents($filePath));
         }
         foreach ($this->thumbSizes as $size) {
-            $this->resizeImage($localPath, $size);
+            $this->resizeImage($localPath, $size, $watermark);
         }
         return true;
     }
@@ -79,7 +80,7 @@ class LocalDriver extends Driver
         }
         
         foreach ($this->thumbSizes as $size) {
-            $this->resizeImage($localPath, $size);
+            $this->resizeImage($localPath, $size, $watermark);
         }
 
         if ($this->withSource) {
@@ -258,7 +259,7 @@ class LocalDriver extends Driver
                 $bottomRight = new Point($width - ($width * 0.05) - $wSize->getWidth(), $height - ($height * 0.05) - $wSize->getHeight());
                 $image->paste($watermark, $bottomRight)->save();
             } catch (\Exception $e) {
-            
+                Logger::send('converter.watermark', ['msg' => $e->getMessage()]);
             }
         }
     }
