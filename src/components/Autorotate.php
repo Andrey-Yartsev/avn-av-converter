@@ -7,6 +7,8 @@
 namespace Converter\components;
 
 
+use Imagine\Image\ImageInterface;
+
 class Autorotate extends \Imagine\Filter\Basic\Autorotate
 {
     /**
