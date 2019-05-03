@@ -78,14 +78,13 @@ class LocalDriver extends Driver
             $localPath = PUBPATH . '/upload/' . md5($filePath) . basename($filePath);
             file_put_contents($localPath, file_get_contents($filePath));
         }
+        $this->fixedOrientation($localPath);
         
         foreach ($this->thumbSizes as $size) {
             $this->resizeImage($localPath, $size, $watermark);
         }
 
         if ($this->withSource) {
-            $image = $this->fixedOrientation($localPath);
-            $image->save();
             $this->setWatermark($localPath, $watermark);
             if ($this->storage) {
                 $url = $this->storage->upload($localPath, $this->storage->generatePath($filePath));
@@ -119,7 +118,9 @@ class LocalDriver extends Driver
     {
         $image = $this->imagine->open($localPath);
         $filter = new Autorotate();
-        return $filter->apply($image);
+        $filter->apply($image);
+        $image->save();
+        return $image;
     }
 
     /**
@@ -135,7 +136,7 @@ class LocalDriver extends Driver
         $blur = $size['blur'] ?? null;
         $name = $size['name'] ?? null;
         $maxSize = $size['maxSize'] ?? null;
-        $image = $this->fixedOrientation($filePath);
+        $image = $this->imagine->open($filePath);
 
         if ($maxSize) {
             $this->resizeAdaptive($image, $maxSize);
