@@ -35,6 +35,7 @@ class UploadCommand extends Command
             Logger::send('worker.upload.run', [
                 'step' => $params['processId'] . ' init amazon driver'
             ]);
+            Logger::send('process', ['id' => $params['processId'], 'step' => 'Amazon driver', 'data' => ['status' => 'init']]);
             if ($amazonDriver->createJob($params['filePath'], $params['callback'], $params['processId'], $params['watermark'])) {
                 Logger::send('worker.upload.run', [
                     'step' => $params['processId'] . ' success file uploaded'

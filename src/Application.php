@@ -77,11 +77,13 @@ class Application
         
         if ($isPhpError) {
             $code = $exception;
+            $trace = '';
         } else {
             $code = $exception->getCode();
             $message = $exception->getMessage();
             $file = $exception->getFile();
             $line = $exception->getLine();
+            $trace = $exception->getTraceAsString();
         }
         
         if ($exception instanceof HttpException) {
@@ -100,7 +102,13 @@ class Application
             $message['error']['line'] = $line;
         }
         Logger::send('converter.fatal', [
-            'fatalError' => $message
+            'fatalError' => [
+                'code'    => $code,
+                'message' => $message,
+                'file' => $file,
+                'line' => $line,
+                'trace' => $trace
+            ]
         ]);
         $this->sendResponse($httpCode, $message);
     }

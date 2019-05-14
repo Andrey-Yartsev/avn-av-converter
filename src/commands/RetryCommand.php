@@ -46,17 +46,21 @@ class RetryCommand extends Command
                 $response = $httpClient->request('POST', $options['url'], [
                     'json' => $options['body']
                 ]);
-                Logger::send('converter.cc.callback.sendCallback', [
+                Logger::send('converter.callback.sendCallback', [
                     'type' => 'retry',
                     'request' => $options['body'],
                     'httpCode' => $response->getStatusCode(),
                     'response' => $response->getBody()
                 ]);
+                Logger::send('process', ['id' => $options['processId'], 'step' => 'Send callback, retry #' . $countKey, 'data' => [
+                    'httpCode' => $response->getStatusCode(),
+                    'response' => $response->getBody()
+                ]]);
                 if ($response->getStatusCode() == 200) {
                     Redis::getInstance()->del($key, $countKey);
                 }
             } catch (\Exception $e) {
-                Logger::send('converter.cc.callback.sendCallback', [
+                Logger::send('converter.callback.sendCallback', [
                     'type' => 'retry',
                     'options' => $options,
                     'error' => $e->getMessage()
@@ -68,6 +72,7 @@ class RetryCommand extends Command
                 Logger::send('converter.cc.retry', [
                     'options' => $options
                 ]);
+                Logger::send('process', ['id' => $options['processId'], 'step' => 'Failed all retry', 'data' => $options]);
             }
         }
     

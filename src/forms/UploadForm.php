@@ -10,6 +10,7 @@ namespace Converter\forms;
 use Converter\components\Config;
 use Converter\components\drivers\Driver;
 use Converter\components\Form;
+use Converter\components\Logger;
 use Converter\components\Process;
 use Converter\helpers\FileHelper;
 
@@ -92,13 +93,19 @@ class UploadForm extends Form
                 $this->thumbs = $driver->createThumbsFormVideo($fileUrl);
             }
             
-            return Process::createQueue([
+            $process = [
                 'callback'   => $this->callback,
                 'filePath'   => $fileUrl,
                 'presetName' => $this->preset,
                 'fileType'   => $this->fileType,
                 'watermark'  => $this->watermark
-            ]);
+            ];
+    
+            $processId = Process::createQueue($process);
+            $process['isDelay'] = true;
+            Logger::send('process', ['id' => $processId, 'step' => 'create', 'data' => $process]);
+            
+            return $processId;
         } else {
             switch ($this->fileType) {
                 case FileHelper::TYPE_VIDEO:
@@ -117,13 +124,20 @@ class UploadForm extends Form
                     $this->setErrors(ucfirst($this->fileType) . ' can\'t handle. O.o');
                     return false;
             }
-            Process::createQueue([
+    
+            $process = [
                 'callback'   => $this->callback,
                 'filePath'   => $fileUrl,
                 'presetName' => $this->preset,
                 'fileType'   => $this->fileType,
                 'watermark'  => $this->watermark
-            ], $processId);
+            ];
+            
+            Process::createQueue($process, $processId);
+    
+            $process['isDelay'] = false;
+            Logger::send('process', ['id' => $processId, 'step' => 'create', 'data' => $process]);
+            
             return $processId;
         }
     }

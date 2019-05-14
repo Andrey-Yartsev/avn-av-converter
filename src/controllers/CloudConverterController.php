@@ -64,7 +64,7 @@ class CloudConverterController extends Controller
                                     $response = $client->request('POST', $options['callback'], [
                                         'json' => $json
                                     ]);
-                                    Logger::send('converter.cc.callback.sendCallback', [
+                                    Logger::send('converter.callback.sendCallback', [
                                         'type'     => 'main',
                                         'request'  => $json,
                                         'httpCode' => $response->getStatusCode(),
@@ -119,7 +119,7 @@ class CloudConverterController extends Controller
             $guzzleResponse = $client->request('POST', $callback, [
                 'json' => $json
             ]);
-            Logger::send('converter.cc.callback.sendCallback', [
+            Logger::send('converter.callback.sendCallback', [
                 'type'     => 'main',
                 'request'  => $json,
                 'httpCode' => $guzzleResponse->getStatusCode(),
@@ -145,7 +145,7 @@ class CloudConverterController extends Controller
         ];
         Redis::getInstance()->set('retry:' . $processId, json_encode($params));
         Redis::getInstance()->incr('retry:' . $processId . ':count');
-        Logger::send('converter.cc.callback.sendCallback', [
+        Logger::send('converter.callback.sendCallback', [
             'type'   => 'main',
             'params' => $params,
             'error'  => $error
