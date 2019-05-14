@@ -37,15 +37,19 @@ class AmazonController extends Controller
         if ($message['Type'] === 'SubscriptionConfirmation') {
             file_get_contents($message['SubscribeURL']);
         } elseif ($message['Type'] === 'Notification') {
+            $messageRaw = json_decode($message['Message'], true);
+            if ($messageRaw['state'] == 'PROGRESSING') {
+                return;
+            }
             Logger::send('amazon.sns.notification', [
                 'messageId' => $message['MessageId'],
-                'messageRaw' => $message['Message']
+                'messageRaw' => $messageRaw
             ]);
             $presents = Config::getInstance()->get('presets');
             $jobs = Redis::getInstance()->sMembers('amazon:queue');
             foreach ($jobs as $job) {
                 $options = json_decode($job, true);
-                if ($options['jobId'] != $message['Message']['jobId']) {
+                if ($options['jobId'] != $messageRaw['jobId']) {
                     continue;
                 }
                 $presetName = $options['presetName'];
