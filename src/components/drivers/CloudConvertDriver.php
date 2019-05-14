@@ -51,7 +51,7 @@ class CloudConvertDriver extends Driver
                 $process->refresh();
                 if ($process->percent) {
                     Logger::send('converter.cc.status', [
-                        'id' => $processId,
+                        'processId' => $processId,
                         'percent'   => $process->percent,
                         'step'      => $process->step,
                         'message'   => $process->message
@@ -73,7 +73,7 @@ class CloudConvertDriver extends Driver
             }
         }
         Logger::send('converter.cc.status', [
-            'id' => $processId,
+            'processId' => $processId,
             'percent'   => 0
         ]);
         return new StatusResponse([
@@ -259,7 +259,7 @@ class CloudConvertDriver extends Driver
             'file'       => $filePath,
             'callback'   => $callback,
             'presetName' => $this->presetName,
-            'id'         => $processId,
+            'processId'         => $processId,
             'url'        => $process->refresh()->url
         ]);
         return $processId;
