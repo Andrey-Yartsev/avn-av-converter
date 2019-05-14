@@ -6,7 +6,6 @@
 
 namespace Converter\components\drivers;
 
-use Converter\components\Autorotate;
 use Converter\components\Config;
 use Converter\components\Logger;
 use Converter\response\ImageResponse;

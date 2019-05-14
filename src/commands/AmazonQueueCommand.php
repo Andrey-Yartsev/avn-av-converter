@@ -107,8 +107,9 @@ class AmazonQueueCommand extends Command
                         $output->writeln('<error>Job #' . $options['jobId'] . ' not complete</error>');
                     }
                 }
+                sleep(1);
             }
-            sleep(3);
+            sleep(2);
         }
         $this->release();
         

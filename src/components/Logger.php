@@ -6,11 +6,15 @@
 
 namespace Converter\components;
 
-use Psr\Log\LoggerInterface;
+use Converter\components\logs\File;
+use Converter\components\logs\Graylog;
 use Psr\Log\LogLevel;
 
-class Logger implements LoggerInterface
+class Logger
 {
+    /** @var File|Graylog */
+    protected static $driver;
+    
     /**
      * @param $message
      * @param array $context
@@ -18,58 +22,22 @@ class Logger implements LoggerInterface
      */
     public static function send($message, array $context = [], $level = LogLevel::INFO)
     {
-        $folder = PUBPATH . '/../logs/' . date('Y') . '/' . date('m') . '/' . date('d') . '/';
-        if (!is_dir($folder)) {
-            mkdir($folder, 0777, true);
+        if (empty(self::$driver)) {
+            self::$driver = self::getDriver();
         }
-        $f = fopen($folder . $message . '.log', 'at');
-        fwrite($f, date('H:i:s') . "\t" . json_encode($context) . PHP_EOL);
-        fclose($f);
+        self::$driver->send($message, $context, $level);
     }
-
-    public function emergency($message, array $context = array())
+    
+    protected static function getDriver()
     {
-        self::send('custom', ['text' => $message], LogLevel::EMERGENCY);
+        $config = Config::getInstance()->get('log');
+        if ($config === null) {
+            return new File();
+        }
+        if (!empty($config['driver']) && class_exists($config['driver'])) {
+            $driverName = $config['driver'];
+            unset($config['driver']);
+            return new $driverName($config);
+        }
     }
-
-    public function alert($message, array $context = array())
-    {
-        self::send('custom', ['text' => $message], LogLevel::ALERT);
-    }
-
-    public function critical($message, array $context = array())
-    {
-        self::send('custom', ['text' => $message], LogLevel::CRITICAL);
-    }
-
-    public function error($message, array $context = array())
-    {
-        self::send('custom', ['text' => $message], LogLevel::ERROR);
-    }
-
-    public function warning($message, array $context = array())
-    {
-        self::send('custom', ['text' => $message], LogLevel::WARNING);
-    }
-
-    public function notice($message, array $context = array())
-    {
-        self::send('custom', ['text' => $message], LogLevel::NOTICE);
-    }
-
-    public function info($message, array $context = array())
-    {
-        self::send('custom', ['text' => $message], LogLevel::INFO);
-    }
-
-    public function debug($message, array $context = array())
-    {
-        self::send('custom', ['text' => $message], LogLevel::DEBUG);
-    }
-
-    public function log($level, $message, array $context = array())
-    {
-        self::send('custom', ['text' => $message], $level);
-    }
-
 }

@@ -18,6 +18,9 @@ return [
             'host' => '163.237.242.4',
         ]
     ],
+    'log' => [
+        'driver' => \Converter\components\logs\File::class
+    ],
     'presets' => [
         'test2'  => [
             'driver'       => \Converter\components\drivers\CloudConvertDriver::class,
