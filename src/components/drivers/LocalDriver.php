@@ -9,6 +9,7 @@ namespace Converter\components\drivers;
 use Converter\components\Config;
 use Converter\components\Logger;
 use Converter\response\ImageResponse;
+use Imagine\Filter\Basic\Autorotate;
 use Imagine\Filter\Basic\WebOptimization;
 use Imagine\Gd\Imagine as GdImagine;
 use Imagine\Gmagick\Imagine as GmagickImagine;
