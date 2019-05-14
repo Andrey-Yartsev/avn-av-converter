@@ -166,6 +166,7 @@ class AmazonDriver extends Driver
                 'PresetId' => $this->transcoder['preset'],
             ];
             if ($watermarkKey) {
+                Logger::send('process', ['processId' => $processId, 'step' => 'Set watermark', 'data' => ['status' => 'success']]);
                 $outputSettings['Watermarks'][] = [
                     'InputKey' => $watermarkKey,
                     'PresetWatermarkId' => 'BottomRight'

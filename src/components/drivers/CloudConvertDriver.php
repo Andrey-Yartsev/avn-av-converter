@@ -225,15 +225,18 @@ class CloudConvertDriver extends Driver
     public function processVideo($filePath, $callback, $processId = null, $watermark = [])
     {
         $pathParts = pathinfo($filePath);
+        Logger::send('process', ['processId' => $processId, 'step' => 'CloudConverter driver', 'data' => ['status' => 'init']]);
         $process = $this->client->createProcess([
             'inputformat'  => $pathParts['extension'],
             'outputformat' => $this->outputFormat,
         ]);
         $watermarkString = '';
         if (isset($watermark['text'])) {
+            Logger::send('process', ['processId' => $processId, 'step' => 'Set watermark', 'data' => ['status' => 'success']]);
             $fontSize = $watermark['size'] ?? 20;
             $watermarkString = '-vf drawtext="fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf:text=\'' . addslashes($watermark['text']). '\':x=w-tw-10:y=h-th-10:fontsize=' . $fontSize . ':fontcolor=gray"';
         }
+        Logger::send('process', ['processId' => $processId, 'step' => 'Start process', 'data' => ['status' => 'success']]);
         $process->start([
             'outputformat'     => $this->outputFormat,
             'converteroptions' => [

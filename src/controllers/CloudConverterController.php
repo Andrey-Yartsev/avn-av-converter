@@ -31,11 +31,13 @@ class CloudConverterController extends Controller
             'params' => $_GET
         ]);
         if ($id) {
+            Logger::send('process', ['processId' => $id, 'step' => 'Init callback']);
             $options = Redis::getInstance()->get('cc:' . $id);
             if ($options) {
                 $options = json_decode($options, true);
                 if ($request->get('step') == 'finished') {
                     Logger::send('converter.cc.callback.findJob', $options);
+                    Logger::send('process', ['processId' => $id, 'step' => 'Find record in Redis']);
                     $presets    = Config::getInstance()->get('presets');
                     $presetName = $options['presetName'] ?? '';
                     if ($presetName && !empty($presets[$presetName])) {
@@ -48,8 +50,10 @@ class CloudConverterController extends Controller
                                 $success = true;
                                 if ($fileType == FileHelper::TYPE_AUDIO) {
                                     $success = $driver->saveAudio($url);
+                                    Logger::send('process', ['processId' => $id, 'step' => 'Save audio']);
                                 } elseif ($fileType == FileHelper::TYPE_VIDEO) {
                                     $success = $driver->saveVideo($url);
+                                    Logger::send('process', ['processId' => $id, 'step' => 'Save video']);
                                 }
                                 if (!$success) {
                                     $this->sendError('Could not get processed file', $id, $options['callback']);
@@ -64,6 +68,10 @@ class CloudConverterController extends Controller
                                     $response = $client->request('POST', $options['callback'], [
                                         'json' => $json
                                     ]);
+                                    Logger::send('process', ['processId' => $options['processId'], 'step' => 'Send callback', 'data' => [
+                                        'httpCode' => $response->getStatusCode(),
+                                        'response' => $response->getBody()
+                                    ]]);
                                     Logger::send('converter.callback.sendCallback', [
                                         'type'     => 'main',
                                         'request'  => $json,
@@ -113,6 +121,7 @@ class CloudConverterController extends Controller
             'processId' => $id,
             'error'     => $response['message'] ?? ''
         ];
+        Logger::send('process', ['processId' => $id, 'step' => 'Error conversion', 'data' => ['error' => $response['message'] ?? '']]);
         Redis::getInstance()->del('cc:' . $id, 'queue:' . $id);
         try {
             $client         = new Client();
@@ -143,6 +152,9 @@ class CloudConverterController extends Controller
             'processId' => $processId,
             'body'      => $body
         ];
+        Logger::send('process', ['processId' => $processId, 'step' => 'Error send callback', 'data' => [
+            'error' => $error
+        ]]);
         Redis::getInstance()->set('retry:' . $processId, json_encode($params));
         Redis::getInstance()->incr('retry:' . $processId . ':count');
         Logger::send('converter.callback.sendCallback', [
