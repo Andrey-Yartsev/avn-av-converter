@@ -64,11 +64,12 @@ class CloudConverterController extends Controller
                                     'files'     => $driver->getResult()
                                 ];
                                 try {
+                                    Logger::send('process', ['processId' => $options['processId'], 'step' => 'Start send callback', 'data' => $json]);
                                     $client   = new Client();
                                     $response = $client->request('POST', $options['callback'], [
                                         'json' => $json
                                     ]);
-                                    Logger::send('process', ['processId' => $options['processId'], 'step' => 'Send callback', 'data' => [
+                                    Logger::send('process', ['processId' => $options['processId'], 'step' => 'Sended callback', 'data' => [
                                         'httpCode' => $response->getStatusCode(),
                                         'response' => $response->getBody()
                                     ]]);
