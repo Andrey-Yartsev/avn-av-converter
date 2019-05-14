@@ -35,7 +35,7 @@ class AmazonController extends Controller
         } elseif ($message['Type'] === 'Notification') {
             Logger::send('amazon.sns.notification', [
                 'messageId' => $message['MessageId'],
-                'message' => $message['Message']
+                'messageRaw' => $message['Message']
             ]);
         }
         
