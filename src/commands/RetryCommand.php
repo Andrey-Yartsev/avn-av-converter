@@ -52,7 +52,7 @@ class RetryCommand extends Command
                     'httpCode' => $response->getStatusCode(),
                     'response' => $response->getBody()
                 ]);
-                Logger::send('process', ['id' => $options['processId'], 'step' => 'Send callback, retry #' . $countKey, 'data' => [
+                Logger::send('process', ['processId' => $options['processId'], 'step' => 'Send callback, retry #' . $countKey, 'data' => [
                     'httpCode' => $response->getStatusCode(),
                     'response' => $response->getBody()
                 ]]);
@@ -72,7 +72,7 @@ class RetryCommand extends Command
                 Logger::send('converter.cc.retry', [
                     'options' => $options
                 ]);
-                Logger::send('process', ['id' => $options['processId'], 'step' => 'Failed all retry', 'data' => $options]);
+                Logger::send('process', ['processId' => $options['processId'], 'step' => 'Failed all retry', 'data' => $options]);
             }
         }
     

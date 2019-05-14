@@ -11,15 +11,11 @@ return [
         'port'     => 6379,
         'database' => 1
     ],
-    'graylog' => [
-        'facility'   => 'dev',
-        'connection' => [
-            'port' => 1517,
-            'host' => '163.237.242.4',
-        ]
-    ],
     'log' => [
-        'driver' => \Converter\components\logs\File::class
+        'driver' => \Converter\components\logs\Graylog::class,
+        'host' => '163.237.242.4',
+        'port' => 1517,
+        'facility' => 'dev',
     ],
     'presets' => [
         'test2'  => [

@@ -103,7 +103,7 @@ class UploadForm extends Form
     
             $processId = Process::createQueue($process);
             $process['isDelay'] = true;
-            Logger::send('process', ['id' => $processId, 'step' => 'create', 'data' => $process]);
+            Logger::send('process', ['processId' => $processId, 'step' => 'create', 'data' => $process]);
             
             return $processId;
         } else {
@@ -136,7 +136,7 @@ class UploadForm extends Form
             Process::createQueue($process, $processId);
     
             $process['isDelay'] = false;
-            Logger::send('process', ['id' => $processId, 'step' => 'create', 'data' => $process]);
+            Logger::send('process', ['processId' => $processId, 'step' => 'create', 'data' => $process]);
             
             return $processId;
         }

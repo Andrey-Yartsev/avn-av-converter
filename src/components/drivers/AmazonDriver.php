@@ -145,7 +145,7 @@ class AmazonDriver extends Driver
 //                @unlink($filePath);
             }
         } catch (S3Exception $e) {
-            Logger::send('process', ['id' => $processId, 'step' => 'Upload to S3', 'data' => [
+            Logger::send('process', ['processId' => $processId, 'step' => 'Upload to S3', 'data' => [
                 'status' => 'failed',
                 'error' => $e->getMessage(),
                 'code' => $e->getCode()
@@ -153,7 +153,7 @@ class AmazonDriver extends Driver
             return false;
         }
     
-        Logger::send('process', ['id' => $processId, 'step' => 'Upload to S3', 'data' => ['status' => 'success']]);
+        Logger::send('process', ['processId' => $processId, 'step' => 'Upload to S3', 'data' => ['status' => 'success']]);
         $dir = date('Y_m_d') . '/' . substr($processId, 0, 2) . '/' . substr($processId, 0, 3) . '/' . $processId;
 
         $watermarkKey = $this->getWatermark($s3Client, $watermark);
@@ -187,18 +187,18 @@ class AmazonDriver extends Driver
                 ],
             ]);
         } catch (\Exception $e) {
-            Logger::send('process', ['id' => $processId, 'step' => 'Create transcoder job', 'data' => [
+            Logger::send('process', ['processId' => $processId, 'step' => 'Create transcoder job', 'data' => [
                 'status' => 'failed',
                 'error' => $e->getMessage(),
                 'code' => $e->getCode()
             ]]);
             return false;
         }
-        Logger::send('process', ['id' => $processId, 'step' => 'Create transcoder job', 'data' => ['status' => 'success']]);
+        Logger::send('process', ['processId' => $processId, 'step' => 'Create transcoder job', 'data' => ['status' => 'success']]);
 
         $job = (array)$job->get('Job');
         if (strtolower($job['Status']) == 'submitted') {
-            Logger::send('process', ['id' => $processId, 'step' => 'Added to amazon:queue', 'data' => ['status' => 'success']]);
+            Logger::send('process', ['processId' => $processId, 'step' => 'Added to amazon:queue', 'data' => ['status' => 'success']]);
             Redis::getInstance()->sAdd('amazon:queue', json_encode([
                 'jobId' => $job['Id'],
                 'processId' => $processId,
@@ -207,7 +207,7 @@ class AmazonDriver extends Driver
             ]));
             return true;
         } else {
-            Logger::send('process', ['id' => $processId, 'step' => 'Wrong job', 'data' => $job]);
+            Logger::send('process', ['processId' => $processId, 'step' => 'Wrong job', 'data' => $job]);
             return false;
         }
     }

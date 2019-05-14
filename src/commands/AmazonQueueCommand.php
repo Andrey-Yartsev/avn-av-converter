@@ -49,7 +49,7 @@ class AmazonQueueCommand extends Command
                             'processId' => $options['processId'],
                             'files' => $amazonDriver->getResult()
                         ];
-                        Logger::send('process', ['id' => $options['processId'], 'step' => 'Job success', 'data' => $json]);
+                        Logger::send('process', ['processId' => $options['processId'], 'step' => 'Job success', 'data' => $json]);
                         try {
                             $client = new Client();
                             $response = $client->request('POST', $options['callback'], [
@@ -61,7 +61,7 @@ class AmazonQueueCommand extends Command
                                 'httpCode' => $response->getStatusCode(),
                                 'response' => $response->getBody()
                             ]);
-                            Logger::send('process', ['id' => $options['processId'], 'step' => 'Send callback', 'data' => [
+                            Logger::send('process', ['processId' => $options['processId'], 'step' => 'Send callback', 'data' => [
                                 'httpCode' => $response->getStatusCode(),
                                 'response' => $response->getBody()
                             ]]);
@@ -83,7 +83,7 @@ class AmazonQueueCommand extends Command
                 } else {
                     if (($error = $amazonDriver->getError())) {
                         Redis::getInstance()->sRem('amazon:queue', $job);
-                        Logger::send('process', ['id' => $options['processId'], 'step' => 'Job failed', 'data' => ['error' => $error]]);
+                        Logger::send('process', ['processId' => $options['processId'], 'step' => 'Job failed', 'data' => ['error' => $error]]);
                         try {
                             $client = new Client();
                             $response = $client->request('POST', $options['callback'], [
@@ -137,7 +137,7 @@ class AmazonQueueCommand extends Command
         ];
         Redis::getInstance()->set('retry:' . $processId, json_encode($params));
         Redis::getInstance()->incr('retry:' . $processId . ':count');
-        Logger::send('process', ['id' => $processId, 'step' => 'Error send callback', 'data' => [
+        Logger::send('process', ['processId' => $processId, 'step' => 'Error send callback', 'data' => [
             'error' => $error
         ]]);
         Logger::send('converter.callback.sendCallback', [
