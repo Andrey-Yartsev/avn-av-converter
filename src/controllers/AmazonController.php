@@ -34,7 +34,7 @@ class AmazonController extends Controller
             file_get_contents($message['SubscribeURL']);
         } elseif ($message['Type'] === 'Notification') {
             Logger::send('amazon.sns.notification', [
-                'id' => $message['MessageId'],
+                'messageId' => $message['MessageId'],
                 'message' => $message['Message']
             ]);
         }
