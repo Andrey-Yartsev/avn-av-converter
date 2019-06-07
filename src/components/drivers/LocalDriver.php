@@ -50,9 +50,13 @@ class LocalDriver extends Driver
             $localPath = PUBPATH . '/upload/' . md5($filePath) . basename($filePath);
             file_put_contents($localPath, file_get_contents($filePath));
         }
-        $this->fixedOrientation($localPath);
+        $image = $this->imagine->open($localPath);
+        $savedPath = PUBPATH . '/upload/' . md5($localPath) . basename($localPath);
+        $webFilter = new WebOptimization($savedPath);
+        $webFilter->apply($image);
+        @unlink($localPath);
         foreach ($this->thumbSizes as $size) {
-            $this->resizeImage($localPath, $size, $watermark);
+            $this->resizeImage($savedPath, $size, $watermark);
         }
         return true;
     }
