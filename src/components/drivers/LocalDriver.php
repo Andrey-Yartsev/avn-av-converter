@@ -54,7 +54,6 @@ class LocalDriver extends Driver
         $savedPath = PUBPATH . '/upload/' . md5($localPath) . basename($localPath);
         $webFilter = new WebOptimization($savedPath);
         $webFilter->apply($image);
-        @unlink($localPath);
         foreach ($this->thumbSizes as $size) {
             $this->resizeImage($savedPath, $size, $watermark);
         }
