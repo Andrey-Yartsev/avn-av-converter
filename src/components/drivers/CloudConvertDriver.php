@@ -298,7 +298,7 @@ class CloudConvertDriver extends Driver
             'file'       => $filePath,
             'callback'   => $callback,
             'presetName' => $this->presetName,
-            'id'         => $processId,
+            'processId'  => $processId,
             'url'        => $process->refresh()->url
         ]);
         return $processId;

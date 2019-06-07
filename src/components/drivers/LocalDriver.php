@@ -86,18 +86,23 @@ class LocalDriver extends Driver
         }
 
         if ($this->withSource) {
-            $this->setWatermark($localPath, $watermark);
+            $image = $this->imagine->open($localPath);
+            $savedPath = PUBPATH . '/upload/' . md5($localPath) . basename($localPath);
+            $webFilter = new WebOptimization($savedPath);
+            $webFilter->apply($image);
+            $this->setWatermark($savedPath, $watermark);
+            @unlink($localPath);
+            
             if ($this->storage) {
-                $url = $this->storage->upload($localPath, $this->storage->generatePath($filePath));
+                $url = $this->storage->upload($savedPath, $this->storage->generatePath($filePath));
             } else {
-                $url = str_replace(PUBPATH, Config::getInstance()->get('baseUrl'), $localPath);
+                $url = str_replace(PUBPATH, Config::getInstance()->get('baseUrl'), $savedPath);
             }
-            $fileSize = filesize($localPath);
-            list($width, $height) = getimagesize($localPath);
-
+            list($width, $height) = getimagesize($savedPath);
+            
             $this->result[] = new ImageResponse([
                 'name'   => 'source',
-                'size'   => $fileSize,
+                'size'   => filesize($savedPath),
                 'width'  => $width,
                 'height' => $height,
                 'url'    => $url
