@@ -66,8 +66,8 @@ class RetryCommand extends Command
                     'error' => $e->getMessage()
                 ]);
             }
-    
-            if ($countKey > 10) {
+            $count = Redis::getInstance()->get($countKey);
+            if ($count > 10) {
                 Redis::getInstance()->del($key, $countKey);
                 Logger::send('converter.cc.retry', [
                     'options' => $options
