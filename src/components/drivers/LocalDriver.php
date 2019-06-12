@@ -86,7 +86,7 @@ class LocalDriver extends Driver
 
         if ($this->withSource) {
             $this->fixedOrientation($localPath);
-            
+            $this->setWatermark($localPath, $watermark);
             if ($this->storage) {
                 $url = $this->storage->upload($localPath, $this->storage->generatePath($filePath));
             } else {
