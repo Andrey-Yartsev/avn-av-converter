@@ -88,6 +88,7 @@ class UploadForm extends Form
         }
         
         $fileUrl = file_exists($this->filePath) ? Config::getInstance()->get('baseUrl') . '/upload/' . basename($this->filePath) : $this->filePath;
+        Logger::send('process', ['step' => 'init', 'data' => $this->getAttributes()]);
         if ($this->isDelay) {
             if ($this->needThumbs && $this->fileType == FileHelper::TYPE_VIDEO) {
                 $this->thumbs = $driver->createThumbsFormVideo($fileUrl);

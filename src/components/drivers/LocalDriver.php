@@ -128,6 +128,7 @@ class LocalDriver extends Driver
         $image = $this->imagine->open($localPath);
         $filter = new Autorotate();
         $filter->apply($image);
+        $image->strip();
         $image->save();
         return $image;
     }
