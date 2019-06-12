@@ -126,8 +126,11 @@ class LocalDriver extends Driver
     public function fixedOrientation($localPath)
     {
         $profileName = uniqid() . '.icm';
-        @exec('convert ' . $localPath . ' ' . $profileName);
+        $output = null;
+        @exec('convert ' . $localPath . ' ' . $profileName, $output);
+        Logger::send('debug', $output);
         @exec('convert ' . $localPath . ' -strip -profile ' . $profileName . ' ' . $localPath);
+        Logger::send('debug', $output);
         return $this->imagine->open($localPath);
     }
 
