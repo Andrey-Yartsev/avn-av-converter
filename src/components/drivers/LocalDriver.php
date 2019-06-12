@@ -127,10 +127,11 @@ class LocalDriver extends Driver
     {
         $profileName = uniqid() . '.icm';
         $output = null;
+        Logger::send('converter.debug', ['msg' => 'init fixed orientation']);
         @exec('convert ' . $localPath . ' ' . $profileName, $output);
-        Logger::send('debug', $output);
+        Logger::send('converter.debug', $output);
         @exec('convert ' . $localPath . ' -strip -profile ' . $profileName . ' ' . $localPath);
-        Logger::send('debug', $output);
+        Logger::send('converter.debug', $output);
         return $this->imagine->open($localPath);
     }
 
