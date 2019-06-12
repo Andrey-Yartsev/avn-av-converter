@@ -125,12 +125,10 @@ class LocalDriver extends Driver
      */
     public function fixedOrientation($localPath)
     {
-        $image = $this->imagine->open($localPath);
-        $filter = new Autorotate();
-        $filter->apply($image);
-        $image->strip();
-        $image->save();
-        return $image;
+        $profileName = uniqid() . '.icm';
+        @exec('convert ' . $localPath . ' ' . $profileName);
+        @exec('convert ' . $localPath . ' -strip -profile ' . $profileName . ' ' . $localPath);
+        return $this->imagine->open($localPath);
     }
 
     /**
