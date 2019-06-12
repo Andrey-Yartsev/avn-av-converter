@@ -50,12 +50,9 @@ class LocalDriver extends Driver
             $localPath = PUBPATH . '/upload/' . md5($filePath) . basename($filePath);
             file_put_contents($localPath, file_get_contents($filePath));
         }
-        $image = $this->imagine->open($localPath);
-        $savedPath = PUBPATH . '/upload/' . md5($localPath) . basename($localPath);
-        $webFilter = new WebOptimization($savedPath);
-        $webFilter->apply($image);
+        $this->fixedOrientation($localPath);
         foreach ($this->thumbSizes as $size) {
-            $this->resizeImage($savedPath, $size, $watermark);
+            $this->resizeImage($localPath, $size, $watermark);
         }
         return true;
     }
@@ -81,7 +78,6 @@ class LocalDriver extends Driver
         if (!file_exists($localPath)) {
             $localPath = PUBPATH . '/upload/' . md5($filePath) . basename($filePath);
             file_put_contents($localPath, file_get_contents($filePath));
-            $this->fixedOrientation($localPath);
         }
         
         foreach ($this->thumbSizes as $size) {
@@ -89,23 +85,18 @@ class LocalDriver extends Driver
         }
 
         if ($this->withSource) {
-            $image = $this->imagine->open($localPath);
-            $savedPath = PUBPATH . '/upload/' . md5($localPath) . basename($localPath);
-            $webFilter = new WebOptimization($savedPath);
-            $webFilter->apply($image);
-            $this->setWatermark($savedPath, $watermark);
-            @unlink($localPath);
+            $this->fixedOrientation($localPath);
             
             if ($this->storage) {
-                $url = $this->storage->upload($savedPath, $this->storage->generatePath($filePath));
+                $url = $this->storage->upload($localPath, $this->storage->generatePath($filePath));
             } else {
-                $url = str_replace(PUBPATH, Config::getInstance()->get('baseUrl'), $savedPath);
+                $url = str_replace(PUBPATH, Config::getInstance()->get('baseUrl'), $localPath);
             }
-            list($width, $height) = getimagesize($savedPath);
+            list($width, $height) = getimagesize($localPath);
             
             $this->result[] = new ImageResponse([
                 'name'   => 'source',
-                'size'   => filesize($savedPath),
+                'size'   => filesize($localPath),
                 'width'  => $width,
                 'height' => $height,
                 'url'    => $url
@@ -125,6 +116,15 @@ class LocalDriver extends Driver
      */
     public function fixedOrientation($localPath)
     {
+        $image = $this->imagine->open($localPath);
+        $filter = new Autorotate();
+        $filter->apply($image);
+        $image->strip();
+        $image->save();
+        $webFilter = new WebOptimization($localPath);
+        $webFilter->apply($image);
+        $image->save();
+        return $image;
         $profileName = uniqid() . '.icm';
         $output = null;
         Logger::send('converter.debug', ['msg' => 'init fixed orientation']);
