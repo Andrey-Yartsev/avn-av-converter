@@ -147,6 +147,10 @@ class ProcessController extends Controller
                     $form->filePath = PUBPATH . $file['url'];
                 } else {
                     header('Range: 0-' . ($file['size'] - 1));
+                    header('Pragma: no-cache');
+                    header('Cache-Control: no-store, no-cache, must-revalidate');
+                    header('Content-Disposition: inline; filename="files.json"');
+                    header('X-Content-Type-Options: nosniff');
                     return $response;
                 }
             }
