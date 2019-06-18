@@ -75,7 +75,7 @@ class ProcessController extends Controller
                 switch ($queue['fileType']) {
                     case FileHelper::TYPE_VIDEO:
                         $duration = FileHelper::getVideoDuration($queue['filePath']);
-
+                        
                         if (isset($driver->thumbs['maxCount'])) {
                             if ($duration > $driver->thumbs['maxCount']) {
                                 $maxCount = $driver->thumbs['maxCount'];
@@ -87,7 +87,7 @@ class ProcessController extends Controller
                         } else {
                             $maxCount = $step = 1;
                         }
-
+                        
                         if ($duration == 0) {
                             $driver->createVideoPreview($queue['filePath'], $queue['watermark'], $duration);
                         } else {
@@ -95,7 +95,7 @@ class ProcessController extends Controller
                                 $driver->createVideoPreview($queue['filePath'], $queue['watermark'], $i * $step);
                             }
                         }
-
+                        
                         break;
                     case FileHelper::TYPE_IMAGE:
                         $driver->createPhotoPreview($queue['filePath'], $queue['watermark']);
@@ -122,50 +122,48 @@ class ProcessController extends Controller
     {
         $request = $this->getRequest();
         $form = new UploadForm();
-        if ($request->getContentType() == 'json') {
+        if (isset($_SERVER['HTTP_CONTENT_RANGE'])) {
+            $uploadHandler = new FileUploadHandler([
+                'access_control_allow_origin' => false,
+                'script_url'                  => '/actions/',
+                'upload_dir'                  => PUBPATH . '/upload/',
+                'upload_url'                  => '/upload/',
+                'max_file_size'               => 4294967296,
+                'min_file_size'               => 1,
+                'max_number_of_files'         => null,
+                'image_versions'              => [
+                    '' => [
+                        'auto_orient' => true,
+                    ]
+                ],
+                'print_response'    => false,
+                'accept_file_types' => '/\.(mp4|moo?v|m4v|mpe?g|wmv|avi|webm)$/i'
+            ]);
+            $response = $uploadHandler->get_response();
+            if (isset($response['files'])) {
+                $file = current($response['files']);
+                if (isset($file['url'])) {
+                    $form->filePath = PUBPATH . $file['url'];
+                } else {
+                    header('Range: 0-' . $file['size']);
+                    return $response;
+                }
+            }
+        } elseif ($request->getContentType() == 'json') {
             $form->setAttributes(json_decode($request->getContent(), true));
         } elseif (isset($_FILES['file'])) {
             if ($_FILES['file']['error']) {
                 throw new BadRequestHttpException('Error upload', $_FILES['file']['error']);
             }
             
-            if (isset($_SERVER['HTTP_CONTENT_RANGE'])) {
-                $uploadHandler = new FileUploadHandler([
-                    'access_control_allow_origin' => false,
-                    'script_url'                  => '/actions/',
-                    'upload_dir'                  => PUBPATH . '/upload/',
-                    'upload_url'                  => '/upload/',
-                    'max_file_size'               => 4294967296,
-                    'min_file_size'               => 1,
-                    'max_number_of_files'         => null,
-                    'image_versions'              => [
-                        '' => [
-                            'auto_orient' => true,
-                        ]
-                    ],
-                    'print_response'    => false,
-                    'accept_file_types' => '/\.(mp4|moo?v|m4v|mpe?g|wmv|avi|webm)$/i'
-                ]);
-                $response = $uploadHandler->get_response();
-                if (isset($response['files'])) {
-                    $file = current($response['files']);
-                    if (isset($file['url'])) {
-                        $form->filePath = PUBPATH . $file['url'];
-                    } else {
-                        header('Range: 0-' . $file['size']);
-                        return $response;
-                    }
-                }
-            } else {
-                $form->setAttributes($_POST);
-                $extension = FileType::getInstance()->findExtensions($_FILES['file']['type']);
-                if (empty($extension)) {
-                    throw new BadRequestHttpException('Invalid file type');
-                }
-                $filePath = $form->getLocalPath() . '.' . $extension;
-                move_uploaded_file($_FILES['file']['tmp_name'], $filePath);
-                $form->filePath = $filePath;
+            $form->setAttributes($_POST);
+            $extension = FileType::getInstance()->findExtensions($_FILES['file']['type']);
+            if (empty($extension)) {
+                throw new BadRequestHttpException('Invalid file type');
             }
+            $filePath = $form->getLocalPath() . '.' . $extension;
+            move_uploaded_file($_FILES['file']['tmp_name'], $filePath);
+            $form->filePath = $filePath;
         } else {
             $form->preset = $request->headers->get('X-UPLOAD-PRESET');
             $form->callback = $request->headers->get('X-UPLOAD-CALLBACK');
