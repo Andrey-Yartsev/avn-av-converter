@@ -146,8 +146,8 @@ class ProcessController extends Controller
                 if (isset($file['url'])) {
                     $form->filePath = PUBPATH . $file['url'];
                 } else {
-                    header('Range: 0-' . $file['size']);
-                    return ['files' => [$file]];
+                    header('Range: 0-' . ($file['size'] - 1));
+                    return $response;
                 }
             }
         } elseif ($request->getContentType() == 'json') {
