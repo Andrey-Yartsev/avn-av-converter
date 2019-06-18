@@ -9,6 +9,7 @@ namespace Converter\controllers;
 
 use Converter\components\Controller;
 use Converter\components\FileType;
+use Converter\components\FileUploadHandler;
 use Converter\components\Process;
 use Converter\components\Redis;
 use Converter\exceptions\BadRequestHttpException;
@@ -127,14 +128,44 @@ class ProcessController extends Controller
             if ($_FILES['file']['error']) {
                 throw new BadRequestHttpException('Error upload', $_FILES['file']['error']);
             }
-            $form->setAttributes($_POST);
-            $extension = FileType::getInstance()->findExtensions($_FILES['file']['type']);
-            if (empty($extension)) {
-                throw new BadRequestHttpException('Invalid file type');
+            
+            if (isset($_SERVER['HTTP_CONTENT_RANGE'])) {
+                $uploadHandler = new FileUploadHandler([
+                    'access_control_allow_origin' => false,
+                    'script_url'                  => '/actions/',
+                    'upload_dir'                  => PUBPATH . '/upload/',
+                    'upload_url'                  => '/upload/',
+                    'max_file_size'               => 4294967296,
+                    'min_file_size'               => 1,
+                    'max_number_of_files'         => null,
+                    'image_versions'              => [
+                        '' => [
+                            'auto_orient' => true,
+                        ]
+                    ],
+                    'print_response'    => false,
+                    'accept_file_types' => '/\.(mp4|moo?v|m4v|mpe?g|wmv|avi|webm)$/i'
+                ]);
+                $response = $uploadHandler->get_response();
+                if (isset($response['files'])) {
+                    $file = current($response['files']);
+                    if (isset($file['url'])) {
+                        $form->filePath = PUBPATH . $file['url'];
+                    } else {
+                        header('Range: 0-' . $file['size']);
+                        return $response;
+                    }
+                }
+            } else {
+                $form->setAttributes($_POST);
+                $extension = FileType::getInstance()->findExtensions($_FILES['file']['type']);
+                if (empty($extension)) {
+                    throw new BadRequestHttpException('Invalid file type');
+                }
+                $filePath = $form->getLocalPath() . '.' . $extension;
+                move_uploaded_file($_FILES['file']['tmp_name'], $filePath);
+                $form->filePath = $filePath;
             }
-            $filePath = $form->getLocalPath() . '.' . $extension;
-            move_uploaded_file($_FILES['file']['tmp_name'], $filePath);
-            $form->filePath = $filePath;
         } else {
             $form->preset = $request->headers->get('X-UPLOAD-PRESET');
             $form->callback = $request->headers->get('X-UPLOAD-CALLBACK');
