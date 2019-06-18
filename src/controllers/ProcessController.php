@@ -139,7 +139,7 @@ class ProcessController extends Controller
                 'print_response'    => false,
                 'accept_file_types' => '/\.(mp4|moo?v|m4v|mpe?g|wmv|avi|webm)$/i'
             ]);
-            $response = $uploadHandler->get_response();
+            $response = (array) $uploadHandler->get_response();
             if (isset($response['files'])) {
                 $file = current($response['files']);
                 if (isset($file['url'])) {
