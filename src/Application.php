@@ -121,7 +121,6 @@ class Application
     {
         $message = json_encode($message);
         if (php_sapi_name() !== 'cli') {
-            header('Access-Control-Allow-Origin: *');
             header('Content-Type: application/json; charset=utf-8');
             header('Content-Length: ' . strlen($message));
             http_response_code($httpCode);
