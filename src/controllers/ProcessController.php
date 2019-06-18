@@ -10,6 +10,7 @@ namespace Converter\controllers;
 use Converter\components\Controller;
 use Converter\components\FileType;
 use Converter\components\FileUploadHandler;
+use Converter\components\Logger;
 use Converter\components\Process;
 use Converter\components\Redis;
 use Converter\exceptions\BadRequestHttpException;
@@ -146,6 +147,7 @@ class ProcessController extends Controller
                     $form->filePath = PUBPATH . $file['url'];
                 } else {
                     header('Range: 0-' . $file['size']);
+                    Logger::send('debug', $response);
                     return $response;
                 }
             }
