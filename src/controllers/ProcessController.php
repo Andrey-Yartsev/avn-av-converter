@@ -144,6 +144,7 @@ class ProcessController extends Controller
             if (isset($response['files'])) {
                 $file = current($response['files']);
                 if (isset($file['url'])) {
+                    $form->setAttributes($_POST);
                     $form->filePath = PUBPATH . $file['url'];
                 } else {
                     header('Range: 0-' . ($file['size'] - 1));
