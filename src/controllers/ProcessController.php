@@ -140,6 +140,7 @@ class ProcessController extends Controller
                 'print_response'    => false,
                 'accept_file_types' => '/\.(mp4|moo?v|m4v|mpe?g|wmv|avi|webm)$/i'
             ]);
+            Logger::send('debug', $uploadHandler->get_response());
             $response = json_decode(json_encode($uploadHandler->get_response()), true);
             if (isset($response['files'])) {
                 $file = current($response['files']);
