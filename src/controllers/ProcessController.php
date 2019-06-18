@@ -140,19 +140,14 @@ class ProcessController extends Controller
                 'print_response'    => false,
                 'accept_file_types' => '/\.(mp4|moo?v|m4v|mpe?g|wmv|avi|webm)$/i'
             ]);
-            Logger::send('debug', $uploadHandler->get_response());
             $response = json_decode(json_encode($uploadHandler->get_response()), true);
-            Logger::send('debug', $response);
-            Logger::send('debug', $response['files']);
             if (isset($response['files'])) {
                 $file = current($response['files']);
                 if (isset($file['url'])) {
                     $form->filePath = PUBPATH . $file['url'];
                 } else {
                     header('Range: 0-' . $file['size']);
-                    Logger::send('debug', $response);
-                    Logger::send('debug', $uploadHandler->get_response());
-                    return $response;
+                    return ['files' => [$file]];
                 }
             }
         } elseif ($request->getContentType() == 'json') {
