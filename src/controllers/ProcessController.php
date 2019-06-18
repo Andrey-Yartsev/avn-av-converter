@@ -148,6 +148,7 @@ class ProcessController extends Controller
                 } else {
                     header('Range: 0-' . $file['size']);
                     Logger::send('debug', $response);
+                    Logger::send('debug', $uploadHandler->get_response());
                     return $response;
                 }
             }
