@@ -143,7 +143,7 @@ class ProcessController extends Controller
             Logger::send('debug', $uploadHandler->get_response());
             $response = json_decode(json_encode($uploadHandler->get_response()), true);
             Logger::send('debug', $response);
-            Logger::send('debug', ['temp' => isset($response['files'])]);
+            Logger::send('debug', $response['files']);
             if (isset($response['files'])) {
                 $file = current($response['files']);
                 if (isset($file['url'])) {
