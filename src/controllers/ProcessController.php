@@ -58,7 +58,6 @@ class ProcessController extends Controller
         }
         $response = [];
         $processIds = [];
-        Logger::send('debug', $postData);
         foreach ($postData['processes'] as $process) {
             if (empty($process['id'])) {
                 continue;
@@ -142,6 +141,7 @@ class ProcessController extends Controller
                 'accept_file_types' => '/\.(mp4|moo?v|m4v|mpe?g|wmv|avi|webm)$/i'
             ]);
             $response = json_decode(json_encode($uploadHandler->get_response()), true);
+            Logger::send('debug', ['response' => $response]);
             if (isset($response['files'])) {
                 $file = current($response['files']);
                 if (isset($file['url'])) {
