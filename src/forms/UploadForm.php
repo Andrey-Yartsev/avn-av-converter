@@ -37,7 +37,7 @@ class UploadForm extends Form
             return false;
         }
         $preset = $presets[$this->preset];
-        
+        $this->filePath = rawurldecode($this->filePath);
         if (!$this->fileType) {
             $mimeType = mime_content_type($this->filePath);
             if ($mimeType == false) {
