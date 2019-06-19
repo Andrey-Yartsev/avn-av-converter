@@ -58,6 +58,7 @@ class ProcessController extends Controller
         }
         $response = [];
         $processIds = [];
+        Logger::send('debug', $postData);
         foreach ($postData['processes'] as $process) {
             if (empty($process['id'])) {
                 continue;
