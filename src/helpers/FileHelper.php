@@ -39,6 +39,8 @@ class FileHelper
             return self::TYPE_VIDEO;
         } elseif (preg_match('/image\/*/', $mimeType)) {
             return self::TYPE_IMAGE;
+        } elseif (preg_match('/audio\/*/', $mimeType)) {
+            return self::TYPE_AUDIO;
         }
         return false;
     }
