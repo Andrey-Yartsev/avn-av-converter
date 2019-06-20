@@ -70,12 +70,17 @@ class ProcessController extends Controller
                 if (!$driver) {
                     continue;
                 }
-                $files = [
-                    FileHelper::getFileResponse($queue['filePath'], $queue['fileType'])
-                ];
+                
+                $files = [];
+                $sourceResponse = FileHelper::getFileResponse($queue['filePath'], $queue['fileType']);
                 switch ($queue['fileType']) {
                     case FileHelper::TYPE_VIDEO:
                         $duration = FileHelper::getVideoDuration($queue['filePath']);
+                        list($width, $height) = FileHelper::getVideoDimensions($queue['filePath']);
+    
+                        $sourceResponse->duration = $duration;
+                        $sourceResponse->width = $width;
+                        $sourceResponse->height = $height;
                         
                         if (isset($driver->thumbs['maxCount'])) {
                             if ($duration > $driver->thumbs['maxCount']) {
@@ -102,6 +107,7 @@ class ProcessController extends Controller
                         $driver->createPhotoPreview($queue['filePath'], $queue['watermark']);
                         break;
                 }
+                $files[] = $sourceResponse;
                 $files = array_merge($files, $driver->getResult());
                 $response[] = [
                     'processId' => $process['id'],

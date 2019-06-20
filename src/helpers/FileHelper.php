@@ -17,6 +17,7 @@ class FileHelper
     const TYPE_IMAGE = 'image';
     const TYPE_AUDIO = 'audio';
 
+    protected static $firstStreams = [];
     /**
      * @return array
      */
@@ -66,16 +67,40 @@ class FileHelper
     
     /**
      * @param $filePath
+     * @return FFProbe\DataMapping\Stream
+     */
+    protected static function getFirstVideoFrame($filePath)
+    {
+        if (empty(self::$firstStreams[$filePath])) {
+            self::$firstStreams[$filePath] = FFProbe::create([
+                'ffmpeg.binaries'  => exec('which ffmpeg'),
+                'ffprobe.binaries' => exec('which ffprobe')
+            ])->streams($filePath)
+                ->videos()
+                ->first();
+        }
+        return self::$firstStreams[$filePath];
+    }
+    
+    /**
+     * @param $filePath
      * @return float
      */
     public static function getVideoDuration($filePath)
     {
-        $firstStream = FFProbe::create([
-            'ffmpeg.binaries'  => exec('which ffmpeg'),
-            'ffprobe.binaries' => exec('which ffprobe')
-        ])->streams($filePath)
-            ->videos()
-            ->first();
+        $firstStream = self::getFirstVideoFrame($filePath);
+        
         return floor($firstStream->get('duration'));
+    }
+    
+    /**
+     * @param $filePath
+     * @return array
+     */
+    public static function getVideoDimensions($filePath)
+    {
+        $firstStream = self::getFirstVideoFrame($filePath);
+        $dimensions = $firstStream->getDimensions();
+        return [$dimensions->getWidth(), $dimensions->getHeight()];
     }
 }
