@@ -120,7 +120,7 @@ class Application
     public function sendResponse($httpCode = Response::HTTP_OK, $message)
     {
         $message = json_encode($message);
-        if (php_sapi_name() !== 'cli') {
+        if (php_sapi_name() !== 'cli' && !headers_sent()) {
             header('Content-Type: application/json; charset=utf-8');
             header('Content-Length: ' . strlen($message));
             http_response_code($httpCode);
