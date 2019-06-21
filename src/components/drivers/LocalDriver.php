@@ -249,7 +249,7 @@ class LocalDriver extends Driver
     protected function setWatermark($localPath, $watermark = [])
     {
         if (!empty($watermark['text'])) {
-            $fontSize = $watermark['size'] ?? 20;
+            $fontSize = $watermark['size'] ?? '$(identify -format "%[fx:int(w*0.03)]" ' . $localPath . ')';
             $font = PUBPATH . '/fonts/OpenSans-Regular.ttf';
             $command = 'convert "' . $localPath . '"  -pointsize ' . $fontSize . ' -font "' . $font . '"  -draw "gravity southeast fill grey text 4,4 \'' . $watermark['text'] . '\'" "' . $localPath . '"';
             @exec($command);
