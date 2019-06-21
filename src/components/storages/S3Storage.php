@@ -36,6 +36,7 @@ class S3Storage extends FileStorage
     
     public function upload($sourcePath, $savedPath)
     {
+        $savedPath = preg_replace("@%[\dA-F]{2}@", '', $savedPath);
         try {
             $response = $this->client->putObject([
                 'Bucket' => $this->bucket,
