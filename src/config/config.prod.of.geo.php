@@ -8,12 +8,6 @@ return [
         'port'     => 6379,
         'database' => 1
     ],
-    'log'     => [
-        'driver'   => \Converter\components\logs\Graylog::class,
-        'host'     => '163.237.242.4',
-        'port'     => 1517,
-        'facility' => 'converter-dev',
-    ],
     'presets' => [
         'of_geo_big'   => [
             'callback' => 'https://onlyfans.com/converter/ready',
