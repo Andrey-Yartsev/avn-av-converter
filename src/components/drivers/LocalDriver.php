@@ -262,7 +262,7 @@ class LocalDriver extends Driver
             $command = 'convert ' . escapeshellarg($localPath)
                 . '  -pointsize ' . $fontSize
                 . ' -font ' . escapeshellarg($font)
-                . '  -draw "gravity southeast fill grey text 4,4 ' . escapeshellarg($watermark['text']) . '" '
+                . ' -draw ' . escapeshellarg('gravity southeast fill grey text 4,4 ' . escapeshellarg($watermark['text'])) . ' '
                 . escapeshellarg($localPath);
             @exec($command);
         } elseif (!empty($watermark['imagePath'])) {
