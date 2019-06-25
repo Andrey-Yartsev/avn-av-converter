@@ -253,7 +253,11 @@ class LocalDriver extends Driver
     protected function setWatermark($localPath, $watermark = [])
     {
         if (!empty($watermark['text'])) {
-            $fontSize = $watermark['size'] ?? '$(identify -format "%[fx:int(w*0.03)]" ' . escapeshellarg($localPath) . ')';
+            if (!empty($watermark['size'])) {
+                $fontSize = escapeshellarg($watermark['size']);
+            } else {
+                $fontSize = '$(identify -format "%[fx:int(w*0.03)]" ' . escapeshellarg($localPath) . ')';
+            }
             $font = PUBPATH . '/fonts/OpenSans-Regular.ttf';
             $command = 'convert ' . escapeshellarg($localPath)
                 . '  -pointsize ' . $fontSize
