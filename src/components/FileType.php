@@ -18,6 +18,7 @@ class FileType
         'audio/midi'                       =>'mid',
         'audio/mp4'                        =>'mp4a',
         'audio/mpeg'                       =>'mp3',
+        'audio/mp3'                        =>'mp3',
         'audio/ogg'                        =>'ogg',
         'audio/s3m'                        =>'s3m',
         'audio/silk'                       =>'sil',
@@ -146,7 +147,13 @@ class FileType
     
     public function findExtensions($mimeType)
     {
-        return $this->typeToExtensions[$mimeType] ?? null;
+        if (isset($this->typeToExtensions[$mimeType])) {
+            return $this->typeToExtensions[$mimeType];
+        }
+        Logger::send('invalid_type', [
+            'mimeType' => $mimeType
+        ]);
+        return null;
     }
     
     private function __construct()
