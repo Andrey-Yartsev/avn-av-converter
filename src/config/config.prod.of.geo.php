@@ -83,7 +83,7 @@ return [
             ],
             'storage'  => [
                 'driver' => \Converter\components\storages\S3Storage::class,
-                'url'    => 'https://of2transcoder.s3.amazonaws.com',
+                'url'    => 'https://of2media.s3.amazonaws.com',
                 'region' => 'us-east-1',
                 'bucket' => 'of2media',
                 'key'    => 'AKIAIEGIIC3WZYGPIPCA',
@@ -153,7 +153,7 @@ return [
             ],
             'storage'  => [
                 'driver' => \Converter\components\storages\S3Storage::class,
-                'url'    => 'https://of2transcoder.s3.amazonaws.com',
+                'url'    => 'https://of2media.s3.amazonaws.com',
                 'region' => 'us-east-1',
                 'bucket' => 'of2media',
                 'key'    => 'AKIAIEGIIC3WZYGPIPCA',
