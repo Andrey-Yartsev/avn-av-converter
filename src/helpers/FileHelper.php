@@ -7,6 +7,7 @@
 namespace Converter\helpers;
 
 
+use Converter\response\AudioResponse;
 use Converter\response\ImageResponse;
 use Converter\response\VideoResponse;
 use FFMpeg\FFProbe;
@@ -57,6 +58,8 @@ class FileHelper
             $response = new VideoResponse();
         } elseif ($fileType == self::TYPE_IMAGE) {
             $response = new ImageResponse();
+        } elseif ($fileType == self::TYPE_AUDIO) {
+            $response = new AudioResponse();
         } else {
             return null;
         }
