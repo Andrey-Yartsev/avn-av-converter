@@ -132,6 +132,7 @@ class ProcessController extends Controller
     {
         $request = $this->getRequest();
         $form = new UploadForm();
+        Logger::send('debug', $_FILES);
         if (isset($_SERVER['HTTP_CONTENT_RANGE'])) {
             $uploadHandler = new FileUploadHandler([
                 'access_control_allow_origin' => false,
