@@ -89,6 +89,7 @@ class LocalDriver extends Driver
             Logger::send('process', ['processId' => $processId, 'step' => 'Process source']);
             $this->fixedOrientation($localPath);
             $this->setWatermark($localPath, $watermark);
+            list($width, $height) = getimagesize($localPath);
             if ($this->storage) {
                 Logger::send('process', ['processId' => $processId, 'step' => 'Upload to storage']);
                 $url = $this->storage->upload($localPath, $this->storage->generatePath($filePath));
@@ -96,7 +97,6 @@ class LocalDriver extends Driver
                 Logger::send('process', ['processId' => $processId, 'step' => 'generate url for download']);
                 $url = str_replace(PUBPATH, Config::getInstance()->get('baseUrl'), $localPath);
             }
-            list($width, $height) = getimagesize($localPath);
             
             $this->result[] = new ImageResponse([
                 'name'   => 'source',
