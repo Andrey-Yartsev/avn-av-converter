@@ -62,8 +62,10 @@ class ProcessController extends Controller
             if (empty($process['id'])) {
                 continue;
             }
+            Logger::send('process', ['processId' => $process['id'], 'step' => 'Init start']);
             $queue = Redis::getInstance()->get('queue:' . $process['id']);
             if ($queue) {
+                Logger::send('process', ['processId' => $process['id'], 'step' => 'Init start (find process)']);
                 $queue = json_decode($queue, true);
                 $processIds[] = $process['id'];
                 $driver = Process::getDriver($queue);
@@ -113,6 +115,7 @@ class ProcessController extends Controller
                     'processId' => $process['id'],
                     'files'     => $files
                 ];
+                Logger::send('process', ['processId' => $process['id'], 'step' => 'Send preview files', 'data' => $files]);
             }
         }
         $content = json_encode($response);

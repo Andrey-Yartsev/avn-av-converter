@@ -10,7 +10,7 @@ return [
     ],
     'presets' => [
         'of_geo_big'   => [
-            'callback' => 'https://onlyfans.com/converter/ready',
+            'callback' => 'https://onlyfans.com/converter/geo',
             'audio' => [
                 'driver'       => \Converter\components\drivers\CloudConvertDriver::class,
                 'withOutSave'  => true,
@@ -91,7 +91,7 @@ return [
             ]
         ],
         'of_geo'   => [
-            'callback' => 'https://onlyfans.com/converter/ready',
+            'callback' => 'https://onlyfans.com/converter/geo',
             'audio' => [
                 'driver'       => \Converter\components\drivers\CloudConvertDriver::class,
                 'withOutSave'  => true,

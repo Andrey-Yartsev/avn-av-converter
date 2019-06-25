@@ -81,15 +81,19 @@ class LocalDriver extends Driver
         }
         
         foreach ($this->thumbSizes as $size) {
+            Logger::send('process', ['processId' => $processId, 'step' => 'Make photo size: ' . $size['name'] ?? null]);
             $this->resizeImage($localPath, $size, $watermark);
         }
 
         if ($this->withSource) {
+            Logger::send('process', ['processId' => $processId, 'step' => 'Process source']);
             $this->fixedOrientation($localPath);
             $this->setWatermark($localPath, $watermark);
             if ($this->storage) {
+                Logger::send('process', ['processId' => $processId, 'step' => 'Upload to storage']);
                 $url = $this->storage->upload($localPath, $this->storage->generatePath($filePath));
             } else {
+                Logger::send('process', ['processId' => $processId, 'step' => 'generate url for download']);
                 $url = str_replace(PUBPATH, Config::getInstance()->get('baseUrl'), $localPath);
             }
             list($width, $height) = getimagesize($localPath);

@@ -54,6 +54,7 @@ class Process
     {
         $queue = Redis::getInstance()->get('queue:' . $processId);
         if ($queue) {
+            Logger::send('process', ['processId' => $processId, 'step' => 'Start convert']);
             $queue = json_decode($queue, true);
             $driver = self::getDriver($queue);
             if (!$driver) {
@@ -63,18 +64,22 @@ class Process
     
             switch ($queue['fileType']) {
                 case FileHelper::TYPE_VIDEO:
+                    Logger::send('process', ['processId' => $processId, 'step' => 'Start process video']);
                     $driver->processVideo($queue['filePath'], $queue['callback'], $processId, $watermark);
                     break;
                 case FileHelper::TYPE_IMAGE:
+                    Logger::send('process', ['processId' => $processId, 'step' => 'Start process image']);
                     $driver->processPhoto($queue['filePath'], $queue['callback'], $processId, $watermark);
                     break;
                 case FileHelper::TYPE_AUDIO:
+                    Logger::send('process', ['processId' => $processId, 'step' => 'Start process audio']);
                     $driver->processAudio($queue['filePath'], $queue['callback'], $processId, $watermark);
                     break;
                 default:
                     return false;
             }
             $hasResult = $driver->getResult();
+            Logger::send('process', ['processId' => $processId, 'step' => 'convert done: ' . $hasResult]);
             if ($hasResult) {
                 $resultBody = [
                     'processId' => $processId,
@@ -94,6 +99,7 @@ class Process
                         'processId' => $processId,
                         'response' => $response->getBody()
                     ]);
+                    Logger::send('process', ['processId' => $processId, 'step' => 'Send to callback']);
                     Redis::getInstance()->del('queue:' . $processId);
                 } catch (\Exception $e) {
                     Logger::send('converter.callback.send', [
