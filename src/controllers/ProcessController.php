@@ -156,7 +156,7 @@ class ProcessController extends Controller
                 if (isset($file['url'])) {
                     $form->setAttributes($_POST);
                     $newName = $form->getLocalPath() . '.' . pathinfo(PUBPATH . $file['url'], PATHINFO_EXTENSION);
-                    rename(PUBPATH . $file['url'], $newName);
+                    rename(PUBPATH . rawurldecode($file['url']), $newName);
                     $form->filePath = $newName;
                 } else {
                     header('Range: 0-' . ($file['size'] - 1));
