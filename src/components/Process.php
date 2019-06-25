@@ -79,7 +79,7 @@ class Process
                     return false;
             }
             $hasResult = $driver->getResult();
-            Logger::send('process', ['processId' => $processId, 'step' => 'convert done: ' . $hasResult]);
+            Logger::send('process', ['processId' => $processId, 'step' => 'convert done', 'result' => $hasResult]);
             if ($hasResult) {
                 $resultBody = [
                     'processId' => $processId,
