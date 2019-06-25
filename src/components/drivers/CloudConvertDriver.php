@@ -107,10 +107,39 @@ class CloudConvertDriver extends Driver
             return false;
         }
         $url = $output->url;
+        if ($this->withOutSave) {
+            $this->result[] = new AudioResponse([
+                'name' => 'source',
+                'url'  => $url
+            ]);
+        }
+        $hash = md5($output->filename);
+        $localSavedFile = PUBPATH . '/upload/' . $hash . '.' . $output->ext;
+        if (strpos($url, '//') === 0) {
+            $url = 'https:' . $url;
+        }
+        file_put_contents($localSavedFile, file_get_contents($url));
+        if ($this->hasStorage()) {
+            $storage = $this->getStorage();
+            $savedPath = 'files/' . substr($hash, 0, 1) . '/' . substr($hash, 0, 2) . '/' . $hash;
+            Logger::send('converter.cc.callback.upload', [
+                'url'       => $url,
+                'savedPath' => $savedPath . '/' . $hash . '.' . $output->ext
+            ]);
+            $url = $storage->upload($localSavedFile, $savedPath . '/' . $hash . '.' . $output->ext);
+            Logger::send('converter.cc.callback.uploadFinished', [
+                'url' => $url
+            ]);
+        } else {
+            $url = str_replace(PUBPATH, Config::getInstance()->get('baseUrl'), $localSavedFile);
+        }
         $this->result[] = new AudioResponse([
             'name' => 'source',
             'url'  => $url
         ]);
+        if ($this->hasStorage()) {
+            @unlink($localSavedFile);
+        }
         return true;
     }
 
