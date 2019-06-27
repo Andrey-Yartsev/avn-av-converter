@@ -77,6 +77,7 @@ class ProcessController extends Controller
                 $sourceResponse = FileHelper::getFileResponse($queue['filePath'], $queue['fileType']);
                 switch ($queue['fileType']) {
                     case FileHelper::TYPE_VIDEO:
+                        Logger::send('process', ['processId' => $process['id'], 'step' => 'Is video']);
                         $duration = FileHelper::getVideoDuration($queue['filePath']);
                         list($width, $height) = FileHelper::getVideoDimensions($queue['filePath']);
     
@@ -95,7 +96,7 @@ class ProcessController extends Controller
                         } else {
                             $maxCount = $step = 1;
                         }
-                        
+                        Logger::send('process', ['processId' => $process['id'], 'step' => 'generated video info']);
                         if ($duration == 0) {
                             $driver->createVideoPreview($queue['filePath'], $queue['watermark'], $duration);
                         } else {
@@ -106,6 +107,7 @@ class ProcessController extends Controller
                         
                         break;
                     case FileHelper::TYPE_IMAGE:
+                        Logger::send('process', ['processId' => $process['id'], 'step' => 'Is photo', 'filePath' => $queue['filePath']]);
                         $driver->createPhotoPreview($queue['filePath'], $queue['watermark']);
                         break;
                 }
