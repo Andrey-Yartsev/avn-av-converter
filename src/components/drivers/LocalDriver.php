@@ -57,6 +57,7 @@ class LocalDriver extends Driver
         foreach ($this->thumbSizes as $size) {
             Logger::send('create.preview', ['filePath' => $filePath, 'step' => 'Make photo size: ' . $size['name'] ?? null]);
             $this->resizeImage($localPath, $size, $watermark);
+            Logger::send('create.preview', ['filePath' => $filePath, 'step' => 'End photo size: ' . $size['name'] ?? null]);
         }
         return true;
     }
