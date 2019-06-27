@@ -109,6 +109,7 @@ class ProcessController extends Controller
                     case FileHelper::TYPE_IMAGE:
                         Logger::send('process', ['processId' => $process['id'], 'step' => 'Is photo', 'filePath' => $queue['filePath']]);
                         $driver->createPhotoPreview($queue['filePath'], $queue['watermark']);
+                        Logger::send('process', ['processId' => $process['id'], 'step' => 'End createPhotoPreview()']);
                         break;
                 }
                 $files[] = $sourceResponse;
