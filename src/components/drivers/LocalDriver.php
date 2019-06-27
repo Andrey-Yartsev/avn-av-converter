@@ -130,9 +130,6 @@ class LocalDriver extends Driver
         $filter->apply($image);
         $image->strip();
         $image->save();
-        $webFilter = new WebOptimization($localPath);
-        $webFilter->apply($image);
-        $image->save();
         return $image;
     }
 
