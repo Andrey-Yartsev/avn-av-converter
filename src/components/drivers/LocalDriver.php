@@ -52,8 +52,8 @@ class LocalDriver extends Driver
             $localPath = PUBPATH . '/upload/' . md5($filePath) . basename($filePath);
             file_put_contents($localPath, file_get_contents($filePath));
         }
-        Logger::send('create.preview', ['filePath' => $filePath, 'step' => 'fixedOrientation()']);
-        $this->fixedOrientation($localPath);
+//        Logger::send('create.preview', ['filePath' => $filePath, 'step' => 'fixedOrientation()']);
+//        $this->fixedOrientation($localPath);
         foreach ($this->thumbSizes as $size) {
             Logger::send('create.preview', ['filePath' => $filePath, 'step' => 'Make photo size: ' . $size['name'] ?? null]);
             $this->resizeImage($localPath, $size, $watermark);
@@ -92,7 +92,7 @@ class LocalDriver extends Driver
 
         if ($this->withSource) {
             Logger::send('process', ['processId' => $processId, 'step' => 'Process source']);
-            $this->fixedOrientation($localPath);
+//            $this->fixedOrientation($localPath);
             $this->setWatermark($localPath, $watermark);
             list($width, $height) = getimagesize($localPath);
             if ($this->storage) {
