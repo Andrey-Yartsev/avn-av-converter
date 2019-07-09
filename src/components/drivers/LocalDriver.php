@@ -125,6 +125,9 @@ class LocalDriver extends Driver
      */
     public function fixedOrientation($localPath)
     {
+        $command = 'convert -auto-orient -strip "' . $localPath . '" "' . $localPath . '"';
+        exec($command);
+        return $this->imagine->open($localPath);
         $image = $this->imagine->open($localPath);
 //        $filter = new Autorotate();
 //        $filter->apply($image);
