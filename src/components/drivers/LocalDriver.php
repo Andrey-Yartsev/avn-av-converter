@@ -13,6 +13,7 @@ use Imagine\Filter\Basic\Autorotate;
 use Imagine\Filter\Basic\WebOptimization;
 use Imagine\Gd\Imagine as GdImagine;
 use Imagine\Gmagick\Imagine as GmagickImagine;
+use Imagine\Image\AbstractImage;
 use Imagine\Image\Box;
 use Imagine\Image\Point;
 use Imagine\Imagick\Imagine as ImagickImagine;
@@ -128,15 +129,6 @@ class LocalDriver extends Driver
         $command = 'convert -auto-orient -strip "' . $localPath . '" "' . $localPath . '"';
         exec($command);
         return $this->imagine->open($localPath);
-        $image = $this->imagine->open($localPath);
-//        $filter = new Autorotate();
-//        $filter->apply($image);
-        $image->strip();
-        $image->save();
-//        $webFilter = new WebOptimization($localPath);
-//        $webFilter->apply($image);
-//        $image->save();
-        return $image;
     }
 
     /**
@@ -158,6 +150,8 @@ class LocalDriver extends Driver
             $this->resizeAdaptive($image, $maxSize);
         } elseif ($height && $height == $width) {
             $this->crop($image, $height);
+        } elseif ($width && $height) {
+            $this->resize($image, $width, $height);
         }
 
         if ($blur) {
@@ -188,6 +182,30 @@ class LocalDriver extends Driver
             'url'    => $url
         ]);
         return true;
+    }
+    
+    /**
+     * @param AbstractImage $image
+     * @param $width
+     * @param $height
+     * @return AbstractImage
+     */
+    protected function resize($image, $width, $height)
+    {
+        $imageSize = $image->getSize();
+        $imageHeight = $imageSize->getHeight();
+        $imageWidth = $imageSize->getWidth();
+        if ($imageWidth > $width || $imageHeight > $height) {
+            if ($imageWidth < $imageHeight) {
+                $height = ceil($imageHeight / ($imageWidth / $width));
+            } elseif ($imageWidth > $imageHeight) {
+                $width = ceil($imageWidth / ($imageHeight / $height));
+            }
+            $sizeBox = new Box($width, $height);
+            $image->resize($sizeBox);
+        }
+    
+        return $image;
     }
 
     /**
