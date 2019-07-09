@@ -199,9 +199,9 @@ class LocalDriver extends Driver
             $width = $imageWidth > $width ? $width : $imageWidth;
             $height = $imageHeight > $height ? $height : $imageHeight;
             if ($imageWidth < $imageHeight) {
-                $height = ceil($height / ($imageWidth / $width));
+                $height = ceil($imageHeight / ($imageWidth / $width));
             } elseif ($imageWidth > $imageHeight) {
-                $width = ceil($width / ($imageHeight / $height));
+                $width = ceil($imageWidth / ($imageHeight / $height));
             }
             $sizeBox = new Box($width, $height);
             $image->resize($sizeBox);
