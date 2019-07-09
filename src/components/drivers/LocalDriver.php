@@ -45,14 +45,19 @@ class LocalDriver extends Driver
 
     public function createPhotoPreview($filePath, $watermark = [])
     {
+        Logger::send('create.preview', ['filePath' => $filePath, 'step' => 'Make photo preview']);
         $localPath = str_replace(Config::getInstance()->get('baseUrl'), PUBPATH, $filePath);
         if (!file_exists($localPath)) {
+            Logger::send('create.preview', ['filePath' => $filePath, 'step' => 'Download source']);
             $localPath = PUBPATH . '/upload/' . md5($filePath) . basename($filePath);
             file_put_contents($localPath, file_get_contents($filePath));
         }
+        Logger::send('create.preview', ['filePath' => $filePath, 'step' => 'fixedOrientation()']);
         $this->fixedOrientation($localPath);
         foreach ($this->thumbSizes as $size) {
+            Logger::send('create.preview', ['filePath' => $filePath, 'step' => 'Make photo size: ' . $size['name'] ?? null]);
             $this->resizeImage($localPath, $size, $watermark);
+            Logger::send('create.preview', ['filePath' => $filePath, 'step' => 'End photo size: ' . $size['name'] ?? null]);
         }
         return true;
     }
@@ -262,7 +267,7 @@ class LocalDriver extends Driver
             $command = 'convert ' . escapeshellarg($localPath)
                 . '  -pointsize ' . $fontSize
                 . ' -font ' . escapeshellarg($font)
-                . '  -draw "gravity southeast fill grey text 4,4 ' . escapeshellarg($watermark['text']) . '" '
+                . ' -draw ' . escapeshellarg('gravity southeast fill grey text 4,4 ' . escapeshellarg($watermark['text'])) . ' '
                 . escapeshellarg($localPath);
             @exec($command);
         } elseif (!empty($watermark['imagePath'])) {

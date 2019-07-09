@@ -45,6 +45,7 @@ class FileType
         'audio/x-pn-realaudio'             =>'ram',
         'audio/x-pn-realaudio-plugin'      =>'rmp',
         'audio/x-wav'                      =>'wav',
+        'audio/wav'                        =>'wav',
         'audio/xm'                         =>'xm',
         'image/bmp'                        =>'bmp',
         'image/cgm'                        =>'cgm',
