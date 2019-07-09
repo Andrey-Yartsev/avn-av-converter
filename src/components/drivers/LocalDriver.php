@@ -196,6 +196,8 @@ class LocalDriver extends Driver
         $imageHeight = $imageSize->getHeight();
         $imageWidth = $imageSize->getWidth();
         if ($imageWidth > $width || $imageHeight > $height) {
+            $width = $imageWidth > $width ? $width : $imageWidth;
+            $height = $imageHeight > $height ? $height : $imageHeight;
             if ($imageWidth < $imageHeight) {
                 $height = ceil($imageHeight / ($imageWidth / $width));
             } elseif ($imageWidth > $imageHeight) {
