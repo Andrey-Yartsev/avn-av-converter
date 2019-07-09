@@ -121,13 +121,13 @@ class LocalDriver extends Driver
     public function fixedOrientation($localPath)
     {
         $image = $this->imagine->open($localPath);
-        $filter = new Autorotate();
-        $filter->apply($image);
+//        $filter = new Autorotate();
+//        $filter->apply($image);
         $image->strip();
         $image->save();
-        $webFilter = new WebOptimization($localPath);
-        $webFilter->apply($image);
-        $image->save();
+//        $webFilter = new WebOptimization($localPath);
+//        $webFilter->apply($image);
+//        $image->save();
         return $image;
     }
 
