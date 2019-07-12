@@ -37,5 +37,6 @@ $application->addPostRoute('/process/start', [ProcessController::class, 'start']
 $application->addGetRoute('/process/([\w-]+)/status', [ProcessController::class, 'status']);
 
 $application->addGetRoute('/status', [SystemController::class, 'status']);
+$application->addGetRoute('/', [SystemController::class, 'index']);
 
 $application->run();

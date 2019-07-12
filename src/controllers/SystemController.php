@@ -39,4 +39,9 @@ class SystemController extends Controller
             'retries' => $retries
         ];
     }
+    
+    public function actionIndex()
+    {
+    
+    }
 }
