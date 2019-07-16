@@ -51,6 +51,7 @@ class ProcessController extends Controller
     
     public function actionStart()
     {
+        ini_set('max_execution_time', 300);
         $request = $this->getRequest();
         $postData = $request->getContentType() == 'json' ? json_decode($request->getContent(), true) : [];
         if (empty($postData['processes'])) {
