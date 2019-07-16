@@ -145,6 +145,10 @@ class LocalDriver extends Driver
         $name = $size['name'] ?? null;
         $maxSize = $size['maxSize'] ?? null;
         $image = $this->imagine->open($filePath);
+        if ($image->getImagick()) {
+            $image->getImagick()->setImageBackgroundColor('white');
+            $image->getImagick()->setImageAlphaChannel(\Imagick::ALPHACHANNEL_REMOVE);
+        }
 
         if ($maxSize) {
             $this->resizeAdaptive($image, $maxSize);
@@ -196,12 +200,14 @@ class LocalDriver extends Driver
         $imageHeight = $imageSize->getHeight();
         $imageWidth = $imageSize->getWidth();
         if ($imageWidth > $width || $imageHeight > $height) {
-            $width = $imageWidth > $width ? $width : $imageWidth;
-            $height = $imageHeight > $height ? $height : $imageHeight;
             if ($imageWidth < $imageHeight) {
+                $height = $imageHeight > $height ? $height : $imageHeight;
                 $width = ceil($imageWidth / ($imageHeight / $height));
             } elseif ($imageWidth > $imageHeight) {
+                $width = $imageWidth > $width ? $width : $imageWidth;
                 $height = ceil($imageHeight / ($imageWidth / $width));
+            } else {
+                $height = $width;
             }
             $sizeBox = new Box($width, $height);
             $image->resize($sizeBox);
