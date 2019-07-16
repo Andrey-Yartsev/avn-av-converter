@@ -166,7 +166,9 @@ class LocalDriver extends Driver
         $fileName = $imageSize->getWidth() . 'x' . $imageSize->getHeight() . '_' . urlencode(pathinfo($filePath, PATHINFO_FILENAME)) . '.jpg';
         $savedPath = '/upload/' . $fileName;
 
-        $webFilter = new WebOptimization(PUBPATH . $savedPath);
+        $webFilter = new WebOptimization(PUBPATH . $savedPath, [
+            'jpeg_quality' => 86
+        ]);
         $webFilter->apply($image);
         
         $this->setWatermark(PUBPATH . $savedPath, $watermark);
