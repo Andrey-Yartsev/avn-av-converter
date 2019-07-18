@@ -12,6 +12,7 @@ use CloudConvert\Process;
 use Converter\components\Config;
 use Converter\components\Logger;
 use Converter\components\Redis;
+use Converter\helpers\CliHelper;
 use Converter\helpers\FileHelper;
 use Converter\response\AudioResponse;
 use Converter\response\StatusResponse;
@@ -138,7 +139,7 @@ class CloudConvertDriver extends Driver
             'url'  => $url
         ]);
         if ($this->hasStorage()) {
-            @unlink($localSavedFile);
+            CliHelper::run('worker:deletion', [$localSavedFile]);
         }
         return true;
     }
@@ -217,7 +218,7 @@ class CloudConvertDriver extends Driver
             $this->makePreview($localSavedFile);
         }
         if ($this->hasStorage()) {
-            @unlink($localSavedFile);
+            CliHelper::run('worker:deletion', [$localSavedFile]);
         }
         return true;
     }
