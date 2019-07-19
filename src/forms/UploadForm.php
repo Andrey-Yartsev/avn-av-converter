@@ -38,16 +38,15 @@ class UploadForm extends Form
         }
         $preset = $presets[$this->preset];
         if (!$this->fileType) {
-            $mimeType = mime_content_type($this->filePath);
-            if ($mimeType == false) {
+            $this->fileType = FileHelper::getTypeFile($this->filePath);
+            if ($this->fileType == false) {
                 $this->setErrors('Error identifying file type.');
                 return false;
             }
-            $this->fileType = FileHelper::getTypeFile($mimeType);
         }
         
         if (empty($preset[$this->fileType])) {
-            $this->setErrors(ucfirst($this->fileType) . '   can\'t handle. ' . $mimeType . ' not supported.');
+            $this->setErrors(ucfirst($this->fileType) . '   can\'t handle.');
             return false;
         }
         

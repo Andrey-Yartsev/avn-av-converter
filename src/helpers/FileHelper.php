@@ -7,6 +7,7 @@
 namespace Converter\helpers;
 
 
+use Converter\components\Logger;
 use Converter\response\AudioResponse;
 use Converter\response\ImageResponse;
 use Converter\response\VideoResponse;
@@ -30,20 +31,28 @@ class FileHelper
             self::TYPE_IMAGE,
         ];
     }
-
+    
     /**
-     * @param $mimeType
+     * @param $filePath
      * @return bool|string
      */
-    public static function getTypeFile($mimeType)
+    public static function getTypeFile($filePath)
     {
+        $output = $return = null;
+        exec(sprintf('file --mime-type -b %s', escapeshellarg($filePath)), $output, $return);
+        $mimeType = $return === 0 && $output ? $output[0] : null;
+        
         if (preg_match('/video\/*/', $mimeType) || $mimeType == 'image/gif' || strpos($mimeType, 'stream')) {
             return self::TYPE_VIDEO;
         } elseif (preg_match('/image\/*/', $mimeType)) {
             return self::TYPE_IMAGE;
         } elseif (preg_match('/audio\/*/', $mimeType)) {
-            return self::TYPE_AUDIO;
+            return self::isVideo($filePath) ? self::TYPE_VIDEO : self::TYPE_AUDIO;
         }
+        Logger::send('wrong.ext', [
+            'mimeType' => $mimeType,
+            'filePath' => $filePath
+        ]);
         return false;
     }
 
@@ -66,6 +75,19 @@ class FileHelper
         $response->url = $fileUrl;
         $response->name = 'source';
         return $response;
+    }
+    
+    /**
+     * @param $filePath
+     * @return bool
+     */
+    public static function isVideo($filePath)
+    {
+        $ffprobe = \FFMpeg\FFProbe::create([
+            'ffmpeg.binaries'  => exec('which ffmpeg'),
+            'ffprobe.binaries' => exec('which ffprobe')
+        ]);
+        return (bool) count($ffprobe->streams($filePath)->videos());
     }
     
     /**
