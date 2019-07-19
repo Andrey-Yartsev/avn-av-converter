@@ -44,10 +44,14 @@ class UploadCommand extends Command
                 Logger::send('worker.upload.run', [
                     'step' => $params['processId'] . ' failed file uploaded'
                 ]);
-                Redis::getInstance()->sAdd('amazon:upload', $upload);
+                Logger::send('faileds', [
+                    'process' => $upload
+                ]);
             }
         } catch (\Exception $e) {
-            Redis::getInstance()->sAdd('amazon:upload', $upload);
+            Logger::send('faileds', [
+                'process' => $upload
+            ]);
         }
     }
 }
