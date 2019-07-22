@@ -104,16 +104,17 @@ class AmazonDriver extends Driver
         
         if ($this->hasStorage()) {
             $storage = $this->getStorage();
+            
             if ($storage instanceof S3Storage) {
                 $s3Client = $this->getS3Client();
                 $s3Client->copyObject([
                     'Bucket'     => $storage->bucket,
-                    'Key'        => '/files/' . $output['Key'],
+                    'Key'        => 'files/' . $output['Key'],
                     'CopySource' => $this->s3['bucket'] . '/files/' . $output['Key'],
                 ]);
                 $s3Client->deleteObject([
                     'Bucket' => $this->s3['bucket'],
-                    'Key' => '/files/' . $output['Key'],
+                    'Key' => 'files/' . $output['Key'],
                 ]);
                 $this->result[] = new VideoResponse([
                     'name'     => 'source',
@@ -123,17 +124,19 @@ class AmazonDriver extends Driver
                     'duration' => $output['Duration'] ?? 0,
                     'size'     => $output['FileSize'] ?? 0
                 ]);
+                Logger::send('converter.aws.readJob', $jobData['Output']);
+                return true;
             }
-        } else {
-            $this->result[] = new VideoResponse([
-                'name'     => 'source',
-                'url'      => $this->url . '/files/' . $output['Key'],
-                'width'    => $output['Width'] ?? 0,
-                'height'   => $output['Height'] ?? 0,
-                'duration' => $output['Duration'] ?? 0,
-                'size'     => $output['FileSize'] ?? 0
-            ]);
         }
+    
+        $this->result[] = new VideoResponse([
+            'name'     => 'source',
+            'url'      => $this->url . '/files/' . $output['Key'],
+            'width'    => $output['Width'] ?? 0,
+            'height'   => $output['Height'] ?? 0,
+            'duration' => $output['Duration'] ?? 0,
+            'size'     => $output['FileSize'] ?? 0
+        ]);
         
         Logger::send('converter.aws.readJob', $jobData['Output']);
         return true;
