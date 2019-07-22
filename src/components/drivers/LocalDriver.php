@@ -278,8 +278,8 @@ class LocalDriver extends Driver
         $sizeBox = new Box($width, $height);
         $image->resize($sizeBox);
         
-        $startX = round(($height - $size) / 2);
-        $startY = round(($width - $size) / 2);
+        $startX = round(($width - $size) / 2);
+        $startY = round(($height - $size) / 2);
 
         $cropPoint = new Point($startX, $startY);
         $sizeBox = new Box($size, $size);
