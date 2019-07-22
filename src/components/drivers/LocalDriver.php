@@ -283,9 +283,10 @@ class LocalDriver extends Driver
 
         $cropPoint = new Point($startX, $startY);
         $sizeBox = new Box($size, $size);
-        $image->crop($cropPoint, $sizeBox);
+        
+        Logger::send('debug', ['startX' => $startX, 'startY' => $startY, 'size' => $size]);
 
-        return $image;
+        return $image->crop($cropPoint, $sizeBox);
     }
     
     protected function setWatermark($localPath, $watermark = [])
