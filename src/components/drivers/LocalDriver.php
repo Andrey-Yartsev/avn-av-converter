@@ -150,11 +150,11 @@ class LocalDriver extends Driver
         }
 
         if ($maxSize) {
-            $this->resizeAdaptive($image, $maxSize);
+            $image = $this->resizeAdaptive($image, $maxSize);
         } elseif ($height && $height == $width) {
-            $this->crop($image, $height);
+            $image = $this->crop($image, $height);
         } elseif ($width && $height) {
-            $this->resize($image, $width, $height);
+            $image = $this->resize($image, $width, $height);
         }
 
         if ($blur) {
