@@ -284,7 +284,7 @@ class LocalDriver extends Driver
         $cropPoint = new Point($startX, $startY);
         $sizeBox = new Box($size, $size);
         
-        Logger::send('debug', ['startX' => $startX, 'startY' => $startY, 'size' => $size]);
+        Logger::send('debug', ['startX' => $startX, 'startY' => $startY, 'size' => $size, 'width' => $width, 'height' => $height]);
 
         return $image->crop($cropPoint, $sizeBox);
     }
