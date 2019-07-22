@@ -13,6 +13,7 @@ use Aws\S3\S3Client;
 use Converter\components\Logger;
 use Converter\components\Process;
 use Converter\components\Redis;
+use Converter\components\storages\S3Storage;
 use Converter\response\StatusResponse;
 use Converter\response\VideoResponse;
 use GuzzleHttp\Client;
@@ -100,14 +101,32 @@ class AmazonDriver extends Driver
         }
 
         $output = $jobData['Output'];
-        $this->result[] = new VideoResponse([
-            'name'     => 'source',
-            'url'      => $this->url . '/files/' . $output['Key'],
-            'width'    => $output['Width'] ?? 0,
-            'height'   => $output['Height'] ?? 0,
-            'duration' => $output['Duration'] ?? 0,
-            'size'     => $output['FileSize'] ?? 0
-        ]);
+        
+        if ($this->hasStorage()) {
+            $storage = $this->getStorage();
+            if ($storage instanceof S3Storage) {
+                $s3Client = $this->getS3Client();
+                $s3Client->copyObject([
+                    'Bucket'     => $storage->bucket,
+                    'Key'        => '/files/' . $output['Key'],
+                    'CopySource' => $this->s3['bucket'] . '/files/' . $output['Key'],
+                ]);
+                $s3Client->deleteObject([
+                    'Bucket' => $this->s3['bucket'],
+                    'Key' => '/files/' . $output['Key'],
+                ]);
+            }
+        } else {
+            $this->result[] = new VideoResponse([
+                'name'     => 'source',
+                'url'      => $this->url . '/files/' . $output['Key'],
+                'width'    => $output['Width'] ?? 0,
+                'height'   => $output['Height'] ?? 0,
+                'duration' => $output['Duration'] ?? 0,
+                'size'     => $output['FileSize'] ?? 0
+            ]);
+        }
+        
         Logger::send('converter.aws.readJob', $jobData['Output']);
         return true;
     }
@@ -124,15 +143,7 @@ class AmazonDriver extends Driver
         $pathParts = pathinfo($filePath);
         $keyName = 'temp_video/' . parse_url($filePath, PHP_URL_HOST) . '/' . date('Y_m_d') . '/' . uniqid('', true) . '.' . $pathParts['extension'];
 
-        $s3Client = new S3Client([
-            'version' => 'latest',
-            'region'  => $this->s3['region'],
-            'credentials' => [
-                'key' => $this->s3['key'],
-                'secret' => $this->s3['secret']
-            ]
-        ]);
-
+        $s3Client = $this->getS3Client();
         try {
             $client = new Client();
             $response = $client->get($filePath);
@@ -212,6 +223,18 @@ class AmazonDriver extends Driver
             Logger::send('process', ['processId' => $processId, 'step' => 'Wrong job', 'data' => $job]);
             return false;
         }
+    }
+    
+    protected function getS3Client()
+    {
+        return new S3Client([
+            'version' => 'latest',
+            'region'  => $this->s3['region'],
+            'credentials' => [
+                'key' => $this->s3['key'],
+                'secret' => $this->s3['secret']
+            ]
+        ]);
     }
 
     /**

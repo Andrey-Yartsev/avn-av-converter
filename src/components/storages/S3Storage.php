@@ -14,7 +14,7 @@ use Converter\components\Logger;
 class S3Storage extends FileStorage
 {
     protected $region;
-    protected $bucket;
+    public $bucket;
     protected $key;
     protected $secret;
     protected $url;
