@@ -115,6 +115,14 @@ class AmazonDriver extends Driver
                     'Bucket' => $this->s3['bucket'],
                     'Key' => '/files/' . $output['Key'],
                 ]);
+                $this->result[] = new VideoResponse([
+                    'name'     => 'source',
+                    'url'      => $storage->url . '/files/' . $output['Key'],
+                    'width'    => $output['Width'] ?? 0,
+                    'height'   => $output['Height'] ?? 0,
+                    'duration' => $output['Duration'] ?? 0,
+                    'size'     => $output['FileSize'] ?? 0
+                ]);
             }
         } else {
             $this->result[] = new VideoResponse([

@@ -17,7 +17,7 @@ class S3Storage extends FileStorage
     public $bucket;
     protected $key;
     protected $secret;
-    protected $url;
+    public $url;
     /** @var S3Client */
     protected $client;
     
