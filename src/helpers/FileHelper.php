@@ -43,7 +43,9 @@ class FileHelper
         $mimeType = $return === 0 && $output ? $output[0] : null;
         
         if (preg_match('/video\/*/', $mimeType) || $mimeType == 'image/gif' || strpos($mimeType, 'stream')) {
-            return self::TYPE_VIDEO;
+            if (self::isVideo($filePath)) {
+                return self::TYPE_VIDEO;
+            }
         } elseif (preg_match('/image\/*/', $mimeType)) {
             return self::TYPE_IMAGE;
         } elseif (preg_match('/audio\/*/', $mimeType)) {
@@ -83,28 +85,11 @@ class FileHelper
      */
     public static function isVideo($filePath)
     {
-        $ffprobe = \FFMpeg\FFProbe::create([
-            'ffmpeg.binaries'  => exec('which ffmpeg'),
-            'ffprobe.binaries' => exec('which ffprobe')
-        ]);
-        return (bool) count($ffprobe->streams($filePath)->videos());
-    }
-    
-    /**
-     * @param $filePath
-     * @return FFProbe\DataMapping\Stream
-     */
-    protected static function getFirstVideoFrame($filePath)
-    {
-        if (empty(self::$firstStreams[$filePath])) {
-            self::$firstStreams[$filePath] = FFProbe::create([
-                'ffmpeg.binaries'  => exec('which ffmpeg'),
-                'ffprobe.binaries' => exec('which ffprobe')
-            ])->streams($filePath)
-                ->videos()
-                ->first();
+        try {
+            return (bool) count(self::getFFProbe()->streams($filePath)->videos());
+        } catch (\Exception $e) {
+            return false;
         }
-        return self::$firstStreams[$filePath];
     }
     
     /**
@@ -127,5 +112,30 @@ class FileHelper
         $firstStream = self::getFirstVideoFrame($filePath);
         $dimensions = $firstStream->getDimensions();
         return [$dimensions->getWidth(), $dimensions->getHeight()];
+    }
+    
+    /**
+     * @param $filePath
+     * @return FFProbe\DataMapping\Stream
+     */
+    protected static function getFirstVideoFrame($filePath)
+    {
+        if (empty(self::$firstStreams[$filePath])) {
+            self::$firstStreams[$filePath] = self::getFFProbe()->streams($filePath)
+                ->videos()
+                ->first();
+        }
+        return self::$firstStreams[$filePath];
+    }
+    
+    /**
+     * @return FFProbe
+     */
+    protected static function getFFProbe()
+    {
+        return FFProbe::create([
+            'ffmpeg.binaries'  => exec('which ffmpeg'),
+            'ffprobe.binaries' => exec('which ffprobe')
+        ]);
     }
 }
