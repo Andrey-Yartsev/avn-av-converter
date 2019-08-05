@@ -14,6 +14,7 @@ use Imagine\Gd\Imagine as GdImagine;
 use Imagine\Gmagick\Imagine as GmagickImagine;
 use Imagine\Image\AbstractImage;
 use Imagine\Image\Box;
+use Imagine\Image\ImageInterface;
 use Imagine\Image\Point;
 use Imagine\Imagick\Imagine as ImagickImagine;
 
@@ -166,7 +167,10 @@ class LocalDriver extends Driver
         $savedPath = '/upload/' . $fileName;
         
         $image->save(PUBPATH . $savedPath, [
-            'jpeg_quality' => 86
+            'jpeg_quality' => 86,
+            'resolution-units' => ImageInterface::RESOLUTION_PIXELSPERINCH,
+            'resolution-y' => 72,
+            'resolution-x' => 72,
         ]);
 
 //        $webFilter = new WebOptimization(PUBPATH . $savedPath, [
