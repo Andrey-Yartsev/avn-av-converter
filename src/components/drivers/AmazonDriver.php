@@ -105,7 +105,7 @@ class AmazonDriver extends Driver
         if ($this->hasStorage()) {
             $storage = $this->getStorage();
             
-            if ($storage instanceof S3Storage) {
+            if ($storage instanceof S3Storage && $storage->bucket != $this->s3['bucket']) {
                 $s3Client = $this->getS3Client();
                 $s3Client->copyObject([
                     'Bucket'     => $storage->bucket,
