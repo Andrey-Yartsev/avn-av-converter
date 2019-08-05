@@ -167,18 +167,12 @@ class LocalDriver extends Driver
         $fileName = $imageSize->getWidth() . 'x' . $imageSize->getHeight() . '_' . urlencode(pathinfo($filePath, PATHINFO_FILENAME)) . '.jpg';
         $savedPath = '/upload/' . $fileName;
         
-        $image->usePalette(new RGB())
-            ->save(PUBPATH . $savedPath, [
+        $image->save(PUBPATH . $savedPath, [
             'jpeg_quality' => 86,
             'resolution-units' => ImageInterface::RESOLUTION_PIXELSPERINCH,
             'resolution-y' => 72,
             'resolution-x' => 72,
         ]);
-
-//        $webFilter = new WebOptimization(PUBPATH . $savedPath, [
-//            'jpeg_quality' => 86
-//        ]);
-//        $webFilter->apply($image);
         
         $this->setWatermark(PUBPATH . $savedPath, $watermark);
         
