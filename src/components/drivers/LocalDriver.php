@@ -15,6 +15,7 @@ use Imagine\Gmagick\Imagine as GmagickImagine;
 use Imagine\Image\AbstractImage;
 use Imagine\Image\Box;
 use Imagine\Image\ImageInterface;
+use Imagine\Image\Palette\RGB;
 use Imagine\Image\Point;
 use Imagine\Imagick\Imagine as ImagickImagine;
 
@@ -166,7 +167,8 @@ class LocalDriver extends Driver
         $fileName = $imageSize->getWidth() . 'x' . $imageSize->getHeight() . '_' . urlencode(pathinfo($filePath, PATHINFO_FILENAME)) . '.jpg';
         $savedPath = '/upload/' . $fileName;
         
-        $image->save(PUBPATH . $savedPath, [
+        $image->usePalette(new RGB())
+            ->save(PUBPATH . $savedPath, [
             'jpeg_quality' => 86,
             'resolution-units' => ImageInterface::RESOLUTION_PIXELSPERINCH,
             'resolution-y' => 72,
