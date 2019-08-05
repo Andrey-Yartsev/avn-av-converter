@@ -165,7 +165,7 @@ class LocalDriver extends Driver
         $fileName = $imageSize->getWidth() . 'x' . $imageSize->getHeight() . '_' . urlencode(pathinfo($filePath, PATHINFO_FILENAME)) . '.jpg';
         $savedPath = '/upload/' . $fileName;
         
-        $image->save($savedPath);
+        $image->save(PUBPATH . $savedPath);
 
 //        $webFilter = new WebOptimization(PUBPATH . $savedPath, [
 //            'jpeg_quality' => 86
