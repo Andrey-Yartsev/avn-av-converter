@@ -34,6 +34,7 @@ $application->addPostRoute('/aws/sns', [AmazonController::class, 'sns']);
 $application->addPostRoute('/file/upload', [ProcessController::class, 'upload']);
 $application->addPostRoute('/process/exists', [ProcessController::class, 'exists']);
 $application->addPostRoute('/process/start', [ProcessController::class, 'start']);
+$application->addPostRoute('/process/restart', [ProcessController::class, 'restart']);
 $application->addGetRoute('/process/([\w-]+)/status', [ProcessController::class, 'status']);
 
 $application->addGetRoute('/status', [SystemController::class, 'status']);
