@@ -123,7 +123,7 @@ class CloudConverterController extends Controller
             'error'     => $response['message'] ?? ''
         ];
         Logger::send('process', ['processId' => $id, 'step' => 'Error conversion', 'data' => ['error' => $response['message'] ?? '']]);
-        Redis::getInstance()->del('cc:' . $id, 'queue:' . $id);
+        Redis::getInstance()->del('cc:' . $id);
         try {
             $client         = new Client();
             $guzzleResponse = $client->request('POST', $callback, [

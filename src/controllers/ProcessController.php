@@ -7,6 +7,7 @@
 namespace Converter\controllers;
 
 
+use Converter\components\Config;
 use Converter\components\Controller;
 use Converter\components\FileType;
 use Converter\components\FileUploadHandler;
@@ -47,6 +48,46 @@ class ProcessController extends Controller
         return [
             'failedIds' => $failedIds
         ];
+    }
+    
+    public function actionRestart()
+    {
+        set_time_limit(300);
+        ini_set('memory_limit', '1G');
+        $request = $this->getRequest();
+        $postData = $request->getContentType() == 'json' ? json_decode($request->getContent(), true) : [];
+        if (empty($postData['processes'])) {
+            throw new BadRequestHttpException('Processes is required');
+        }
+        $response = [];
+        $processIds = [];
+        $presets = Config::getInstance()->get('presets');
+        foreach ($postData['processes'] as $process) {
+            if (empty($process['id']) || empty($process['preset'])) {
+                continue;
+            }
+            if (empty($presets[$process['preset']])) {
+                continue;
+            }
+            Logger::send('process', ['processId' => $process['id'], 'step' => 'Init re-start']);
+            $queue = Redis::getInstance()->get('queue:' . $process['id']);
+            if ($queue) {
+                $processIds[$process['id']] = $process['preset'];
+                $response[] = [
+                    'processId' => $process['id'],
+                    'success'   => true
+                ];
+            }
+        }
+    
+        $content = json_encode($response);
+        header('Content-Type: application/json; charset=utf-8');
+        header('Content-Length: ' . strlen($content));
+        echo $content;
+        fastcgi_finish_request();
+        foreach ($processIds as $processId => $presetName) {
+            Process::restart($processId, $presetName);
+        }
     }
     
     public function actionStart()

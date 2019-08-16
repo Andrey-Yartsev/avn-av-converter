@@ -48,6 +48,23 @@ class Process
     
     /**
      * @param $processId
+     * @param $presetName
+     * @return bool
+     */
+    public static function restart($processId, $presetName)
+    {
+        $queue = Redis::getInstance()->get('queue:' . $processId);
+        if ($queue) {
+            $queue = json_decode($queue, true);
+            $queue['presetName'] = $presetName;
+            Redis::getInstance()->set('queue:' . $processId, $queue);
+            return self::start($processId);
+        }
+        return false;
+    }
+    
+    /**
+     * @param $processId
      * @return bool
      */
     public static function start($processId)
