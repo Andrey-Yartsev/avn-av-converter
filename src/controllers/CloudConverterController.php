@@ -121,6 +121,7 @@ class CloudConverterController extends Controller
         $response = json_decode($response, true);
         $json     = [
             'processId' => $id,
+            'baseUrl'   => Config::getInstance()->get('baseUrl'),
             'error'     => $response['message'] ?? ''
         ];
         Logger::send('process', ['processId' => $id, 'step' => 'Error conversion', 'data' => ['error' => $response['message'] ?? '']]);
