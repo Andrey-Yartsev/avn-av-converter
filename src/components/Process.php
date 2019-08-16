@@ -57,7 +57,7 @@ class Process
         if ($queue) {
             $queue = json_decode($queue, true);
             $queue['presetName'] = $presetName;
-            Redis::getInstance()->set('queue:' . $processId, $queue);
+            Redis::getInstance()->set('queue:' . $processId, json_encode($queue));
             return self::start($processId);
         }
         return false;
@@ -74,6 +74,7 @@ class Process
             Logger::send('process', ['processId' => $processId, 'step' => 'Start convert']);
             $queue = json_decode($queue, true);
             $driver = self::getDriver($queue);
+            Logger::send('process', ['processId' => $processId, 'step' => 'debug', 'queue' => $queue]);
             if (!$driver) {
                 return false;
             }
