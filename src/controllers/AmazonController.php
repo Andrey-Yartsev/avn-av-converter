@@ -58,6 +58,7 @@ class AmazonController extends Controller
                     try {
                         $json = [
                             'processId' => $options['processId'],
+                            'baseUrl'   => Config::getInstance()->get('baseUrl'),
                             'files' => $amazonDriver->getResult()
                         ];
                         Logger::send('process', ['processId' => $options['processId'], 'step' => 'Job success', 'data' => $json]);
@@ -86,6 +87,7 @@ class AmazonController extends Controller
                         Redis::getInstance()->sRem('amazon:queue', $job);
                         $this->failedCallback($e->getMessage(), $options['callback'], $options['processId'], [
                             'processId' => $options['processId'],
+                            'baseUrl'   => Config::getInstance()->get('baseUrl'),
                             'files' => $amazonDriver->getResult()
                         ]);
                     }

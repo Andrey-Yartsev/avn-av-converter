@@ -46,6 +46,7 @@ class AmazonQueueCommand extends Command
                 try {
                     $json = [
                         'processId' => $options['processId'],
+                        'baseUrl'   => Config::getInstance()->get('baseUrl'),
                         'files' => $amazonDriver->getResult()
                     ];
                     Logger::send('process', ['processId' => $options['processId'], 'step' => 'Job success', 'data' => $json]);
@@ -76,6 +77,7 @@ class AmazonQueueCommand extends Command
                     Redis::getInstance()->sRem('amazon:queue', $job);
                     $this->failedCallback($e->getMessage(), $options['callback'], $options['processId'], [
                         'processId' => $options['processId'],
+                        'baseUrl'   => Config::getInstance()->get('baseUrl'),
                         'files' => $amazonDriver->getResult()
                     ]);
                 }

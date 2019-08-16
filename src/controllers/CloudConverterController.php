@@ -61,6 +61,7 @@ class CloudConverterController extends Controller
 
                                 $json = [
                                     'processId' => $id,
+                                    'baseUrl'   => Config::getInstance()->get('baseUrl'),
                                     'files'     => $driver->getResult()
                                 ];
                                 try {
