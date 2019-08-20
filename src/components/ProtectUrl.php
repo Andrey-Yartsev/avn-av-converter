@@ -40,7 +40,7 @@ class ProtectUrl
         $secret = $this->config['secret'] ?? '';
         $hash = hash_hmac('sha256', $rules . $path, $secret, false);
         $protectServeUrl = trim($this->config['url'] ?? 'Protected', '/');
-        $protectedUrl = $this->config['url'] . '/' . $protectServeUrl . '/' . $rules . '/' . $hash . '/' . $path;
+        $protectedUrl = $this->config['baseUrl'] . '/' . $protectServeUrl . '/' . $rules . '/' . $hash . '/' . $path;
         return $protectedUrl;
     }
 }
