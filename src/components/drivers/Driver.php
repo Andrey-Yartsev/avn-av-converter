@@ -8,6 +8,7 @@ namespace Converter\components\drivers;
 
 
 use Converter\components\Config;
+use Converter\components\ProtectUrl;
 use Converter\components\storages\FileStorage;
 use Converter\helpers\FileHelper;
 use Imagine\Image\Palette\RGB;
@@ -20,6 +21,7 @@ abstract class Driver
     public $presetName;
     public $previews = [];
     public $thumbs = [];
+    public $needProtect = false;
     
     /** @var FileStorage */
     protected $storage;
@@ -90,10 +92,12 @@ abstract class Driver
         }
 
         $result = [];
+    
+        $protect = $this->needProtect ? new ProtectUrl() : null;
         foreach ($driver->getResult() as $index => $item) {
             $result[] = [
                 'id'  => ++$index,
-                'url' => $item->url
+                'url' => $protect ? $protect->getProtectServeUrl($item->url) : $item->url
             ];
         }
         return $result;
