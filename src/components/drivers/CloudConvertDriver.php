@@ -137,7 +137,7 @@ class CloudConvertDriver extends Driver
             $url = str_replace(PUBPATH, Config::getInstance()->get('baseUrl'), $localSavedFile);
         }
 
-        $firstStream = FFMpeg\FFProbe::create([
+        $firstStream = FFProbe::create([
             'ffmpeg.binaries'  => exec('which ffmpeg'),
             'ffprobe.binaries' => exec('which ffprobe')
         ])->streams($localSavedFile)
