@@ -111,8 +111,10 @@ class CloudConvertDriver extends Driver
         if ($this->withOutSave) {
             $this->result[] = new AudioResponse([
                 'name' => 'source',
-                'url'  => $url
+                'url'  => $url,
+                'size' => $output->size ?? 0,
             ]);
+            return true;
         }
         $hash = md5($output->filename);
         $localSavedFile = PUBPATH . '/upload/' . $hash . '.' . $output->ext;
@@ -134,9 +136,20 @@ class CloudConvertDriver extends Driver
         } else {
             $url = str_replace(PUBPATH, Config::getInstance()->get('baseUrl'), $localSavedFile);
         }
+
+        $firstStream = FFMpeg\FFProbe::create([
+            'ffmpeg.binaries'  => exec('which ffmpeg'),
+            'ffprobe.binaries' => exec('which ffprobe')
+        ])->streams($localSavedFile)
+            ->audios()
+            ->first();
+        $duration = ceil((float)$firstStream->get('duration'));
+
         $this->result[] = new AudioResponse([
-            'name' => 'source',
-            'url'  => $url
+            'name'     => 'source',
+            'url'      => $url,
+            'size'     => $output->size ?? 0,
+            'duration' => $duration,
         ]);
         if ($this->hasStorage()) {
             CliHelper::run('worker:deletion', [$localSavedFile]);
@@ -172,7 +185,8 @@ class CloudConvertDriver extends Driver
         if ($this->withOutSave) {
             $this->result[] = new VideoResponse([
                 'name' => 'source',
-                'url'  => $url
+                'url'  => $url,
+                'size' => $output->size ?? 0,
             ]);
             return true;
         }
@@ -209,7 +223,7 @@ class CloudConvertDriver extends Driver
             'width'    => $dimension->getWidth(),
             'height'   => $dimension->getHeight(),
             'duration' => ceil($firstStream->get('duration')),
-            'size'     => $output->size
+            'size'     => $output->size ?? 0,
         ]);
         Logger::send('converter.cc.makePreview', [
             'previewsConfig' => $this->previews
