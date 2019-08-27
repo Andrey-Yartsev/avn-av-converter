@@ -80,7 +80,7 @@ class CloudConverterController extends Controller
                                         'httpCode' => $response->getStatusCode(),
                                         'response' => $response->getBody()
                                     ]);
-                                } catch (\GuzzleHttp\Exception\GuzzleException | \Exception $e) {
+                                } catch (\GuzzleHttp\Exception\GuzzleException | \Error | \Exception $e) {
                                     $this->failedCallback($e->getMessage(), $options['callback'], $id, $json);
                                 }
                                 Redis::getInstance()->del('cc:' . $id, 'queue:' . $id);
