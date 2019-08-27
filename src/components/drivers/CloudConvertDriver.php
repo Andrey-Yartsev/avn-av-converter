@@ -137,19 +137,11 @@ class CloudConvertDriver extends Driver
             $url = str_replace(PUBPATH, Config::getInstance()->get('baseUrl'), $localSavedFile);
         }
 
-        $firstStream = FFProbe::create([
-            'ffmpeg.binaries'  => exec('which ffmpeg'),
-            'ffprobe.binaries' => exec('which ffprobe')
-        ])->streams($localSavedFile)
-            ->audios()
-            ->first();
-        $duration = ceil((float)$firstStream->get('duration'));
-
         $this->result[] = new AudioResponse([
             'name'     => 'source',
             'url'      => $url,
             'size'     => $output->size ?? 0,
-            'duration' => $duration,
+            'duration' => FileHelper::getAudioDuration($localSavedFile),
         ]);
         if ($this->hasStorage()) {
             CliHelper::run('worker:deletion', [$localSavedFile]);
@@ -210,19 +202,16 @@ class CloudConvertDriver extends Driver
         } else {
             $url = str_replace(PUBPATH, Config::getInstance()->get('baseUrl'), $localSavedFile);
         }
-        $firstStream = FFProbe::create([
-            'ffmpeg.binaries'  => exec('which ffmpeg'),
-            'ffprobe.binaries' => exec('which ffprobe')
-        ])->streams($localSavedFile)
-            ->videos()
-            ->first();
-        $dimension = $firstStream->getDimensions();
+
+        $duration = FileHelper::getVideoDuration($localSavedFile);
+        list($width, $height) = FileHelper::getVideoDimensions($localSavedFile);
+
         $this->result[] = new VideoResponse([
             'name'     => 'source',
             'url'      => $url,
-            'width'    => $dimension->getWidth(),
-            'height'   => $dimension->getHeight(),
-            'duration' => ceil($firstStream->get('duration')),
+            'width'    => $width,
+            'height'   => $height,
+            'duration' => $duration,
             'size'     => $output->size ?? 0,
         ]);
         Logger::send('converter.cc.makePreview', [

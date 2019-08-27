@@ -149,6 +149,10 @@ class ProcessController extends Controller
                         }
                         
                         break;
+                    case FileHelper::TYPE_AUDIO:
+                        Logger::send('process', ['processId' => $process['id'], 'step' => 'Is audio']);
+                        $sourceResponse->duration = FileHelper::getAudioDuration($queue['filePath']);
+                        break;
                     case FileHelper::TYPE_IMAGE:
                         Logger::send('process', ['processId' => $process['id'], 'step' => 'Is photo', 'filePath' => $queue['filePath']]);
                         $driver->createPhotoPreview($queue['filePath'], $queue['watermark']);
