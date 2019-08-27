@@ -108,7 +108,7 @@ class FileHelper
      */
     public static function getAudioDuration($filePath)
     {
-        return floor((float)self::getFirstAudioStream($filePath)->get('duration'));
+        return ceil((float)self::getFirstAudioStream($filePath)->get('duration'));
     }
     
     /**
