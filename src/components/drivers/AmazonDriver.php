@@ -106,26 +106,35 @@ class AmazonDriver extends Driver
             $storage = $this->getStorage();
             
             if ($storage instanceof S3Storage && $storage->bucket != $this->s3['bucket']) {
-                $s3Client = $this->getS3Client();
-                $s3Client->copyObject([
-                    'Bucket'     => $storage->bucket,
-                    'Key'        => 'files/' . $output['Key'],
-                    'CopySource' => $this->s3['bucket'] . '/files/' . $output['Key'],
-                ]);
-                $s3Client->deleteObject([
-                    'Bucket' => $this->s3['bucket'],
-                    'Key' => 'files/' . $output['Key'],
-                ]);
-                $this->result[] = new VideoResponse([
-                    'name'     => 'source',
-                    'url'      => $storage->url . '/files/' . $output['Key'],
-                    'width'    => $output['Width'] ?? 0,
-                    'height'   => $output['Height'] ?? 0,
-                    'duration' => $output['Duration'] ?? 0,
-                    'size'     => $output['FileSize'] ?? 0
-                ]);
-                Logger::send('converter.aws.readJob', $jobData['Output']);
-                return true;
+                try {
+                    $s3Client = $this->getS3Client();
+                    $s3Client->copyObject([
+                        'Bucket'     => $storage->bucket,
+                        'Key'        => 'files/' . $output['Key'],
+                        'CopySource' => $this->s3['bucket'] . '/files/' . $output['Key'],
+                    ]);
+                    $s3Client->deleteObject([
+                        'Bucket' => $this->s3['bucket'],
+                        'Key' => 'files/' . $output['Key'],
+                    ]);
+                    $this->result[] = new VideoResponse([
+                        'name'     => 'source',
+                        'url'      => $storage->url . '/files/' . $output['Key'],
+                        'width'    => $output['Width'] ?? 0,
+                        'height'   => $output['Height'] ?? 0,
+                        'duration' => $output['Duration'] ?? 0,
+                        'size'     => $output['FileSize'] ?? 0
+                    ]);
+                    Logger::send('converter.aws.readJob', $jobData['Output']);
+                    return true;
+                } catch (\Throwable $exception) {
+                    Logger::send('converter.fatal.log', [
+                        'job' => $jobData['Output'],
+                        'error' => $exception->getMessage()
+                    ]);
+                    return false;
+                }
+                
             }
         }
     

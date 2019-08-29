@@ -120,10 +120,16 @@ class Process
                     Logger::send('process', ['processId' => $processId, 'step' => 'Send to callback']);
                     Redis::getInstance()->del('queue:' . $processId);
                 } catch (\Exception $e) {
-                    Logger::send('converter.callback.send', [
+                    $params = [
+                        'url'       => $queue['callback'],
                         'processId' => $processId,
+                        'body'      => $resultBody
+                    ];
+                    Logger::send('process', ['processId' => $processId, 'step' => 'Error send callback', 'data' => [
                         'error' => $e->getMessage()
-                    ], LogLevel::ERROR);
+                    ]]);
+                    Redis::getInstance()->set('retry:' . $processId, json_encode($params));
+                    Redis::getInstance()->incr('retry:' . $processId . ':count');
                 }
             }
             
