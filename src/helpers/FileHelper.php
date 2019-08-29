@@ -19,7 +19,8 @@ class FileHelper
     const TYPE_IMAGE = 'image';
     const TYPE_AUDIO = 'audio';
 
-    protected static $firstStreams = [];
+    protected static $firstVideoStreams = [];
+    protected static $firstAudioStreams = [];
     /**
      * @return array
      */
@@ -98,9 +99,16 @@ class FileHelper
      */
     public static function getVideoDuration($filePath)
     {
-        $firstStream = self::getFirstVideoFrame($filePath);
-        
-        return floor($firstStream->get('duration'));
+        return floor((float)self::getFirstVideoStream($filePath)->get('duration'));
+    }
+
+    /**
+     * @param $filePath
+     * @return float
+     */
+    public static function getAudioDuration($filePath)
+    {
+        return ceil((float)self::getFirstAudioStream($filePath)->get('duration'));
     }
     
     /**
@@ -109,7 +117,7 @@ class FileHelper
      */
     public static function getVideoDimensions($filePath)
     {
-        $firstStream = self::getFirstVideoFrame($filePath);
+        $firstStream = self::getFirstVideoStream($filePath);
         $dimensions = $firstStream->getDimensions();
         return [$dimensions->getWidth(), $dimensions->getHeight()];
     }
@@ -118,14 +126,28 @@ class FileHelper
      * @param $filePath
      * @return FFProbe\DataMapping\Stream
      */
-    protected static function getFirstVideoFrame($filePath)
+    protected static function getFirstVideoStream($filePath)
     {
-        if (empty(self::$firstStreams[$filePath])) {
-            self::$firstStreams[$filePath] = self::getFFProbe()->streams($filePath)
+        if (empty(self::$firstVideoStreams[$filePath])) {
+            self::$firstVideoStreams[$filePath] = self::getFFProbe()->streams($filePath)
                 ->videos()
                 ->first();
         }
-        return self::$firstStreams[$filePath];
+        return self::$firstVideoStreams[$filePath];
+    }
+
+    /**
+     * @param $filePath
+     * @return FFProbe\DataMapping\Stream
+     */
+    protected static function getFirstAudioStream($filePath)
+    {
+        if (empty(self::$firstAudioStreams[$filePath])) {
+            self::$firstAudioStreams[$filePath] = self::getFFProbe()->streams($filePath)
+                ->audios()
+                ->first();
+        }
+        return self::$firstAudioStreams[$filePath];
     }
     
     /**
