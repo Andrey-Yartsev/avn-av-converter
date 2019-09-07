@@ -65,7 +65,7 @@ class AmazonUploadCommand extends Command
                 if (!$process->isRunning()) {
                     unset($processes[$pid]);
                     Logger::send('worker.upload.run', [
-                        'process' => $processId,
+                        'process' => $pid,
                         'step' => 'Done',
                         'countWorkers' => count($processes)
                     ]);
