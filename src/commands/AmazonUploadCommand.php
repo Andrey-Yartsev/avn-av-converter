@@ -45,7 +45,7 @@ class AmazonUploadCommand extends Command
                 $countWorkers = exec('ps aux | grep worker:upload | wc -l');
                 if ($countWorkers < 10) {
                     Redis::getInstance()->sRem('amazon:upload', $upload);
-                    $command = 'php ' . __DIR__ . '/../../console/index.php worker:upload \'' . $upload . '\' /dev/null 2>/dev/null  &';
+                    $command = 'php ' . __DIR__ . '/../../console/index.php worker:upload \'' . $upload . '\' > /dev/null 2>/dev/null  &';
                     Logger::send('worker.upload.run', [
                         'command' => $command,
                         'count' => $countWorkers
