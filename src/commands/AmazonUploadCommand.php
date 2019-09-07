@@ -14,7 +14,6 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Command\LockableTrait;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Process\Process;
 
 class AmazonUploadCommand extends Command
 {
@@ -33,44 +32,28 @@ class AmazonUploadCommand extends Command
         }
 
         $presents = Config::getInstance()->get('presets');
-        /** @var Process[] $processes */
-        $processes = [];
         while (true) {
             $uploads = Redis::getInstance()->sRandMember('amazon:upload', 10);
             foreach ($uploads as $upload) {
                 $params = json_decode($upload, true);
                 $output->writeln('<info>Catch ' . $upload . '</info>');
                 $presetName = $params['presetName'];
-                $processId = $params['processId'];
                 if (empty($presents[$presetName]) || empty($presents[$presetName]['video'])) {
                     Redis::getInstance()->sRem('amazon:upload', $upload);
                     continue;
                 }
-                if (count($processes) < 10) {
+                $countWorkers = exec('ps aux | grep worker:upload | wc -l');
+                if ($countWorkers < 10) {
                     Redis::getInstance()->sRem('amazon:upload', $upload);
-                    $command = __DIR__ . '/../../console/index.php worker:upload \'' . $upload . '\'';
-                    $process = new Process(['php', $command]);
+                    $command = 'php ' . __DIR__ . '/../../console/index.php worker:upload \'' . $upload . '\' &';
                     Logger::send('worker.upload.run', [
-                        'process' => $processId,
-                        'step' => 'start',
                         'command' => $command,
-                        'countWorkers' => count($processes)
+                        'count' => $countWorkers
                     ]);
-                    $process->start();
-                    $processes[$processId] = $process;
+                    exec($command);
                 }
             }
             sleep(1);
-            foreach ($processes as $pid => $process) {
-                if (!$process->isRunning()) {
-                    unset($processes[$pid]);
-                    Logger::send('worker.upload.run', [
-                        'process' => $pid,
-                        'step' => 'Done',
-                        'countWorkers' => count($processes)
-                    ]);
-                }
-            }
         }
 
         $this->release();
