@@ -254,7 +254,8 @@ class ProcessController extends Controller
         }
         
         $response = [
-            'processId' => $result
+            'processId' => $result,
+            'baseUrl'   => Config::getInstance()->get('baseUrl'),
         ];
         if ($form->needThumbs) {
             $response['thumbs'] = $form->getThumbs();
