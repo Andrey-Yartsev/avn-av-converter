@@ -23,6 +23,7 @@ class UploadForm extends Form
     public $needThumbs = false;
     public $fileType;
     public $watermark = [];
+    public $additional = [];
     protected $mimeType;
     protected $thumbs = [];
     
