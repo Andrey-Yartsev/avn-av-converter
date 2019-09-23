@@ -210,9 +210,7 @@ class ProcessController extends Controller
                 $file = current($response['files']);
                 if (isset($file['url'])) {
                     $form->setAttributes($_POST);
-                    $newName = $form->getLocalPath() . '.' . pathinfo(PUBPATH . $file['url'], PATHINFO_EXTENSION);
-                    rename(PUBPATH . rawurldecode($file['url']), $newName);
-                    $form->filePath = $newName;
+                    $form->filePath = PUBPATH . rawurldecode($file['url']);
                 } else {
                     header('Range: 0-' . ($file['size'] - 1));
                     header('Pragma: no-cache');
