@@ -186,13 +186,15 @@ class ProcessController extends Controller
         if (isset($_SERVER['HTTP_CONTENT_RANGE'])) {
             $uploadPath = '';
             if (isset($_POST['additional']) && is_array($_POST['additional'])) {
-                $uploadPath = implode('/', array_map('escapeshellarg', $_POST['additional'])) . '/';
+                $uploadPath = implode('/', array_map(function ($value) {
+                    return preg_replace('/[^a-z0-9\.]/i', '', $value);
+                }, $_POST['additional'])) . '/';
             }
             $uploadHandler = new FileUploadHandler([
                 'access_control_allow_origin' => false,
                 'script_url'                  => '/actions/',
                 'upload_dir'                  => PUBPATH . '/upload/' . $uploadPath,
-                'upload_url'                  => '/upload/',
+                'upload_url'                  => '/upload/' . $uploadPath,
                 'max_file_size'               => 4294967296,
                 'min_file_size'               => 1,
                 'max_number_of_files'         => null,
