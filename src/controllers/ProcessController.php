@@ -213,7 +213,7 @@ class ProcessController extends Controller
                 if (isset($file['url'])) {
                     Logger::send('process', ['step' => 'debug', 'data' => PUBPATH . rawurldecode($file['url'])]);
                     $form->setAttributes($_POST);
-                    $form->filePath = PUBPATH . $file['url'];
+                    $form->filePath = PUBPATH . rawurldecode($file['url']);
                 } else {
                     header('Range: 0-' . ($file['size'] - 1));
                     header('Pragma: no-cache');
