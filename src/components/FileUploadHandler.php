@@ -52,10 +52,6 @@ final class FileUploadHandler extends UploadHandler
             return $this->create_scaled_image(basename($preview_filename), $version, $options);
         }
     }
-    
-    protected function upcount_name($name) {
-        return md5($name . microtime(true)) . uniqid() . '.' . pathinfo($name, PATHINFO_EXTENSION);
-    }
 
     protected function is_valid_video_file($file_path)
     {
