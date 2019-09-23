@@ -54,7 +54,7 @@ final class FileUploadHandler extends UploadHandler
     }
     
     protected function upcount_name($name) {
-        return md5($name . microtime(true)) . uniqid() . pathinfo($name, PATHINFO_EXTENSION);
+        return md5($name . microtime(true)) . uniqid() . '.' . pathinfo($name, PATHINFO_EXTENSION);
     }
 
     protected function is_valid_video_file($file_path)
