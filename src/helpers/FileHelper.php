@@ -40,7 +40,7 @@ class FileHelper
     public static function getTypeFile($filePath)
     {
         $output = $return = null;
-        exec('file --mime-type -b "' . $filePath . '"', $output, $return);
+        exec(sprintf('file --mime-type -b %s', escapeshellarg($filePath)), $output, $return);
         $mimeType = $return === 0 && $output ? $output[0] : null;
         
         if (preg_match('/video\/*/', $mimeType) || $mimeType == 'image/gif' || strpos($mimeType, 'stream')) {
