@@ -31,7 +31,7 @@ return [
                     'key'      => 'AKIAIEGIIC3WZYGPIPCA',
                     'secret'   => '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',
                     'pipeline' => '1542729803060-wvvyxu',
-                    'preset'   => '1542903430885-ic9kqe'
+                    'preset'   => '1569329259686-o0zwis'
                 ],
                 'previews'   => [
                     'driver'     => \Converter\components\drivers\LocalDriver::class,
