@@ -319,7 +319,7 @@ class LocalDriver extends Driver
                 $bottomRight = new Point($width - ($width * 0.05) - $wSize->getWidth(), $height - ($height * 0.05) - $wSize->getHeight());
                 $image->paste($watermark, $bottomRight)->save();
             } catch (\Exception $e) {
-                Logger::send('converter.watermark', ['msg' => $e->getMessage(), 'files' => [$watermark['imagePath'], $localPath]]);
+                Logger::send('converter.watermark', ['msg' => $e->getMessage()]);
             }
         }
     }
