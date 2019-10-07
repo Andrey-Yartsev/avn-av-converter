@@ -8,6 +8,7 @@ namespace Converter\components\drivers;
 
 use Converter\components\Config;
 use Converter\components\Logger;
+use Converter\forms\UploadForm;
 use Converter\response\ImageResponse;
 use Imagine\Filter\Basic\WebOptimization;
 use Imagine\Gd\Imagine as GdImagine;
@@ -310,7 +311,13 @@ class LocalDriver extends Driver
             @exec($command);
         } elseif (!empty($watermark['imagePath'])) {
             try {
-                $watermark = $this->imagine->open($watermark['imagePath']);
+                if (!is_file($watermark['imagePath'])) {
+                    $localSavedFile = PUBPATH . '/upload/' . md5($watermark['imagePath']) . '.' . pathinfo($watermark['imagePath'], PATHINFO_EXTENSION);
+                    file_put_contents($localSavedFile, file_get_contents($watermark['imagePath']));
+                } else {
+                    $localSavedFile = $watermark['imagePath'];
+                }
+                $watermark = $this->imagine->open($localSavedFile);
                 $image     = $this->imagine->open($localPath);
                 $size      = $image->getSize();
                 $wSize     = $watermark->getSize();
