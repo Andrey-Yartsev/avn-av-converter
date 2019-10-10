@@ -317,14 +317,14 @@ class LocalDriver extends Driver
                 } else {
                     $localSavedFile = $watermark['imagePath'];
                 }
-                $watermark = $this->imagine->open($localSavedFile);
+                $watermarkImage = $this->imagine->open($localSavedFile);
                 $image     = $this->imagine->open($localPath);
                 $size      = $image->getSize();
-                $wSize     = $watermark->getSize();
+                $wSize     = $watermarkImage->getSize();
                 $width     = $size->getWidth();
                 $height    = $size->getHeight();
                 $bottomRight = new Point($width - ($width * 0.05) - $wSize->getWidth(), $height - ($height * 0.05) - $wSize->getHeight());
-                $image->paste($watermark, $bottomRight)->save();
+                $image->paste($watermarkImage, $bottomRight)->save();
             } catch (\Exception $e) {
                 Logger::send('converter.watermark', ['msg' => $e->getMessage()]);
             }
