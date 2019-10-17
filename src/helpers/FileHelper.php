@@ -42,6 +42,9 @@ class FileHelper
         $output = $return = null;
         exec(sprintf('file --mime-type -b %s', escapeshellarg($filePath)), $output, $return);
         $mimeType = $return === 0 && $output ? $output[0] : null;
+        if (strpos($mimeType, 'application') == 0) {
+            $mimeType = mime_content_type(escapeshellarg($filePath));
+        }
         
         if (preg_match('/video\/*/', $mimeType) || $mimeType == 'image/gif' || strpos($mimeType, 'stream')) {
             if (self::isVideo($filePath)) {
