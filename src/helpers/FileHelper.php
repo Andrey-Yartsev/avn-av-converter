@@ -42,7 +42,7 @@ class FileHelper
         $output = $return = null;
         exec(sprintf('file --mime-type -b %s 2>/dev/null', escapeshellarg($filePath)), $output, $return);
         $mimeType = $return === 0 && $output ? $output[0] : null;
-        if (strpos($mimeType, 'application') == 0) {
+        if (strpos($mimeType, 'application') === 0) {
             $mimeType = mime_content_type($filePath);
         }
         
