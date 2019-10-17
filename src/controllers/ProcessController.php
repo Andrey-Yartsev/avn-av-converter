@@ -233,10 +233,6 @@ class ProcessController extends Controller
             }
             
             $form->setAttributes($_POST);
-            $extension = FileType::getInstance()->findExtensions($_FILES['file']['type']);
-            if (empty($extension)) {
-                throw new BadRequestHttpException('Invalid file type');
-            }
             $filePath = $form->getLocalPath() . '.' . pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION);
             move_uploaded_file($_FILES['file']['tmp_name'], $filePath);
             $form->filePath = $filePath;
