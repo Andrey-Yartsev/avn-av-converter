@@ -9,6 +9,7 @@ namespace Converter\components\drivers;
 use Converter\components\Config;
 use Converter\components\Logger;
 use Converter\forms\UploadForm;
+use Converter\helpers\FileHelper;
 use Converter\response\ImageResponse;
 use Imagine\Filter\Basic\WebOptimization;
 use Imagine\Gd\Imagine as GdImagine;
@@ -82,11 +83,7 @@ class LocalDriver extends Driver
 
     public function processPhoto($filePath, $callback, $processId = null, $watermark = [])
     {
-        $localPath = str_replace(Config::getInstance()->get('baseUrl'), PUBPATH, $filePath);
-        if (!file_exists($localPath)) {
-            $localPath = PUBPATH . '/upload/' . md5($filePath) . basename($filePath);
-            file_put_contents($localPath, file_get_contents($filePath));
-        }
+        $localPath = FileHelper::getLocalPath($filePath);
         
         foreach ($this->thumbSizes as $size) {
             Logger::send('process', ['processId' => $processId, 'step' => 'Make photo size: ' . $size['name'] ?? null]);

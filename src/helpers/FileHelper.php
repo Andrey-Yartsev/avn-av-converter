@@ -7,6 +7,7 @@
 namespace Converter\helpers;
 
 
+use Converter\components\Config;
 use Converter\components\Logger;
 use Converter\response\AudioResponse;
 use Converter\response\ImageResponse;
@@ -81,6 +82,26 @@ class FileHelper
         $response->url = $fileUrl;
         $response->name = 'source';
         return $response;
+    }
+    
+    /**
+     * @param $filePath
+     * @return mixed|string
+     * @throws \Exception
+     */
+    public static function getLocalPath($filePath)
+    {
+        $localPath = str_replace(Config::getInstance()->get('baseUrl'), PUBPATH, $filePath);
+        if (!file_exists($localPath)) {
+            if (strpos($filePath, Config::getInstance()->get('baseUrl')) == false) {
+                throw new \Exception('File not found');
+            } else {
+                $localPath = PUBPATH . '/upload/' . md5($filePath) . basename($filePath);
+                file_put_contents($localPath, file_get_contents($filePath));
+            }
+        }
+        
+        return $localPath;
     }
     
     /**
