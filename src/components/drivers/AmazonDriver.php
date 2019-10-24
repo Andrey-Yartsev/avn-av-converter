@@ -128,10 +128,12 @@ class AmazonDriver extends Driver
                     Logger::send('converter.aws.readJob', $jobData['Output']);
                     return true;
                 } catch (\Throwable $exception) {
-                    Logger::send('converter.fatal.log', [
+                    Logger::send('converter.fatal', [
                         'job' => $jobData['Output'],
                         'error' => $exception->getMessage()
                     ]);
+                    $jobId = $jobData['Output']['Id'] ?? 'unknown';
+                    $this->error = 'Job #' . $jobId . ' failed.';
                     return false;
                 }
                 
