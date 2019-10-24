@@ -59,7 +59,8 @@ class AmazonController extends Controller
                         $json = [
                             'processId' => $options['processId'],
                             'baseUrl'   => Config::getInstance()->get('baseUrl'),
-                            'files' => $amazonDriver->getResult()
+                            'preset'    => $presetName,
+                            'files'     => $amazonDriver->getResult()
                         ];
                         Logger::send('process', ['processId' => $options['processId'], 'step' => 'Job success', 'data' => $json]);
                         try {
@@ -88,7 +89,8 @@ class AmazonController extends Controller
                         $this->failedCallback($e->getMessage(), $options['callback'], $options['processId'], [
                             'processId' => $options['processId'],
                             'baseUrl'   => Config::getInstance()->get('baseUrl'),
-                            'files' => $amazonDriver->getResult()
+                            'files'     => $amazonDriver->getResult(),
+                            'preset'    => $presetName,
                         ]);
                     }
                 } else {

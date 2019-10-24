@@ -62,7 +62,8 @@ class CloudConverterController extends Controller
                                 $json = [
                                     'processId' => $id,
                                     'baseUrl'   => Config::getInstance()->get('baseUrl'),
-                                    'files'     => $driver->getResult()
+                                    'files'     => $driver->getResult(),
+                                    'preset'    => $presetName,
                                 ];
                                 try {
                                     Logger::send('process', ['processId' => $id, 'step' => 'Start send callback', 'data' => $json]);
