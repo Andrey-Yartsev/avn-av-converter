@@ -80,22 +80,42 @@ class Process
             }
             $watermark = $queue['watermark'] ?? [];
     
-            switch ($queue['fileType']) {
-                case FileHelper::TYPE_VIDEO:
-                    Logger::send('process', ['processId' => $processId, 'step' => 'Start process video']);
-                    $driver->processVideo($queue['filePath'], $queue['callback'], $processId, $watermark);
-                    break;
-                case FileHelper::TYPE_IMAGE:
-                    Logger::send('process', ['processId' => $processId, 'step' => 'Start process image']);
-                    $driver->processPhoto($queue['filePath'], $queue['callback'], $processId, $watermark);
-                    break;
-                case FileHelper::TYPE_AUDIO:
-                    Logger::send('process', ['processId' => $processId, 'step' => 'Start process audio']);
-                    $driver->processAudio($queue['filePath'], $queue['callback'], $processId, $watermark);
-                    break;
-                default:
-                    return false;
+            try {
+                switch ($queue['fileType']) {
+                    case FileHelper::TYPE_VIDEO:
+                        Logger::send('process', ['processId' => $processId, 'step' => 'Start process video']);
+                        $driver->processVideo($queue['filePath'], $queue['callback'], $processId, $watermark);
+                        break;
+                    case FileHelper::TYPE_IMAGE:
+                        Logger::send('process', ['processId' => $processId, 'step' => 'Start process image']);
+                        $driver->processPhoto($queue['filePath'], $queue['callback'], $processId, $watermark);
+                        break;
+                    case FileHelper::TYPE_AUDIO:
+                        Logger::send('process', ['processId' => $processId, 'step' => 'Start process audio']);
+                        $driver->processAudio($queue['filePath'], $queue['callback'], $processId, $watermark);
+                        break;
+                    default:
+                        return false;
+                }
+            } catch (\Throwable $e) {
+                Logger::send('process', ['processId' => $processId, 'step' => 'error', 'data' => $e->getMessage()]);
+                $client = new Client();
+                $response = $client->request('POST', $queue['callback'], [
+                    'json' => [
+                        'processId' => $processId,
+                        'baseUrl'   => Config::getInstance()->get('baseUrl'),
+                        'error'     => $e->getMessage(),
+                        'preset'    => $queue['presetName'] ?? ''
+                    ]
+                ]);
+                Logger::send('converter.callback.response', [
+                    'processId' => $processId,
+                    'response' => $response->getBody()
+                ]);
+                Logger::send('process', ['processId' => $processId, 'step' => 'Send to callback']);
+                Redis::getInstance()->del('queue:' . $processId);
             }
+            
             $hasResult = $driver->getResult();
             Logger::send('process', ['processId' => $processId, 'step' => 'convert done', 'result' => $hasResult]);
             if ($hasResult) {

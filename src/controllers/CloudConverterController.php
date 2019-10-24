@@ -35,11 +35,11 @@ class CloudConverterController extends Controller
             $options = Redis::getInstance()->get('cc:' . $id);
             if ($options) {
                 $options = json_decode($options, true);
+                $presetName = $options['presetName'] ?? '';
                 if ($request->get('step') == 'finished') {
                     Logger::send('converter.cc.callback.findJob', $options);
                     Logger::send('process', ['processId' => $id, 'step' => 'Find record in Redis']);
                     $presets    = Config::getInstance()->get('presets');
-                    $presetName = $options['presetName'] ?? '';
                     if ($presetName && !empty($presets[$presetName])) {
                         $preset   = $presets[$presetName];
                         $fileType = $options['fileType'] ?? '';
@@ -89,7 +89,7 @@ class CloudConverterController extends Controller
                         }
                     }
                 } elseif ($request->get('step') == 'error') {
-                    $this->sendError($url, $id, $options['callback']);
+                    $this->sendError($url, $id, $options['callback'], $presetName);
                 }
             }
         } else {
@@ -102,13 +102,14 @@ class CloudConverterController extends Controller
             ]);
         }
     }
-
+    
     /**
      * @param $url
      * @param $id
      * @param $callback
+     * @param $presetName
      */
-    protected function sendError($url, $id, $callback)
+    protected function sendError($url, $id, $callback, $presetName)
     {
         if (strpos($url, '//') === 0) {
             $url = 'https:' . $url;
@@ -123,7 +124,8 @@ class CloudConverterController extends Controller
         $json     = [
             'processId' => $id,
             'baseUrl'   => Config::getInstance()->get('baseUrl'),
-            'error'     => $response['message'] ?? ''
+            'error'     => $response['message'] ?? '',
+            'preset'    => $presetName
         ];
         Logger::send('process', ['processId' => $id, 'step' => 'Error conversion', 'data' => ['error' => $response['message'] ?? '']]);
         Redis::getInstance()->del('cc:' . $id);
@@ -142,7 +144,7 @@ class CloudConverterController extends Controller
             $this->failedCallback($e->getMessage(), $callback, $id, $json);
         }
     }
-
+    
     /**
      * @param $error
      * @param $url
