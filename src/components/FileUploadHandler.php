@@ -91,7 +91,7 @@ final class FileUploadHandler extends UploadHandler
             $this->handle_form_data($file, $index);
             $upload_dir = $this->get_upload_path();
             if (!is_dir($upload_dir)) {
-                mkdir($upload_dir, $this->options['mkdir_mode'], true);
+                @mkdir($upload_dir, $this->options['mkdir_mode'], true);
             }
             $file_path   = $this->get_upload_path($file->name);
             $append_file = $content_range && is_file($file_path) && $file->size > $this->get_file_size($file_path);
