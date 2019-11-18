@@ -85,18 +85,19 @@ class FileHelper
     }
     
     /**
-     * @param $filePath
-     * @return mixed|string
+     * @param string $filePath
+     * @return string
      * @throws \Exception
      */
     public static function getLocalPath($filePath)
     {
         $localPath = str_replace(Config::getInstance()->get('baseUrl'), PUBPATH, $filePath);
         if (!file_exists($localPath)) {
-            if (strpos($filePath, Config::getInstance()->get('baseUrl')) == false) {
+            if (strpos($filePath, Config::getInstance()->get('baseUrl')) != false) {
                 throw new \Exception('File not found');
             } else {
-                $localPath = PUBPATH . '/upload/' . md5($filePath) . basename($filePath);
+                $localPath = PUBPATH . '/upload/' . md5($filePath) . '.' . pathinfo($filePath, PATHINFO_EXTENSION);
+                Logger::send('debug', ['localPath' => $localPath, 'filePath' => $filePath]);
                 file_put_contents($localPath, file_get_contents($filePath));
             }
         }

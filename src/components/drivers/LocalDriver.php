@@ -50,12 +50,7 @@ class LocalDriver extends Driver
     public function createPhotoPreview($filePath, $watermark = [])
     {
         Logger::send('create.preview', ['filePath' => $filePath, 'step' => 'Make photo preview']);
-        $localPath = str_replace(Config::getInstance()->get('baseUrl'), PUBPATH, $filePath);
-        if (!file_exists($localPath)) {
-            Logger::send('create.preview', ['filePath' => $filePath, 'step' => 'Download source']);
-            $localPath = PUBPATH . '/upload/' . md5($filePath) . basename($filePath);
-            file_put_contents($localPath, file_get_contents($filePath));
-        }
+        $localPath = FileHelper::getLocalPath($filePath);
         Logger::send('create.preview', ['filePath' => $filePath, 'step' => 'fixedOrientation()']);
         $this->fixedOrientation($localPath);
         foreach ($this->thumbSizes as $size) {
@@ -84,6 +79,7 @@ class LocalDriver extends Driver
     public function processPhoto($filePath, $callback, $processId = null, $watermark = [])
     {
         $localPath = FileHelper::getLocalPath($filePath);
+        Logger::send('process', ['processId' => $processId, 'step' => 'Get local path', 'localPath' => $localPath]);
         
         foreach ($this->thumbSizes as $size) {
             Logger::send('process', ['processId' => $processId, 'step' => 'Make photo size: ' . $size['name'] ?? null]);
