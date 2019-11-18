@@ -10,6 +10,7 @@ namespace Converter\components\storages;
 use Aws\S3\Exception\S3Exception;
 use Aws\S3\S3Client;
 use Converter\components\Logger;
+use Converter\components\ProtectUrl;
 
 class S3Storage extends FileStorage
 {
@@ -43,6 +44,7 @@ class S3Storage extends FileStorage
                 'Key' => $savedPath,
                 'SourceFile' => $sourcePath,
             ]);
+            (new ProtectUrl())->updateInfo("$this->url/$savedPath");
         } catch (S3Exception $e) {
             Logger::send('converter.storage.error', [
                 'error' => $e->getMessage()

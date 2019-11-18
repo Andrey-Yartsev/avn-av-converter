@@ -12,6 +12,13 @@ return [
         'port'     => null,
         'database' => 1
     ],
+    'protect' => [
+        'baseUrl' => 'https://cdn.onlyfans.com',
+        'url' => '/Protected',
+        'secret' => '22d5170a',
+        'rules' => [
+        ],
+    ],
     'presets' => [
         'of' => [
             'video' => [

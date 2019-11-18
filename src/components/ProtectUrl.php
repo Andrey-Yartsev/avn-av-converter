@@ -7,6 +7,8 @@
 namespace Converter\components;
 
 
+use GuzzleHttp\Client;
+
 class ProtectUrl
 {
     protected $config = [];
@@ -42,5 +44,13 @@ class ProtectUrl
         $protectServeUrl = trim($this->config['url'] ?? 'Protected', '/');
         $protectedUrl = $this->config['baseUrl'] . '/' . $protectServeUrl . '/' . $rules . '/' . $hash . '/' . $path;
         return $protectedUrl;
+    }
+    
+    public function updateInfo($url)
+    {
+        if ($this->config !== []) {
+            $client = new Client();
+            $client->head($this->getProtectServeUrl($url));
+        }
     }
 }
