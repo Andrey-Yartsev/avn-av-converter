@@ -49,8 +49,12 @@ class ProtectUrl
     public function updateInfo($url)
     {
         if ($this->config !== []) {
-            $client = new Client();
-            $client->head($this->getProtectServeUrl($url));
+            try {
+                $client = new Client();
+                $client->head($this->getProtectServeUrl($url));
+            } catch (\Throwable $e) {
+            
+            }
         }
     }
 }

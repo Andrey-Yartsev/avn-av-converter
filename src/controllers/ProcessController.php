@@ -237,17 +237,7 @@ class ProcessController extends Controller
             move_uploaded_file($_FILES['file']['tmp_name'], $filePath);
             $form->filePath = $filePath;
         } else {
-            $form->preset = $request->headers->get('X-UPLOAD-PRESET');
-            $form->callback = $request->headers->get('X-UPLOAD-CALLBACK');
-            $form->isDelay = $request->headers->get('X-UPLOAD-DELAY');
-            $filePath = $form->getLocalPath();
-            file_put_contents($filePath, file_get_contents('php://input'));
-            $extension = FileType::getInstance()->findExtensions(mime_content_type($filePath));
-            if (empty($extension)) {
-                throw new BadRequestHttpException('Invalid file type');
-            }
-            rename($filePath, $filePath . '.' . $extension);
-            $form->filePath = $filePath . '.' . $extension;
+            $form->setAttributes($_POST);
         }
         
         $result = $form->process($request->get('id'));
