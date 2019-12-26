@@ -56,7 +56,7 @@ class CloudConverterController extends Controller
                                     Logger::send('process', ['processId' => $id, 'step' => 'Save video']);
                                 }
                                 if (!$success) {
-                                    $this->sendError('Could not get processed file', $id, $options['callback']);
+                                    $this->sendError('Could not get processed file', $id, $options['callback'], $presetName);
                                 }
 
                                 $json = [
