@@ -98,7 +98,16 @@ class FileHelper
             } else {
                 $localPath = PUBPATH . '/upload/' . md5($filePath) . '.' . pathinfo($filePath, PATHINFO_EXTENSION);
                 Logger::send('debug', ['localPath' => $localPath, 'filePath' => $filePath]);
-                file_put_contents($localPath, file_get_contents($filePath));
+                $options = [
+                    'https' => [
+                        'method' => 'GET'
+                    ]
+                ];
+                if (strpos($filePath, 's3-accelerate')) {
+                    $options['https']['header'] = "User-Agent: SecretCacheFlyUserAgent\r\n";
+                }
+                $context = stream_context_create($options);
+                file_put_contents($localPath, file_get_contents($filePath, false, $context));
             }
         }
         
