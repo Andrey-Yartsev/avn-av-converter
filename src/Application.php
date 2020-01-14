@@ -101,16 +101,20 @@ class Application
             $message['error']['file'] = $file;
             $message['error']['line'] = $line;
         }
+        $error_reporting = error_reporting();
         Logger::send('converter.fatal', [
             'fatalError' => [
                 'code'    => $code,
                 'message' => $message,
                 'file' => $file,
                 'line' => $line,
-                'trace' => $trace
+                'trace' => $trace,
+                'error_reporting' => $error_reporting,
             ]
         ]);
-        $this->sendResponse($httpCode, $message);
+        if ($error_reporting !== 0) {
+            $this->sendResponse($httpCode, $message);
+        }
     }
     
     /**
