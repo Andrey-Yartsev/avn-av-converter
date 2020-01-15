@@ -82,7 +82,7 @@ class UploadForm extends Form
     public function process($processId = null)
     {
         $rules = [
-            'required' => ['preset', 'filePath'],
+            'required' => ['preset'],
             'url'      => ['callback'],
         ];
         
