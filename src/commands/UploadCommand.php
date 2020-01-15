@@ -10,6 +10,7 @@ namespace Converter\commands;
 use Converter\components\Config;
 use Converter\components\drivers\AmazonDriver;
 use Converter\components\Logger;
+use Converter\components\Process;
 use Converter\components\Redis;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -36,16 +37,23 @@ class UploadCommand extends Command
                 'step' => $params['processId'] . ' init amazon driver'
             ]);
             Logger::send('process', ['processId' => $params['processId'], 'step' => 'Amazon driver', 'data' => ['status' => 'init']]);
-            if ($amazonDriver->createJob($params['filePath'], $params['callback'], $params['processId'], $params['watermark'])) {
-                Logger::send('worker.upload.run', [
-                    'step' => $params['processId'] . ' success file uploaded'
-                ]);
+            $process = Process::find($params['processId']);
+            if ($process) {
+                if ($amazonDriver->createJob($process)) {
+                    Logger::send('worker.upload.run', [
+                        'step' => $params['processId'] . ' success file uploaded'
+                    ]);
+                } else {
+                    Logger::send('worker.upload.run', [
+                        'step' => $params['processId'] . ' failed file uploaded'
+                    ]);
+                    Logger::send('faileds', [
+                        'process' => $upload
+                    ]);
+                }
             } else {
                 Logger::send('worker.upload.run', [
-                    'step' => $params['processId'] . ' failed file uploaded'
-                ]);
-                Logger::send('faileds', [
-                    'process' => $upload
+                    'step' => $params['processId'] . ' not founded'
                 ]);
             }
         } catch (\Exception $e) {

@@ -14,6 +14,7 @@ use Converter\components\Config;
 use Converter\components\Controller;
 use Converter\components\drivers\AmazonDriver;
 use Converter\components\Logger;
+use Converter\components\Process;
 use Converter\components\Redis;
 use Converter\exceptions\NotFoundHttpException;
 use GuzzleHttp\Client;
@@ -53,6 +54,7 @@ class AmazonController extends Controller
                     continue;
                 }
                 $presetName = $options['presetName'];
+                $process = Process::find($options['processId']);
                 $amazonDriver = new AmazonDriver($presetName, $presents[$presetName]['video']);
                 if ($amazonDriver->readJob($options['jobId'])) {
                     try {
@@ -65,7 +67,7 @@ class AmazonController extends Controller
                         Logger::send('process', ['processId' => $options['processId'], 'step' => 'Job success', 'data' => $json]);
                         try {
                             $client = new Client();
-                            $response = $client->request('POST', $options['callback'], [
+                            $response = $client->request('POST', $process->getCallbackUrl(), [
                                 'json' => $json
                             ]);
                             Logger::send('converter.callback.sendCallback', [
@@ -79,14 +81,14 @@ class AmazonController extends Controller
                                 'response' => $response->getBody()
                             ]]);
                         } catch (\Exception $e) {
-                            $this->failedCallback($e->getMessage(), $options['callback'], $options['processId'], $json);
+                            $this->failedCallback($e->getMessage(), $process->getCallbackUrl(), $options['processId'], $json);
                         }
                         Redis::getInstance()->sRem('amazon:queue', $job);
                         Redis::getInstance()->del('queue:' . $options['processId']);
                         // @TODO removed original file
                     } catch (\Exception $e) {
                         Redis::getInstance()->sRem('amazon:queue', $job);
-                        $this->failedCallback($e->getMessage(), $options['callback'], $options['processId'], [
+                        $this->failedCallback($e->getMessage(), $process->getCallbackUrl(), $options['processId'], [
                             'processId' => $options['processId'],
                             'baseUrl'   => Config::getInstance()->get('baseUrl'),
                             'files'     => $amazonDriver->getResult(),
@@ -99,7 +101,7 @@ class AmazonController extends Controller
                         Logger::send('process', ['processId' => $options['processId'], 'step' => 'Job failed', 'data' => ['error' => $error]]);
                         try {
                             $client = new Client();
-                            $response = $client->request('POST', $options['callback'], [
+                            $response = $client->request('POST', $process->getCallbackUrl(), [
                                 'json' => [
                                     'processId' => $options['processId'],
                                     'error' => $error
@@ -115,7 +117,7 @@ class AmazonController extends Controller
                                 'response' => $response->getBody()
                             ]);
                         } catch (\Exception $e) {
-                            $this->failedCallback($e->getMessage(), $options['callback'], $options['processId'], [
+                            $this->failedCallback($e->getMessage(), $process->getCallbackUrl(), $options['processId'], [
                                 'processId' => $options['processId'],
                                 'error' => $error
                             ]);

@@ -12,6 +12,8 @@ use Converter\components\drivers\Driver;
 use Converter\components\Form;
 use Converter\components\Logger;
 use Converter\components\Process;
+use Converter\components\storages\FileStorage;
+use Converter\components\storages\S3Storage;
 use Converter\helpers\FileHelper;
 
 class UploadForm extends Form
@@ -24,6 +26,7 @@ class UploadForm extends Form
     public $fileType;
     public $watermark = [];
     public $additional = [];
+    public $file = [];
     protected $mimeType;
     protected $thumbs = [];
     
@@ -39,10 +42,21 @@ class UploadForm extends Form
         }
         $preset = $presets[$this->preset];
         if (!$this->fileType) {
-            $this->fileType = FileHelper::getTypeFile($this->filePath);
-            if ($this->fileType == false) {
-                $this->setErrors('Error identifying file type.');
-                return false;
+            if ($this->file && is_array($this->file)) {
+                $s3Storage = FileStorage::loadByPreset($this->preset);
+                if ($s3Storage instanceof S3Storage) {
+                    $response = $s3Storage->getClient()->headObject([
+                        'Bucket' => $this->file['Bucket'],
+                        'Key' => $this->file['Key'],
+                    ]);
+                    var_dump($response->toArray()); die;
+                }
+            } else {
+                $this->fileType = FileHelper::getTypeFile($this->filePath);
+                if ($this->fileType == false) {
+                    $this->setErrors('Error identifying file type.');
+                    return false;
+                }
             }
         }
         
@@ -76,7 +90,7 @@ class UploadForm extends Form
             return false;
         }
         
-        if (!$this->filePath) {
+        if (!$this->filePath && empty($this->file)) {
             $this->setErrors('File not uploaded.');
             return false;
         }
@@ -86,7 +100,11 @@ class UploadForm extends Form
             return false;
         }
         
-        $fileUrl = str_replace(PUBPATH, Config::getInstance()->get('baseUrl'), FileHelper::getLocalPath($this->filePath));
+        if ($this->file) {
+            $fileUrl = $this->file['Location'];
+        } else {
+            $fileUrl = str_replace(PUBPATH, Config::getInstance()->get('baseUrl'), FileHelper::getLocalPath($this->filePath));
+        }
         Logger::send('process', ['step' => 'init', 'data' => $this->getAttributes()]);
         if ($this->isDelay) {
             if ($this->needThumbs && $this->fileType == FileHelper::TYPE_VIDEO) {
@@ -98,7 +116,8 @@ class UploadForm extends Form
                 'filePath'   => $fileUrl,
                 'presetName' => $this->preset,
                 'fileType'   => $this->fileType,
-                'watermark'  => $this->watermark
+                'watermark'  => $this->watermark,
+                'file'       => $this->file
             ];
     
             $processId = Process::createQueue($process);

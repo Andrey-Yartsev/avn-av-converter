@@ -71,6 +71,14 @@ class S3Storage extends FileStorage
         return true;
     }
     
+    /**
+     * @return S3Client
+     */
+    public function getClient()
+    {
+        return $this->client;
+    }
+    
     public function generatePath($fileName)
     {
         $fileName = basename($fileName);

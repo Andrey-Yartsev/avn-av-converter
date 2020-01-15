@@ -33,14 +33,10 @@ class AmazonDriver extends Driver
      */
     public function processVideo($filePath, $callback, $processId = null, $watermark = [])
     {
-        $processId = $processId ? $processId : uniqid() . time();
         Logger::send('process', ['processId' => $processId, 'step' => 'Send to upload amazon queue']);
         Redis::getInstance()->sAdd('amazon:upload', json_encode([
             'presetName' => $this->presetName,
-            'processId' => $processId,
-            'callback' => $callback,
-            'filePath' => $filePath,
-            'watermark' => $watermark
+            'processId' => $processId
         ]));
         return $processId;
     }
@@ -99,7 +95,7 @@ class AmazonDriver extends Driver
             }
             return false;
         }
-
+        Logger::send('debug.aws.readJob', $jobData);
         $output = $jobData['Output'];
         
         if ($this->hasStorage()) {
@@ -154,43 +150,48 @@ class AmazonDriver extends Driver
     }
 
     /**
-     * @param $filePath
-     * @param $callback
-     * @param $processId
-     * @param array $watermark
+     * @param Process $process
      * @return bool
      */
-    public function createJob($filePath, $callback, $processId, $watermark = [])
+    public function createJob($process)
     {
-        $pathParts = pathinfo($filePath);
-        $keyName = 'temp_video/' . parse_url($filePath, PHP_URL_HOST) . '/' . date('Y_m_d') . '/' . uniqid('', true) . '.' . $pathParts['extension'];
-
-        $s3Client = $this->getS3Client();
-        try {
-            $client = new Client();
-            $response = $client->get($filePath);
-            $s3Client->putObject([
-                'Bucket' => $this->s3['bucket'],
-                'Key' => $keyName,
-                'Body' => $response->getBody(),
-            ]);
-            $filePath = PUBPATH . '/upload/' . basename($filePath);
-            if (file_exists($filePath)) {
+        $filePath = $process->getFilePath();
+        $processId = $process->getId();
+        if ($filePath) {
+            $pathParts = pathinfo($filePath);
+            $keyName = 'temp_video/' . parse_url($filePath, PHP_URL_HOST) . '/' . date('Y_m_d') . '/' . uniqid('', true) . '.' . $pathParts['extension'];
+    
+            $s3Client = $this->getS3Client();
+            try {
+                $client = new Client();
+                $response = $client->get($filePath);
+                $s3Client->putObject([
+                    'Bucket' => $this->s3['bucket'],
+                    'Key' => $keyName,
+                    'Body' => $response->getBody(),
+                ]);
+                $filePath = PUBPATH . '/upload/' . basename($filePath);
+                if (file_exists($filePath)) {
 //                @unlink($filePath);
+                }
+            } catch (S3Exception $e) {
+                Logger::send('process', ['processId' => $processId, 'step' => 'Upload to S3', 'data' => [
+                    'status' => 'failed',
+                    'error' => $e->getMessage(),
+                    'code' => $e->getCode()
+                ]]);
+                return false;
             }
-        } catch (S3Exception $e) {
-            Logger::send('process', ['processId' => $processId, 'step' => 'Upload to S3', 'data' => [
-                'status' => 'failed',
-                'error' => $e->getMessage(),
-                'code' => $e->getCode()
-            ]]);
-            return false;
+        } else {
+            $file = $process->getFile();
+            //@TODO validate file type for aws
+            $keyName = $file['Key'];
         }
     
         Logger::send('process', ['processId' => $processId, 'step' => 'Upload to S3', 'data' => ['status' => 'success']]);
         $dir = date('Y_m_d') . '/' . substr($processId, 0, 2) . '/' . substr($processId, 0, 3) . '/' . $processId;
 
-        $watermarkKey = $this->getWatermark($s3Client, $watermark);
+        $watermarkKey = $this->getWatermark($s3Client, $process->getWatermark());
         Logger::send('amazon.watermark', ['key' => $watermarkKey]);
         $transcoderClient = $this->getTranscoderClient();
         try {
@@ -237,7 +238,6 @@ class AmazonDriver extends Driver
             Redis::getInstance()->sAdd('amazon:queue', json_encode([
                 'jobId' => $job['Id'],
                 'processId' => $processId,
-                'callback' => $callback,
                 'presetName' => $this->presetName
             ]));
             return true;

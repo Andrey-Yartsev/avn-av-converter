@@ -11,13 +11,35 @@ use Converter\components\drivers\Driver;
 use Converter\helpers\FileHelper;
 use Converter\response\StatusResponse;
 use GuzzleHttp\Client;
-use Psr\Log\LogLevel;
 
 class Process
 {
+    protected $id;
+    protected $data = [];
+    
+    public function __construct($id, $data)
+    {
+        $this->data = $data;
+        $this->id = $id;
+    }
+    
+    /**
+     * @param $processId
+     * @return bool|Process
+     */
+    public static function find($processId)
+    {
+        $queue = Redis::getInstance()->get('queue:' . $processId);
+        if ($queue) {
+            return new self($processId, json_decode($queue, true));
+        }
+        return false;
+    }
+    
     /**
      * @param array $params
-     * @return string
+     * @param null $processId
+     * @return string|null
      */
     public static function createQueue($params = [], $processId = null)
     {
@@ -32,18 +54,13 @@ class Process
      */
     public static function status($processId)
     {
-        $queue = Redis::getInstance()->get('queue:' . $processId);
-        if ($queue) {
-            $queue = json_decode($queue, true);
-            $driver = self::getDriver($queue);
-            if (!$driver) {
-                return false;
+        $process = self::find($processId);
+        if ($process) {
+            $driver = $process->getDriver();
+            if ($driver) {
+                return $driver->getStatus($processId);
             }
-            return $driver->getStatus($processId);
         }
-        return new StatusResponse([
-            'id' => $processId
-        ]);
     }
     
     /**
@@ -53,9 +70,9 @@ class Process
      */
     public static function restart($processId, $presetName)
     {
-        $queue = Redis::getInstance()->get('queue:' . $processId);
-        if ($queue) {
-            $queue = json_decode($queue, true);
+        $process = self::find($processId);
+        if ($process) {
+            $queue = $process->getData();
             $queue['presetName'] = $presetName;
             Redis::getInstance()->set('queue:' . $processId, json_encode($queue));
             return self::start($processId);
@@ -69,11 +86,11 @@ class Process
      */
     public static function start($processId)
     {
-        $queue = Redis::getInstance()->get('queue:' . $processId);
-        if ($queue) {
+        $process = self::find($processId);
+        if ($process) {
             Logger::send('process', ['processId' => $processId, 'step' => 'Start convert']);
-            $queue = json_decode($queue, true);
-            $driver = self::getDriver($queue);
+            $queue = $process->getData();
+            $driver = $process->getDriver();
             Logger::send('process', ['processId' => $processId, 'step' => 'debug', 'queue' => $queue]);
             if (!$driver) {
                 return false;
@@ -159,11 +176,59 @@ class Process
     }
     
     /**
-     * @param $queue
+     * @return string
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getFilePath()
+    {
+        return $this->data['filePath'] ?? '';
+    }
+    
+    /**
+     * @return array
+     */
+    public function getFile()
+    {
+        return $this->data['file'] ?? [];
+    }
+    
+    /**
+     * @return string
+     */
+    public function getCallbackUrl()
+    {
+        return $this->data['callback'] ?? '';
+    }
+    
+    /**
+     * @return array
+     */
+    public function getWatermark()
+    {
+        return $this->data['watermark'] ?? [];
+    }
+    
+    /**
+     * @return array
+     */
+    public function getData()
+    {
+        return $this->data;
+    }
+    
+    /**
      * @return bool|Driver
      */
-    public static function getDriver($queue)
+    public function getDriver()
     {
+        $queue = $this->data;
         $presets = Config::getInstance()->get('presets');
         if (empty($presets[$queue['presetName']])) {
             return false;
