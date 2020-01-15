@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "664fe38d3349709e8e7e07ad662e4f77",
+    "content-hash": "4d357bf6c8b8c2d731c25f9e6509366f",
     "packages": [
         {
             "name": "alchemy/binary-driver",
@@ -1996,22 +1996,21 @@
         },
         {
             "name": "sentry/sentry",
-            "version": "2.2.1",
+            "version": "2.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/getsentry/sentry-php.git",
-                "reference": "5896f9f0a00a7525797764ba42091dfbde22a746"
+                "reference": "478d0a21ad55665db5702e9c385e9e22dfb2aba5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/getsentry/sentry-php/zipball/5896f9f0a00a7525797764ba42091dfbde22a746",
-                "reference": "5896f9f0a00a7525797764ba42091dfbde22a746",
+                "url": "https://api.github.com/repos/getsentry/sentry-php/zipball/478d0a21ad55665db5702e9c385e9e22dfb2aba5",
+                "reference": "478d0a21ad55665db5702e9c385e9e22dfb2aba5",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
                 "ext-mbstring": "*",
-                "guzzlehttp/promises": "^1.3",
                 "jean85/pretty-package-versions": "^1.2",
                 "php": "^7.1",
                 "php-http/async-client-implementation": "^1.0",
@@ -2030,24 +2029,22 @@
             },
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "^2.13",
-                "monolog/monolog": "^1.3|^2.0",
+                "monolog/monolog": "^1.3",
                 "php-http/mock-client": "^1.0",
-                "phpstan/extension-installer": "^1.0",
-                "phpstan/phpstan": "^0.11",
-                "phpstan/phpstan-phpunit": "^0.11",
-                "phpunit/phpunit": "^7.5",
-                "symfony/phpunit-bridge": "^4.3",
-                "vimeo/psalm": "^3.4"
+                "phpstan/phpstan": "^0.10.3",
+                "phpstan/phpstan-phpunit": "^0.10",
+                "phpunit/phpunit": "^7.0",
+                "symfony/phpunit-bridge": "^4.1.6"
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-develop": "2.2-dev"
+                    "dev-master": "2.0.x-dev"
                 }
             },
             "autoload": {
                 "files": [
-                    "src/functions.php"
+                    "src/Sdk.php"
                 ],
                 "psr-4": {
                     "Sentry\\": "src/"
@@ -2059,8 +2056,12 @@
             ],
             "authors": [
                 {
-                    "name": "Sentry",
-                    "email": "accounts@sentry.io"
+                    "name": "David Cramer",
+                    "email": "dcramer@gmail.com"
+                },
+                {
+                    "name": "Daniel Griesser",
+                    "email": "daniel.griesser.86@gmail.com"
                 }
             ],
             "description": "A PHP SDK for Sentry (http://sentry.io)",
@@ -2074,7 +2075,7 @@
                 "logging",
                 "sentry"
             ],
-            "time": "2019-09-23T11:52:12+00:00"
+            "time": "2019-02-25T08:33:57+00:00"
         },
         {
             "name": "symfony/console",
