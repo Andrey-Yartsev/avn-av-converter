@@ -156,14 +156,8 @@ class AmazonDriver extends Driver
     public function createJob($process)
     {
         $processId = $process->getId();
-        $file = $process->getFile();
-        if ($file) {
-            $file = $process->getFile();
-            //@TODO validate file type for aws
-            $keyName = $file['Key'];
-            Logger::send('process', ['processId' => $processId, 'step' => 'Set keyName', 'keyName' => $keyName]);
-        } else {
-            $filePath = $process->getFilePath();
+        $filePath = $process->getFilePath();
+        if ($filePath) {
             $pathParts = pathinfo($filePath);
             $keyName = 'temp_video/' . parse_url($filePath, PHP_URL_HOST) . '/' . date('Y_m_d') . '/' . uniqid('', true) . '.' . $pathParts['extension'];
     
@@ -188,6 +182,11 @@ class AmazonDriver extends Driver
                 ]]);
                 return false;
             }
+        } else {
+            $file = $process->getFile();
+            //@TODO validate file type for aws
+            $keyName = $file['Key'];
+            Logger::send('process', ['processId' => $processId, 'step' => 'Set keyName', 'keyName' => $keyName]);
         }
     
         Logger::send('process', ['processId' => $processId, 'step' => 'Upload to S3', 'data' => ['status' => 'success']]);
