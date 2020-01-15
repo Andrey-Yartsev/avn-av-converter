@@ -11,9 +11,6 @@ return [
         'port'     => 6379,
         'database' => 1
     ],
-    'sentry' => [
-        'dsn' => ''
-    ],
     'log' => [
         'driver' => \Converter\components\logs\Graylog::class,
         'host' => '163.237.242.4',
