@@ -17,7 +17,7 @@
     "graylog2/gelf-php": "^1.5",
     "imagine/imagine": "^1",
     "php-ffmpeg/php-ffmpeg": "^0.13.0",
-    "aws/aws-php-sns-message-validator": "^1.5",
+    "aws/aws-php-sns-message-validator": "1.5",
     "sentry/sdk": "2.0.2"
   },
   "autoload": {
