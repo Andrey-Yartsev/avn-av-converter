@@ -12,6 +12,7 @@ use Converter\exceptions\HttpException;
 use Converter\exceptions\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Sentry;
 
 class Application
 {
@@ -86,10 +87,25 @@ class Application
             $trace = $exception->getTraceAsString();
         }
         
+        $isProd = Config::getInstance()->get('isProd', true);
         if ($exception instanceof HttpException) {
             $httpCode = $exception->statusCode;
         } else {
             $httpCode = Response::HTTP_INTERNAL_SERVER_ERROR;
+            // send  fatal errors to Sentry
+            $sentryConfig = Config::getInstance()->get('sentry', false);
+            if ($sentryConfig) {
+                $data = [
+                    'isProd' => $isProd
+                ];
+                Sentry\init($sentryConfig);
+                Sentry\configureScope(function (Sentry\State\Scope $scope) use ($data): void {
+                    foreach ($data as $key => $item) {
+                        $scope->setExtra($key, $item);
+                    }
+                });
+                Sentry\captureException($exception);
+            }
         }
         $message = [
             'error' => [
@@ -97,7 +113,7 @@ class Application
                 'message' => $message,
             ]
         ];
-        if (!Config::getInstance()->get('isProd', true)) {
+        if (!$isProd) {
             $message['error']['file'] = $file;
             $message['error']['line'] = $line;
         }
