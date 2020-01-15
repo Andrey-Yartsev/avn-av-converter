@@ -49,7 +49,7 @@ class UploadForm extends Form
                         'Bucket' => $this->file['Bucket'],
                         'Key' => $this->file['Key'],
                     ]);
-                    var_dump($response->toArray()); die;
+                    $this->fileType = isset($response['ContentType']) ? FileHelper::getTypeByMimeType($response['ContentType']) : 'None';
                 }
             } else {
                 $this->fileType = FileHelper::getTypeFile($this->filePath);

@@ -47,14 +47,32 @@ class FileHelper
             $mimeType = mime_content_type($filePath);
         }
         
+        return self::getTypeByMimeType($mimeType, $filePath);
+    }
+    
+    /**
+     * @param $mimeType
+     * @param null $filePath
+     * @return bool|string
+     */
+    public static function getTypeByMimeType($mimeType, $filePath = null)
+    {
         if (preg_match('/video\/*/', $mimeType) || $mimeType == 'image/gif' || strpos($mimeType, 'stream')) {
-            if (self::isVideo($filePath)) {
+            if ($filePath) {
+                if (self::isVideo($filePath)) {
+                    return self::TYPE_VIDEO;
+                }
+            } else {
                 return self::TYPE_VIDEO;
             }
         } elseif (preg_match('/image\/*/', $mimeType)) {
             return self::TYPE_IMAGE;
         } elseif (preg_match('/audio\/*/', $mimeType)) {
-            return self::isVideo($filePath) ? self::TYPE_VIDEO : self::TYPE_AUDIO;
+            if ($filePath) {
+                return self::isVideo($filePath) ? self::TYPE_VIDEO : self::TYPE_AUDIO;
+            } else {
+                return self::TYPE_AUDIO;
+            }
         }
         Logger::send('wrong.ext', [
             'mimeType' => $mimeType,
