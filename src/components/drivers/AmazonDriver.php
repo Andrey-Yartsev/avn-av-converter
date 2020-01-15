@@ -161,6 +161,7 @@ class AmazonDriver extends Driver
             $file = $process->getFile();
             //@TODO validate file type for aws
             $keyName = $file['Key'];
+            Logger::send('process', ['processId' => $processId, 'step' => 'Set keyName', 'keyName' => $keyName]);
         } else {
             $filePath = $process->getFilePath();
             $pathParts = pathinfo($filePath);
