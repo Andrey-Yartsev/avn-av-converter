@@ -106,12 +106,12 @@ class ProcessController extends Controller
                 continue;
             }
             Logger::send('process', ['processId' => $process['id'], 'step' => 'Init start']);
-            $process = Process::find($process['id']);
-            if ($process) {
+            $processModel = Process::find($process['id']);
+            if ($processModel) {
                 Logger::send('process', ['processId' => $process['id'], 'step' => 'Init start (find process)']);
-                $queue = $process->getData();
-                $processIds[] = $process->getId();
-                $driver = $process->getDriver();
+                $queue = $processModel->getData();
+                $processIds[] = $processModel->getId();
+                $driver = $processModel->getDriver();
                 if (!$driver) {
                     continue;
                 }
