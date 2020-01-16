@@ -224,9 +224,9 @@ class AmazonDriver extends Driver
             ]]);
             return false;
         }
-        Logger::send('process', ['processId' => $processId, 'step' => 'Create transcoder job', 'data' => ['status' => 'success']]);
-
         $job = (array)$job->get('Job');
+        Logger::send('process', ['processId' => $processId, 'step' => 'Create transcoder job', 'data' => ['status' => 'success', 'jobId' => $job['Id']]]);
+        
         if (strtolower($job['Status']) == 'submitted') {
             Logger::send('process', ['processId' => $processId, 'step' => 'Added to amazon:queue', 'data' => ['status' => 'success']]);
             Redis::getInstance()->sAdd('amazon:queue', json_encode([
