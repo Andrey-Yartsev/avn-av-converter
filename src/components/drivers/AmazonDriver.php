@@ -111,7 +111,17 @@ class AmazonDriver extends Driver
         if ($this->hasStorage()) {
             $storage = $this->getStorage();
             if ($storage instanceof S3Storage && $storage->bucket != $this->s3['bucket']) {
-                if ($this->moveObject('/files/' . $output['Key'], $this->s3['bucket'], $storage->bucket)) {
+                try {
+                    $s3Client = $this->getS3Client();
+                    $s3Client->copyObject([
+                        'Bucket'     => $storage->bucket,
+                        'Key'        => 'files/' . $output['Key'],
+                        'CopySource' => $this->s3['bucket'] . '/files/' . $output['Key'],
+                    ]);
+                    $s3Client->deleteObject([
+                        'Bucket' => $this->s3['bucket'],
+                        'Key' => 'files/' . $output['Key'],
+                    ]);
                     $this->result[] = new VideoResponse([
                         'name'     => 'source',
                         'url'      => $storage->url . '/files/' . $output['Key'],
@@ -122,7 +132,11 @@ class AmazonDriver extends Driver
                     ]);
                     Logger::send('converter.aws.readJob', $jobData['Output']);
                     return true;
-                } else {
+                } catch (\Throwable $exception) {
+                    Logger::send('converter.fatal', [
+                        'job' => $jobData['Output'],
+                        'error' => $exception->getMessage()
+                    ]);
                     $jobId = $jobData['Output']['Id'] ?? 'unknown';
                     $this->error = 'Job #' . $jobId . ' failed.';
                     return false;
