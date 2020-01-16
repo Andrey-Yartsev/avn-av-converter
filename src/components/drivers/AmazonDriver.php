@@ -99,7 +99,7 @@ class AmazonDriver extends Driver
         
         if (!empty($output['ThumbnailPattern']) && $this->previews) {
             $driver = Driver::loadByConfig($this->presetName, $this->previews);
-            $thumbUrl = $this->url . '/' . $output['ThumbnailPattern'] . '.jpg';
+            $thumbUrl = $this->url . '/files/' . $output['ThumbnailPattern'] . '.jpg';
             $thumbUrl = str_replace('{count}', '00001', $thumbUrl);
             Logger::send('debug', ['url' => $thumbUrl]);
             $driver->createPhotoPreview($thumbUrl);
