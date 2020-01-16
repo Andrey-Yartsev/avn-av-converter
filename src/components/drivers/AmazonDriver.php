@@ -98,21 +98,18 @@ class AmazonDriver extends Driver
         Logger::send('debug.aws.readJob', $jobData);
         $output = $jobData['Output'];
         
+        if (!empty($output['ThumbnailPattern']) && $this->previews) {
+            $driver = Driver::loadByConfig($this->presetName, $this->previews);
+            $driver->createPhotoPreview($this->url . $output['ThumbnailPattern']);
+            foreach ($driver->getResult() as $result) {
+                $this->result[] = $result;
+            }
+        }
+        
         if ($this->hasStorage()) {
             $storage = $this->getStorage();
-            
             if ($storage instanceof S3Storage && $storage->bucket != $this->s3['bucket']) {
-                try {
-                    $s3Client = $this->getS3Client();
-                    $s3Client->copyObject([
-                        'Bucket'     => $storage->bucket,
-                        'Key'        => 'files/' . $output['Key'],
-                        'CopySource' => $this->s3['bucket'] . '/files/' . $output['Key'],
-                    ]);
-                    $s3Client->deleteObject([
-                        'Bucket' => $this->s3['bucket'],
-                        'Key' => 'files/' . $output['Key'],
-                    ]);
+                if ($this->moveObject('files/' . $output['Key'], $this->s3['bucket'], $storage->bucket)) {
                     $this->result[] = new VideoResponse([
                         'name'     => 'source',
                         'url'      => $storage->url . '/files/' . $output['Key'],
@@ -123,16 +120,11 @@ class AmazonDriver extends Driver
                     ]);
                     Logger::send('converter.aws.readJob', $jobData['Output']);
                     return true;
-                } catch (\Throwable $exception) {
-                    Logger::send('converter.fatal', [
-                        'job' => $jobData['Output'],
-                        'error' => $exception->getMessage()
-                    ]);
+                } else {
                     $jobId = $jobData['Output']['Id'] ?? 'unknown';
                     $this->error = 'Job #' . $jobId . ' failed.';
                     return false;
                 }
-                
             }
         }
     
@@ -245,6 +237,29 @@ class AmazonDriver extends Driver
             return true;
         } else {
             Logger::send('process', ['processId' => $processId, 'step' => 'Wrong job', 'data' => $job]);
+            return false;
+        }
+    }
+    
+    protected function moveObject($keyName, $sourceBucket, $targetBucket)
+    {
+        try {
+            $s3Client = $this->getS3Client();
+            $s3Client->copyObject([
+                'Bucket'     => $targetBucket,
+                'Key'        => $keyName,
+                'CopySource' => $sourceBucket . $keyName,
+            ]);
+            $s3Client->deleteObject([
+                'Bucket' => $sourceBucket,
+                'Key' => $keyName,
+            ]);
+            return true;
+        } catch (\Throwable $e) {
+            Logger::send('converter.fatal', [
+                'args' => compact('keyName', 'sourceBucket', 'targetBucket'),
+                'error' => $e->getMessage()
+            ]);
             return false;
         }
     }

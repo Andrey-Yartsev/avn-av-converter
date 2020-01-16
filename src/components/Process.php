@@ -16,11 +16,21 @@ class Process
 {
     protected $id;
     protected $data = [];
+    protected $presetSettings = [];
     
     public function __construct($id, $data)
     {
         $this->data = $data;
         $this->id = $id;
+        $presets = Config::getInstance()->get('presets');
+        if (empty($presets[$data['presetName']])) {
+            $this->presetSettings = false;
+        }
+        $preset = $presets[$data['presetName']];
+        if (empty($preset[$data['fileType']])) {
+            $this->presetSettings = false;
+        }
+        $this->presetSettings = $preset;
     }
     
     /**
@@ -208,6 +218,14 @@ class Process
     }
     
     /**
+     * @return string
+     */
+    public function getFileType()
+    {
+        return $this->data['fileType'] ?? '';
+    }
+    
+    /**
      * @return array
      */
     public function getWatermark()
@@ -228,21 +246,33 @@ class Process
      */
     public function getDriver()
     {
-        $queue = $this->data;
-        $presets = Config::getInstance()->get('presets');
-        if (empty($presets[$queue['presetName']])) {
+        $preset = $this->getPreset();
+        $fileType = $this->getFileType();
+        if (empty($preset[$fileType])) {
             return false;
         }
-        $preset = $presets[$queue['presetName']];
-        if (empty($preset[$queue['fileType']])) {
-            return false;
-        }
-    
-        $driver = Driver::loadByConfig($queue['presetName'], $preset[$queue['fileType']]);
+        
+        $driver = Driver::loadByConfig($this->getPresetName(), $preset[$fileType]);
         if ($driver === null) {
             return false;
         }
         return $driver;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getPresetName()
+    {
+        return $this->data['presetName'] ?? '';
+    }
+    
+    /**
+     * @return bool|array
+     */
+    public function getPreset()
+    {
+        return $this->presetSettings;
     }
     
     /**

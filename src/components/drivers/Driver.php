@@ -22,6 +22,7 @@ abstract class Driver
     public $previews = [];
     public $thumbs = [];
     public $needProtect = false;
+    public $needPreviewOnStart = true;
     
     /** @var FileStorage */
     protected $storage;

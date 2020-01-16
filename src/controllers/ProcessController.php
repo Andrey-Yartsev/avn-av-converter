@@ -118,46 +118,49 @@ class ProcessController extends Controller
                 
                 $files = [];
                 $sourceResponse = FileHelper::getFileResponse($queue['filePath'], $queue['fileType']);
-                switch ($queue['fileType']) {
-                    case FileHelper::TYPE_VIDEO:
-                        Logger::send('process', ['processId' => $process['id'], 'step' => 'Is video']);
-                        $duration = FileHelper::getVideoDuration($queue['filePath']);
-                        list($width, $height) = FileHelper::getVideoDimensions($queue['filePath']);
-    
-                        $sourceResponse->duration = $duration;
-                        $sourceResponse->width = $width;
-                        $sourceResponse->height = $height;
-                        
-                        if (isset($driver->thumbs['maxCount'])) {
-                            if ($duration > $driver->thumbs['maxCount']) {
-                                $maxCount = $driver->thumbs['maxCount'];
-                                $step = floor($duration / $driver->thumbs['maxCount']);
+                
+                if ($driver->needPreviewOnStart) {
+                    switch ($queue['fileType']) {
+                        case FileHelper::TYPE_VIDEO:
+                            Logger::send('process', ['processId' => $process['id'], 'step' => 'Is video']);
+                            $duration = FileHelper::getVideoDuration($queue['filePath']);
+                            list($width, $height) = FileHelper::getVideoDimensions($queue['filePath']);
+            
+                            $sourceResponse->duration = $duration;
+                            $sourceResponse->width = $width;
+                            $sourceResponse->height = $height;
+            
+                            if (isset($driver->thumbs['maxCount'])) {
+                                if ($duration > $driver->thumbs['maxCount']) {
+                                    $maxCount = $driver->thumbs['maxCount'];
+                                    $step = floor($duration / $driver->thumbs['maxCount']);
+                                } else {
+                                    $maxCount = $duration;
+                                    $step = 1;
+                                }
                             } else {
-                                $maxCount = $duration;
-                                $step = 1;
+                                $maxCount = $step = 1;
                             }
-                        } else {
-                            $maxCount = $step = 1;
-                        }
-                        Logger::send('process', ['processId' => $process['id'], 'step' => 'generated video info']);
-                        if ($duration == 0) {
-                            $driver->createVideoPreview($queue['filePath'], $queue['watermark'], $duration);
-                        } else {
-                            for ($i = 0; $i < $maxCount; $i++) {
-                                $driver->createVideoPreview($queue['filePath'], $queue['watermark'], $i * $step);
+                            Logger::send('process', ['processId' => $process['id'], 'step' => 'generated video info']);
+                            if ($duration == 0) {
+                                $driver->createVideoPreview($queue['filePath'], $queue['watermark'], $duration);
+                            } else {
+                                for ($i = 0; $i < $maxCount; $i++) {
+                                    $driver->createVideoPreview($queue['filePath'], $queue['watermark'], $i * $step);
+                                }
                             }
-                        }
-                        
-                        break;
-                    case FileHelper::TYPE_AUDIO:
-                        Logger::send('process', ['processId' => $process['id'], 'step' => 'Is audio']);
-                        $sourceResponse->duration = FileHelper::getAudioDuration($queue['filePath']);
-                        break;
-                    case FileHelper::TYPE_IMAGE:
-                        Logger::send('process', ['processId' => $process['id'], 'step' => 'Is photo', 'filePath' => $queue['filePath']]);
-                        $driver->createPhotoPreview($queue['filePath'], $queue['watermark']);
-                        Logger::send('process', ['processId' => $process['id'], 'step' => 'End createPhotoPreview()']);
-                        break;
+            
+                            break;
+                        case FileHelper::TYPE_AUDIO:
+                            Logger::send('process', ['processId' => $process['id'], 'step' => 'Is audio']);
+                            $sourceResponse->duration = FileHelper::getAudioDuration($queue['filePath']);
+                            break;
+                        case FileHelper::TYPE_IMAGE:
+                            Logger::send('process', ['processId' => $process['id'], 'step' => 'Is photo', 'filePath' => $queue['filePath']]);
+                            $driver->createPhotoPreview($queue['filePath'], $queue['watermark']);
+                            Logger::send('process', ['processId' => $process['id'], 'step' => 'End createPhotoPreview()']);
+                            break;
+                    }
                 }
                 $files[] = $sourceResponse;
                 $files = array_merge($files, $driver->getResult());
