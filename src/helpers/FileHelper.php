@@ -121,7 +121,7 @@ class FileHelper
                         'method' => 'GET'
                     ]
                 ];
-                if (strpos($filePath, 's3-accelerate')) {
+                if (strpos($filePath, 'amazonaws.com')) {
                     $options['https']['header'] = "User-Agent: SecretCacheFlyUserAgent\r\n";
                 }
                 $context = stream_context_create($options);
