@@ -111,7 +111,7 @@ class AmazonDriver extends Driver
         if ($this->hasStorage()) {
             $storage = $this->getStorage();
             if ($storage instanceof S3Storage && $storage->bucket != $this->s3['bucket']) {
-                if ($this->moveObject('files/' . $output['Key'], $this->s3['bucket'], $storage->bucket)) {
+                if ($this->moveObject('/files/' . $output['Key'], $this->s3['bucket'], $storage->bucket)) {
                     $this->result[] = new VideoResponse([
                         'name'     => 'source',
                         'url'      => $storage->url . '/files/' . $output['Key'],
