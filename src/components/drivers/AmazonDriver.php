@@ -200,7 +200,7 @@ class AmazonDriver extends Driver
                 'Key'      => $dir . '.mp4',
                 'Rotate'   => 'auto',
                 'PresetId' => $this->transcoder['preset'],
-                'ThumbnailPattern' => $dir . 'thumb_{count}.jpg'
+                'ThumbnailPattern' => $dir . '_thumb_{count}'
             ];
             if ($watermarkKey) {
                 Logger::send('process', ['processId' => $processId, 'step' => 'Set watermark', 'data' => ['status' => 'success']]);
