@@ -144,7 +144,7 @@ class Process
             }
             
             $hasResult = $driver->getResult();
-            Logger::send('process', ['processId' => $processId, 'step' => 'convert done', 'result' => $hasResult]);
+            Logger::send('process', ['processId' => $processId, 'step' => ' convert done', 'result' => $hasResult]);
             if ($hasResult) {
                 $resultBody = [
                     'processId' => $processId,
