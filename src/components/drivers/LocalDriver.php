@@ -134,6 +134,7 @@ class LocalDriver extends Driver
      */
     protected function resizeImage($filePath, $size, $watermark = [])
     {
+        Logger::send('debug', [$size['name']]);
         $width = $size['width'] ?? null;
         $height = $size['height'] ?? null;
         $blur = $size['blur'] ?? null;
