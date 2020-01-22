@@ -229,7 +229,7 @@ class LocalDriver extends Driver
         $imageHeight = $imageSize->getHeight();
         $imageWidth = $imageSize->getWidth();
         Logger::send('debug', ['resizeAdaptive() ' . $maxSize]);
-        Logger::send('debug', ['W:' . $imageWidth . ' H:' . $imageHeight]);
+        Logger::send('debug', ['iW:' . $imageWidth . ' iH:' . $imageHeight]);
         if ($imageHeight >= $imageWidth) {
             $height = $imageHeight;
             if ($imageHeight / $imageWidth > $portraitRatio) {
