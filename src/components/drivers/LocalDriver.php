@@ -228,20 +228,16 @@ class LocalDriver extends Driver
         $imageSize = $image->getSize();
         $imageHeight = $imageSize->getHeight();
         $imageWidth = $imageSize->getWidth();
-        Logger::send('debug', ['resizeAdaptive() ' . $maxSize]);
-        Logger::send('debug', ['iW:' . $imageWidth . ' iH:' . $imageHeight]);
         if ($imageHeight >= $imageWidth) {
             $height = $imageHeight;
             if ($imageHeight / $imageWidth > $portraitRatio) {
                 $height = $imageWidth * $portraitRatio;
                 $sizeBox = new Box($imageWidth, $height);
                 $cropPoint = new Point(0, ceil(($imageHeight - $height) / 2));
-                Logger::send('debug', ['Crop1']);
                 $image->crop($cropPoint, $sizeBox);
             }
             if ($imageWidth > $maxSize) {
                 $sizeBox = new Box($maxSize, ceil($height / ($imageWidth / $maxSize)));
-                Logger::send('debug', ['W:' . $maxSize . ' H:' . ceil($height / ($imageWidth / $maxSize))]);
                 $image->resize($sizeBox);
             }
         } else {
@@ -250,11 +246,9 @@ class LocalDriver extends Driver
                 $width = $imageHeight * $landscapeRatio;
                 $sizeBox = new Box($width, $imageHeight);
                 $cropPoint = new Point(ceil(($imageWidth - $width) / 2), 0);
-                Logger::send('debug', ['Crop2']);
                 $image->crop($cropPoint, $sizeBox);
             }
             if ($width > $maxSize) {
-                Logger::send('debug', ['W:' . $maxSize . ' H:' . ceil($imageHeight / ($width / $maxSize))]);
                 $sizeBox = new Box($maxSize, ceil($imageHeight / ($width / $maxSize)));
                 $image->resize($sizeBox);
             }
