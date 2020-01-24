@@ -96,13 +96,27 @@ class AmazonDriver extends Driver
             return false;
         }
         $output = $jobData['Output'];
-        
-        if (!empty($output['ThumbnailPattern']) && $this->previews && !$this->needPreviewOnStart) {
+
+        if ($this->previews && !$this->needPreviewOnStart) {
             $driver = Driver::loadByConfig($this->presetName, $this->previews);
-            $thumbUrl = $this->url . '/files/' . $output['ThumbnailPattern'] . '.jpg';
-            $thumbUrl = str_replace('{count}', '00001', $thumbUrl);
-            Logger::send('debug', ['url' => $thumbUrl]);
-            $driver->createPhotoPreview($thumbUrl);
+            $videoUrl = $this->url . '/files/' . $output['Key'];
+            $previewPath = PUBPATH . '/upload/' . pathinfo($output['Key'], PATHINFO_FILENAME) . '.jpg';
+            Logger::send('debug', compact('videoUrl', 'previewPath'));
+            shell_exec(
+                sprintf(
+                    'ffmpeg -ss 00:00:01 -i %s -vframes 1 %s',
+                    escapeshellarg($videoUrl),
+                    escapeshellarg($previewPath)
+                )
+            );
+            if (file_exists($previewPath)) {
+                $driver->createPhotoPreview($previewPath);
+            } elseif (!empty($output['ThumbnailPattern'])) {
+                $thumbUrl = $this->url . '/files/' . $output['ThumbnailPattern'] . '.jpg';
+                $thumbUrl = str_replace('{count}', '00001', $thumbUrl);
+                Logger::send('debug', compact('thumbUrl'));
+                $driver->createPhotoPreview($thumbUrl);
+            }
             foreach ($driver->getResult() as $result) {
                 $this->result[] = $result;
             }
