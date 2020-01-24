@@ -180,6 +180,7 @@ class AmazonDriver extends Driver
         $filePath = $process->getFilePath();
         Logger::send('process', ['processId' => $processId, 'step' => 'createJob()']);
         $file = $process->getFile();
+        $s3Client = $this->getS3Client();
         if ($file) {
             //@TODO validate file type for aws
             $keyName = $file['Key'];
@@ -187,8 +188,7 @@ class AmazonDriver extends Driver
         } else {
             $pathParts = pathinfo($filePath);
             $keyName = 'temp_video/' . parse_url($filePath, PHP_URL_HOST) . '/' . date('Y_m_d') . '/' . uniqid('', true) . '.' . $pathParts['extension'];
-    
-            $s3Client = $this->getS3Client();
+            
             try {
                 $client = new Client();
                 $response = $client->get($filePath);
