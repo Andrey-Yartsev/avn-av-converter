@@ -107,8 +107,12 @@ class UploadForm extends Form
         }
         Logger::send('process', ['step' => 'init', 'data' => $this->getAttributes()]);
         if ($this->isDelay) {
-            if ($this->needThumbs && $this->fileType == FileHelper::TYPE_VIDEO) {
-                $this->thumbs = $driver->createThumbsFormVideo($fileUrl);
+            if ($this->needThumbs) {
+                if ($this->fileType == FileHelper::TYPE_VIDEO) {
+                    $this->thumbs = $driver->createThumbsFormVideo($fileUrl);
+                } elseif ($this->fileType == FileHelper::TYPE_IMAGE) {
+                    $this->thumbs = $driver->createPhotoThumbs($fileUrl);
+                }
             }
             
             $process = [
