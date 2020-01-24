@@ -7,17 +7,48 @@
 namespace Converter\components;
 
 
+use Aws\CloudFront\UrlSigner;
 use GuzzleHttp\Client;
 
 class ProtectUrl
 {
+    const TYPE_CACHEFLY = 'cachefly';
+    const TYPE_CLOUDFRONT = 'cloudfront';
+
+    /** @var array */
     protected $config = [];
-    
+
+    /** @var UrlSigner */
+    protected $cloudFrontUrlSigner;
+
     public function __construct()
     {
         $this->config = Config::getInstance()->get('protect', []);
     }
-    
+
+    /**
+     * @param string $url
+     * @return string
+     */
+    public function getProtectedUrl($url)
+    {
+        $type = $this->config['type'] ?? self::TYPE_CACHEFLY;
+        if ($type == self::TYPE_CACHEFLY) {
+            return $this->getProtectServeUrl($url);
+        }
+        if ($type == self::TYPE_CLOUDFRONT) {
+            return $this->getCloudFrontSignedUrl($url, [
+                'expires' => strtotime('+1 year'),
+            ]);
+        }
+        return $url;
+    }
+
+    /**
+     * @param string $url
+     * @param array $rules
+     * @return string
+     */
     public function getProtectServeUrl($url, $rules = [])
     {
         $rules = array_merge($this->config['rules'] ?? [], $rules);
@@ -45,7 +76,10 @@ class ProtectUrl
         $protectedUrl = $this->config['baseUrl'] . '/' . $protectServeUrl . '/' . $rules . '/' . $hash . '/' . $path;
         return $protectedUrl;
     }
-    
+
+    /**
+     * @param string $url
+     */
     public function updateInfo($url)
     {
         if ($this->config !== []) {
@@ -56,5 +90,34 @@ class ProtectUrl
             
             }
         }
+    }
+
+    /**
+     * @return UrlSigner
+     */
+    protected function getCloudFrontUrlSigner()
+    {
+        if (!$this->cloudFrontUrlSigner) {
+            $this->cloudFrontUrlSigner = new UrlSigner(
+                $this->config['key_pair_id'],
+                $this->config['private_key']
+            );
+        }
+        return $this->cloudFrontUrlSigner;
+    }
+
+    /**
+     * @param string $url
+     * @param array $options
+     * @return string
+     */
+    protected function getCloudFrontSignedUrl($url, $options = [])
+    {
+        return $this->getCloudFrontUrlSigner()
+            ->getSignedUrl(
+                $url,
+                $options['expires'] ?? null,
+                $options['policy'] ?? null
+            );
     }
 }
