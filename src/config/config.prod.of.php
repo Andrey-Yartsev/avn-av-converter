@@ -5,55 +5,33 @@
  */
 
 return [
-    'isProd' => true,
+    'isProd'  => false,
     'baseUrl' => 'https://convert.onlyfans.com',
     'redis'   => [
-        'host'     => '/var/run/redis/redis-server.sock',
-        'port'     => null,
+        'host'     => '127.0.0.1',
+        'port'     => 6379,
         'database' => 1
     ],
     'protect' => [
-        'baseUrl' => 'https://cdn.onlyfans.com',
-        'url' => '/Protected',
-        'secret' => '22d5170a',
-        'rules' => [
-        ],
+        'type' => 'cloudfront',
+        'key_pair_id' => 'APKAJKLR6VB3PTZVDEBA',
+        'private_key' => '/var/www/html/converter.retloko.com/logs/pk-cloudfront.pem',
+        'expires' => '+1 year',
+        'url' => 'https://cdn2.onlyfans.com',
     ],
     'presets' => [
-        'of' => [
-            'video' => [
-                'driver'       => \Converter\components\drivers\CloudConvertDriver::class,
-                'withOutSave'  => true,
-                'token'        => 'TnjiK5KWTh4PU9ceXIiQ9PoRGK_PXZOyR7whEi3rpAK8mweQJyuq650aWorqA2p78ohq2MYoHH9PjrEkzQEG7w',
-                'outputFormat' => 'mp4',
-                'command'      => "-i {INPUTFILE} {watermark} {OUTPUTFILE} -c:v libx264 -preset slow -crf 23 -profile:v baseline -level 3.0 -b:v 250k -maxrate 250k -bufsize 500k -movflags +faststart -pix_fmt yuv420p -c:a libfdk_aac -b:a 128k"
-            ],
+        'of_beta'   => [
+            'callback' => 'https://spa.onlyfans.retloko.com/converter/geo',
             'audio' => [
                 'driver'       => \Converter\components\drivers\CloudConvertDriver::class,
-                'withOutSave'  => true,
                 'token'        => 'TnjiK5KWTh4PU9ceXIiQ9PoRGK_PXZOyR7whEi3rpAK8mweQJyuq650aWorqA2p78ohq2MYoHH9PjrEkzQEG7w',
                 'outputFormat' => 'mp3',
+                'needPreviewOnStart' => false,
             ],
-        ],
-        'of2' => [
-            'video' => [
-                'driver'       => \Converter\components\drivers\CloudConvertDriver::class,
-                'withOutSave'  => true,
-                'token'        => 'TnjiK5KWTh4PU9ceXIiQ9PoRGK_PXZOyR7whEi3rpAK8mweQJyuq650aWorqA2p78ohq2MYoHH9PjrEkzQEG7w',
-                'outputFormat' => 'mp4',
-                'command'      => "-i {INPUTFILE} {watermark} {OUTPUTFILE} -c:v libx264 -pix_fmt yuv420p -profile:v main -level 4.1 -crf 23 -preset slow -c:a aac -strict experimental -movflags +faststart -threads 0"
-            ],
-            'audio' => [
-                'driver'       => \Converter\components\drivers\CloudConvertDriver::class,
-                'withOutSave'  => true,
-                'token'        => 'TnjiK5KWTh4PU9ceXIiQ9PoRGK_PXZOyR7whEi3rpAK8mweQJyuq650aWorqA2p78ohq2MYoHH9PjrEkzQEG7w',
-                'outputFormat' => 'mp3',
-            ],
-        ],
-        'ofamazon' => [
-            'video' => [
-                'driver' => \Converter\components\drivers\AmazonDriver::class,
-                'url'        => 'https://of2transcoder.s3.amazonaws.com',
+            'video'    => [
+                'driver'     => \Converter\components\drivers\AmazonDriver::class,
+                'url'        => 'https://of2transcoder.s3-accelerate.amazonaws.com',
+                'needProtect' => true,
                 's3'         => [
                     'region' => 'us-east-1',
                     'bucket' => 'of2transcoder',
@@ -66,28 +44,90 @@ return [
                     'key'      => 'AKIAIEGIIC3WZYGPIPCA',
                     'secret'   => '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',
                     'pipeline' => '1542729803060-wvvyxu',
-                    'preset'   => '1542903430885-ic9kqe'
-                ]
-            ]
-        ],
-        'ofamazon2' => [
-            'video' => [
-                'driver' => \Converter\components\drivers\AmazonDriver::class,
-                'url'        => 'https://of2transcoder.s3.amazonaws.com',
-                's3'         => [
-                    'region' => 'us-east-1',
-                    'bucket' => 'of2transcoder',
-                    'key'    => 'AKIAIEGIIC3WZYGPIPCA',
-                    'secret' => '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'
+                    'preset'   => '1579715526552-cf3kd8'
                 ],
-                'transcoder' => [
-                    'region'   => 'us-east-1',
-                    'bucket'   => 'of2transcoder',
-                    'key'      => 'AKIAIEGIIC3WZYGPIPCA',
-                    'secret'   => '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',
-                    'pipeline' => '1542729803060-wvvyxu',
-                    'preset'   => '1544024007877-hui4jk'
-                ]
+                'thumbs' => [
+                    'driver'     => \Converter\components\drivers\LocalDriver::class,
+                    'engine'     => 'imagick',
+                    'maxCount'   => 1,
+                    'thumbSizes' => [
+                        [
+                            'name'   => 'thumb',
+                            'maxSize' => 300,
+                        ],
+                    ]
+                ],
+                'previews'   => [
+                    'driver'     => \Converter\components\drivers\LocalDriver::class,
+                    'engine'     => 'imagick',
+                    'thumbSizes' => [
+                        [
+                            'name'    => 'preview',
+                            'maxSize' => 760,
+                        ],
+                        [
+                            'name'   => 'thumb',
+                            'width'  => 150,
+                            'height' => 150,
+                        ],
+                        [
+                            'name'    => 'locked',
+                            'maxSize' => 30,
+                            'blur'    => 10
+                        ]
+                    ]
+                ],
+                'needPreviewOnStart' => false,
+            ],
+            'image'    => [
+                'driver'     => \Converter\components\drivers\LocalDriver::class,
+                'engine'     => 'imagick',
+                'thumbSizes' => [
+                    [
+                        'name'   => 'source',
+                        'width'  => 3840,
+                        'height' => 2160,
+                    ],
+                    [
+                        'name'    => 'preview',
+                        'maxSize' => 960,
+                    ],
+                    [
+                        'name'   => 'square_preview',
+                        'width'  => 960,
+                        'height' => 960,
+                    ],
+                    [
+                        'name'   => 'thumb',
+                        'width'  => 300,
+                        'height' => 300,
+                    ],
+                    [
+                        'name'    => 'locked',
+                        'maxSize' => 30,
+                        'blur'    => 10
+                    ]
+                ],
+                'needProtect' => true,
+                'thumbs' => [
+                    'driver'     => \Converter\components\drivers\LocalDriver::class,
+                    'engine'     => 'imagick',
+                    'thumbSizes' => [
+                        [
+                            'name'   => 'thumb',
+                            'maxSize' => 300,
+                        ],
+                    ]
+                ],
+                'needPreviewOnStart' => false,
+            ],
+            'storage'  => [
+                'driver' => \Converter\components\storages\S3Storage::class,
+                'url'    => 'https://of2media.s3.amazonaws.com',
+                'region' => 'us-east-1',
+                'bucket' => 'of2media',
+                'key'    => 'AKIAIEGIIC3WZYGPIPCA',
+                'secret' => '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'
             ]
         ],
     ]
