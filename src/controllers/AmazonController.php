@@ -56,7 +56,7 @@ class AmazonController extends Controller
                 $presetName = $options['presetName'];
                 $process = Process::find($options['processId']);
                 $amazonDriver = new AmazonDriver($presetName, $presents[$presetName]['video']);
-                if ($amazonDriver->readJob($options['jobId'])) {
+                if ($amazonDriver->readJob($options['jobId'], $process)) {
                     try {
                         $json = [
                             'processId' => $options['processId'],
