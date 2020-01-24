@@ -42,7 +42,7 @@ class AmazonQueueCommand extends Command
             $process = Process::find($options['processId']);
             $amazonDriver = new AmazonDriver($presetName, $presents[$presetName]['video']);
             $output->writeln('Read job #' . $options['jobId']);
-            if ($amazonDriver->readJob($options['jobId'])) {
+            if ($amazonDriver->readJob($options['jobId'], $process)) {
                 $output->writeln('Job #' . $options['jobId'] . ' complete');
                 try {
                     $json = [
