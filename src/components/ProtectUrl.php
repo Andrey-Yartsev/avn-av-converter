@@ -38,7 +38,7 @@ class ProtectUrl
         }
         if ($type == self::TYPE_CLOUDFRONT) {
             return $this->getCloudFrontSignedUrl($url, [
-                'expires' => strtotime('+1 year'),
+                'expires' => strtotime($this->config['expires']),
             ]);
         }
         return $url;
