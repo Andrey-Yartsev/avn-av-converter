@@ -78,7 +78,7 @@ abstract class Driver
         foreach ($driver->getResult() as $index => $item) {
             $result[] = [
                 'id'  => ++$index,
-                'url' => $protect ? $protect->getProtectServeUrl($item->url) : $item->url
+                'url' => $protect ? $protect->getProtectedUrl($item->url) : $item->url
             ];
         }
         return $result;
@@ -120,7 +120,7 @@ abstract class Driver
         foreach ($driver->getResult() as $index => $item) {
             $result[] = [
                 'id'  => ++$index,
-                'url' => $protect ? $protect->getProtectServeUrl($item->url) : $item->url
+                'url' => $protect ? $protect->getProtectedUrl($item->url) : $item->url
             ];
         }
         return $result;
