@@ -44,7 +44,6 @@ class S3Storage extends FileStorage
                 'Key' => $savedPath,
                 'SourceFile' => $sourcePath,
             ]);
-            (new ProtectUrl())->updateInfo("$this->url/$savedPath");
         } catch (S3Exception $e) {
             Logger::send('converter.storage.error', [
                 'error' => $e->getMessage()

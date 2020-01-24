@@ -78,21 +78,6 @@ class ProtectUrl
     }
 
     /**
-     * @param string $url
-     */
-    public function updateInfo($url)
-    {
-        if ($this->config !== []) {
-            try {
-                $client = new Client();
-                $client->head($this->getProtectServeUrl($url));
-            } catch (\Throwable $e) {
-            
-            }
-        }
-    }
-
-    /**
      * @return UrlSigner
      */
     protected function getCloudFrontUrlSigner()
