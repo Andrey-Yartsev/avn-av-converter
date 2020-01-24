@@ -84,7 +84,12 @@ class AmazonDriver extends Driver
         ]);
     }
 
-    public function readJob($jobId)
+    /**
+     * @param string $jobId
+     * @param Process $process
+     * @return bool
+     */
+    public function readJob($jobId, $process)
     {
         $transcoderClient = $this->getTranscoderClient();
         $response = $transcoderClient->readJob(['Id' => $jobId]);
@@ -105,7 +110,7 @@ class AmazonDriver extends Driver
             $previewPath = $this->getVideoFrame($videoUrl, 1);
             Logger::send('debug', compact('previewPath'));
             if ($previewPath) {
-                $driver->createPhotoPreview($previewPath);
+                $driver->createPhotoPreview($previewPath, $process->getWatermark());
             } elseif (!empty($output['ThumbnailPattern'])) {
                 $thumbUrl = $this->url . '/files/' . $output['ThumbnailPattern'] . '.jpg';
                 $thumbUrl = str_replace('{count}', '00001', $thumbUrl);
