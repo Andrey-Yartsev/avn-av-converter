@@ -122,25 +122,29 @@ class AmazonDriver extends Driver
             if ($storage instanceof S3Storage && $storage->bucket != $this->s3['bucket']) {
                 try {
                     $s3Client = $this->getS3Client();
-                    $s3Client->copyObject([
-                        'Bucket'     => $storage->bucket,
-                        'Key'        => 'files/' . $output['Key'],
-                        'CopySource' => $this->s3['bucket'] . '/files/' . $output['Key'],
-                    ]);
-                    $s3Client->deleteObject([
-                        'Bucket' => $this->s3['bucket'],
-                        'Key' => 'files/' . $output['Key'],
-                    ]);
-                    $this->result[] = new VideoResponse([
-                        'name'     => 'source',
-                        'url'      => $storage->url . '/files/' . $output['Key'],
-                        'width'    => $output['Width'] ?? 0,
-                        'height'   => $output['Height'] ?? 0,
-                        'duration' => $output['Duration'] ?? 0,
-                        'size'     => $output['FileSize'] ?? 0
-                    ]);
-                    Logger::send('converter.aws.readJob', $jobData['Output']);
-                    return true;
+                    if ($s3Client->doesObjectExist($this->s3['bucket'], 'files/' . $output['Key'])) {
+                        $s3Client->copyObject([
+                            'Bucket'     => $storage->bucket,
+                            'Key'        => 'files/' . $output['Key'],
+                            'CopySource' => $this->s3['bucket'] . '/files/' . $output['Key'],
+                        ]);
+                        $s3Client->deleteObject([
+                            'Bucket' => $this->s3['bucket'],
+                            'Key' => 'files/' . $output['Key'],
+                        ]);
+                        $this->result[] = new VideoResponse([
+                            'name'     => 'source',
+                            'url'      => $storage->url . '/files/' . $output['Key'],
+                            'width'    => $output['Width'] ?? 0,
+                            'height'   => $output['Height'] ?? 0,
+                            'duration' => $output['Duration'] ?? 0,
+                            'size'     => $output['FileSize'] ?? 0
+                        ]);
+                        Logger::send('converter.aws.readJob', $jobData['Output']);
+                        return true;
+                    } else {
+                    
+                    }
                 } catch (\Throwable $exception) {
                     Logger::send('converter.fatal', [
                         'job' => $jobData['Output'],
@@ -174,10 +178,16 @@ class AmazonDriver extends Driver
     {
         $processId = $process->getId();
         $filePath = $process->getFilePath();
-        if ($filePath) {
+        Logger::send('process', ['processId' => $processId, 'step' => 'createJob()']);
+        $file = $process->getFile();
+        if ($file) {
+            //@TODO validate file type for aws
+            $keyName = $file['Key'];
+            Logger::send('process', ['processId' => $processId, 'step' => 'Set keyName', 'keyName' => $keyName]);
+        } else {
             $pathParts = pathinfo($filePath);
             $keyName = 'temp_video/' . parse_url($filePath, PHP_URL_HOST) . '/' . date('Y_m_d') . '/' . uniqid('', true) . '.' . $pathParts['extension'];
-        
+    
             $s3Client = $this->getS3Client();
             try {
                 $client = new Client();
@@ -189,9 +199,9 @@ class AmazonDriver extends Driver
                 ]);
                 $filePath = PUBPATH . '/upload/' . basename($filePath);
                 if (file_exists($filePath)) {
-//                @unlink($filePath);
+                    @unlink($filePath);
                 }
-            } catch (S3Exception $e) {
+            } catch (\Throwable $e) {
                 Logger::send('process', ['processId' => $processId, 'step' => 'Upload to S3', 'data' => [
                     'status' => 'failed',
                     'error' => $e->getMessage(),
@@ -199,17 +209,13 @@ class AmazonDriver extends Driver
                 ]]);
                 return false;
             }
-        } else {
-            $file = $process->getFile();
-            //@TODO validate file type for aws
-            $keyName = $file['Key'];
-            Logger::send('process', ['processId' => $processId, 'step' => 'Set keyName', 'keyName' => $keyName]);
         }
         
         Logger::send('process', ['processId' => $processId, 'step' => 'Upload to S3', 'data' => ['status' => 'success']]);
         $dir = date('Y_m_d') . '/' . substr($processId, 0, 2) . '/' . substr($processId, 0, 3) . '/' . $processId;
 
         $watermarkKey = $this->getWatermark($s3Client, $process->getWatermark());
+        Logger::send('process', ['processId' => $processId, 'step' => 'Get watermark', 'data' => ['key' => $watermarkKey]]);
         Logger::send('amazon.watermark', ['key' => $watermarkKey]);
         $transcoderClient = $this->getTranscoderClient();
         try {
