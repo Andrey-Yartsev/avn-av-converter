@@ -16,6 +16,7 @@ use Converter\components\Redis;
 use Converter\components\storages\S3Storage;
 use Converter\response\StatusResponse;
 use Converter\response\VideoResponse;
+use FFMpeg\Coordinate\TimeCode;
 use GuzzleHttp\Client;
 
 class AmazonDriver extends Driver
@@ -100,16 +101,10 @@ class AmazonDriver extends Driver
         if ($this->previews && !$this->needPreviewOnStart) {
             $driver = Driver::loadByConfig($this->presetName, $this->previews);
             $videoUrl = $this->url . '/files/' . $output['Key'];
-            $previewPath = PUBPATH . '/upload/' . pathinfo($output['Key'], PATHINFO_FILENAME) . '.jpg';
-            Logger::send('debug', compact('videoUrl', 'previewPath'));
-            shell_exec(
-                sprintf(
-                    'ffmpeg -ss 00:00:01 -i %s -vframes 1 %s',
-                    escapeshellarg($videoUrl),
-                    escapeshellarg($previewPath)
-                )
-            );
-            if (file_exists($previewPath)) {
+            Logger::send('debug', compact('videoUrl'));
+            $previewPath = $this->getVideoFrame($videoUrl, 1);
+            Logger::send('debug', compact('previewPath'));
+            if ($previewPath) {
                 $driver->createPhotoPreview($previewPath);
             } elseif (!empty($output['ThumbnailPattern'])) {
                 $thumbUrl = $this->url . '/files/' . $output['ThumbnailPattern'] . '.jpg';
@@ -339,5 +334,44 @@ class AmazonDriver extends Driver
         }
 
         return null;
+    }
+
+    /**
+     * @param string $filePath
+     * @param int $seconds
+     * @return string
+     */
+    protected function getVideoFrame($filePath, $seconds)
+    {
+        $framePath =  PUBPATH . '/upload/' . md5($filePath) . '_frame_' . $seconds . '.jpg';
+        if (file_exists($framePath)) {
+            return $framePath;
+        }
+        shell_exec(
+            sprintf(
+                'ffmpeg -ss %s -i %s -vframes 1 %s',
+                escapeshellarg((string) TimeCode::fromSeconds($seconds)),
+                escapeshellarg($filePath),
+                escapeshellarg($framePath)
+            )
+        );
+        if (!file_exists($framePath)) {
+            return null;
+        }
+        return $framePath;
+    }
+
+    /**
+     * @param string $filePath
+     * @return float
+     */
+    public function getVideoDuration($filePath)
+    {
+        return (float) shell_exec(
+            sprintf(
+                "ffprobe -v error -select_streams v:0 -show_entries stream=duration %s | grep -i duration | sed 's/duration=//'",
+                escapeshellarg($filePath)
+            )
+        );
     }
 }
