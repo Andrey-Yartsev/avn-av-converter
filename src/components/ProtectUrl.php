@@ -98,6 +98,7 @@ class ProtectUrl
      */
     protected function getCloudFrontSignedUrl($url, $options = [])
     {
+        $url = rtrim($this->config['url'], '/') . parse_url($url, PHP_URL_PATH);
         return $this->getCloudFrontUrlSigner()
             ->getSignedUrl(
                 $url,
