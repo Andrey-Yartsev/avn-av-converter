@@ -61,13 +61,35 @@ abstract class Driver
     abstract public function processVideo($filePath, $callback, $processId = null, $watermark = []);
     
     abstract public function createPhotoPreview($filePath, $watermark = []);
-    
+
+    /**
+     * @param string $filePath
+     * @return array
+     */
+    public function createPhotoThumbs($filePath)
+    {
+        if (empty($this->thumbs)) {
+            return [];
+        }
+        $driver = Driver::loadByConfig($this->presetName, $this->thumbs);
+        $driver->createPhotoPreview($filePath);
+        $result = [];
+        $protect = $this->needProtect ? new ProtectUrl() : null;
+        foreach ($driver->getResult() as $index => $item) {
+            $result[] = [
+                'id'  => ++$index,
+                'url' => $protect ? $protect->getProtectServeUrl($item->url) : $item->url
+            ];
+        }
+        return $result;
+    }
+
     public function createThumbsFormVideo($filePath)
     {
         if (empty($this->thumbs)) {
             return false;
         }
-        $duration = FileHelper::getVideoDuration($filePath);
+        $duration = $this->getVideoDuration($filePath);
 
         if ($duration > $this->thumbs['maxCount']) {
             $maxCount = $this->thumbs['maxCount'];
@@ -116,6 +138,15 @@ abstract class Driver
             $this->result[] = $result;
         }
         return true;
+    }
+
+    /**
+     * @param string $filePath
+     * @return float
+     */
+    public function getVideoDuration($filePath)
+    {
+        return FileHelper::getVideoDuration($filePath);
     }
     
     abstract public function getStatus($processId);
