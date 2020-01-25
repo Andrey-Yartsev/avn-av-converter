@@ -37,7 +37,7 @@ class UploadForm extends Form
     {
         $presets = Config::getInstance()->get('presets');
         if (empty($presets[$this->preset])) {
-            $this->setErrors('Preset not found.');
+            $this->setErrors('Preset "' . $this->preset . '" not found.');
             return false;
         }
         $preset = $presets[$this->preset];
