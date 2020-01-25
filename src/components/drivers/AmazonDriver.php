@@ -323,6 +323,7 @@ class AmazonDriver extends Driver
         if (isset($watermark['text']) || isset($watermark['imagePath'])) {
             $hash = isset($watermark['text']) ? md5($watermark['text']) : md5($watermark['imagePath']);
             $hash .= $watermark['size'] ?? 20;
+            $hash .= 'v2';
             $watermarkKey = 'watermarks/' . $hash . '.jpg';
             $fileExists = $s3Client->doesObjectExist($this->s3['bucket'], $watermarkKey);
             if (!$fileExists) {
