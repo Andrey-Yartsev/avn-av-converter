@@ -110,7 +110,7 @@ class AmazonDriver extends Driver
             $previewPath = $this->getVideoFrame($videoUrl, 1);
             Logger::send('debug', compact('previewPath'));
             if ($previewPath) {
-                $driver->createPhotoPreview($previewPath, $process->getWatermark());
+                $driver->createPhotoPreview($previewPath/*, $process->getWatermark()*/);
             } elseif (!empty($output['ThumbnailPattern'])) {
                 $thumbUrl = $this->url . '/files/' . $output['ThumbnailPattern'] . '.jpg';
                 $thumbUrl = str_replace('{count}', '00001', $thumbUrl);
