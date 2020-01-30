@@ -80,7 +80,10 @@ class LocalDriver extends Driver
     {
         $localPath = FileHelper::getLocalPath($filePath);
         Logger::send('process', ['processId' => $processId, 'step' => 'Get local path', 'localPath' => $localPath]);
-        
+
+        Logger::send('process', ['processId' => $processId, 'step' => 'fixedOrientation()', 'localPath' => $localPath]);
+        $this->fixedOrientation($localPath);
+
         foreach ($this->thumbSizes as $size) {
             Logger::send('process', ['processId' => $processId, 'step' => 'Make photo size: ' . $size['name'] ?? null]);
             $this->resizeImage($localPath, $size, $watermark);
