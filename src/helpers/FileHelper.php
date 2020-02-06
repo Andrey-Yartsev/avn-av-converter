@@ -57,6 +57,7 @@ class FileHelper
      */
     public static function getTypeByMimeType($mimeType, $filePath = null)
     {
+        $mimeType = preg_replace('#^([^;]+).*$#i', '$1', $mimeType);
         if (preg_match('/video\/*/', $mimeType) || $mimeType == 'image/gif' || strpos($mimeType, 'stream')) {
             if ($filePath) {
                 if (self::isVideo($filePath)) {
