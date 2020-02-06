@@ -360,11 +360,16 @@ class AmazonDriver extends Driver
         if (file_exists($framePath)) {
             return $framePath;
         }
+        $sourcePath = $filePath;
+        $ext = FileHelper::getExt($filePath);
+        if ($ext == 'gif') {
+            $sourcePath = FileHelper::getLocalPath($filePath);
+        }
         shell_exec(
             sprintf(
                 'ffmpeg -ss %s -i %s -vframes 1 %s',
                 escapeshellarg((string) TimeCode::fromSeconds($seconds)),
-                escapeshellarg($filePath),
+                escapeshellarg($sourcePath),
                 escapeshellarg($framePath)
             )
         );
@@ -380,7 +385,7 @@ class AmazonDriver extends Driver
      */
     public function getVideoDuration($filePath)
     {
-        $ext = strtolower(pathinfo(parse_url($filePath, PHP_URL_PATH), PATHINFO_EXTENSION));
+        $ext = FileHelper::getExt($filePath);
         if ($ext == 'gif') {
             $localPath = FileHelper::getLocalPath($filePath);
             return (float) shell_exec(
