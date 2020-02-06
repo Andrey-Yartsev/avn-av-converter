@@ -107,7 +107,7 @@ class AmazonDriver extends Driver
             $driver = Driver::loadByConfig($this->presetName, $this->previews);
             $videoUrl = $this->url . '/files/' . $output['Key'];
             Logger::send('debug', compact('videoUrl'));
-            $previewPath = $this->getVideoFrame($videoUrl, 1);
+            $previewPath = $this->getVideoFrame($videoUrl, 0);
             Logger::send('debug', compact('previewPath'));
             if ($previewPath) {
                 $driver->createPhotoPreview($previewPath/*, $process->getWatermark()*/);
