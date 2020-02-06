@@ -191,6 +191,27 @@ class AmazonDriver extends Driver
             //@TODO validate file type for aws
             $keyName = $file['Key'];
             Logger::send('process', ['processId' => $processId, 'step' => 'Set keyName', 'keyName' => $keyName]);
+            $ext = FileHelper::getExt($filePath);
+            if ($ext == 'gif') {
+                // @todo handle as image
+                if (!$this->getVideoDuration($filePath)) {
+                    $tmpPath = PUBPATH . '/upload/' . md5($filePath) . '_ani.gif';
+                    $localPath = FileHelper::getLocalPath($filePath);
+                    shell_exec(
+                        sprintf(
+                            'convert -loop 0 -delay 1 %s %s',
+                            escapeshellarg($localPath),
+                            escapeshellarg($tmpPath)
+                        )
+                    );
+                    $keyName = 'temp_video/' . md5($filePath) . '_ani.gif';
+                    $s3Client->putObject([
+                        'Bucket' => $this->s3['bucket'],
+                        'Key' => $keyName,
+                        'SourceFile' => $tmpPath,
+                    ]);
+                }
+            }
         } else {
             $pathParts = pathinfo($filePath);
             $keyName = 'temp_video/' . parse_url($filePath, PHP_URL_HOST) . '/' . date('Y_m_d') . '/' . uniqid('', true) . '.' . $pathParts['extension'];
