@@ -14,6 +14,7 @@ use Converter\components\Logger;
 use Converter\components\Process;
 use Converter\components\Redis;
 use Converter\components\storages\S3Storage;
+use Converter\helpers\FileHelper;
 use Converter\response\StatusResponse;
 use Converter\response\VideoResponse;
 use FFMpeg\Coordinate\TimeCode;
@@ -379,6 +380,16 @@ class AmazonDriver extends Driver
      */
     public function getVideoDuration($filePath)
     {
+        $ext = strtolower(pathinfo(parse_url($filePath, PHP_URL_PATH), PATHINFO_EXTENSION));
+        if ($ext == 'gif') {
+            $localPath = FileHelper::getLocalPath($filePath);
+            return (float) shell_exec(
+                sprintf(
+                    ' exiftool -Duration -b %s',
+                    escapeshellarg($localPath)
+                )
+            );
+        }
         return (float) shell_exec(
             sprintf(
                 "ffprobe -v error -select_streams v:0 -show_entries stream=duration %s | grep -i duration | sed 's/duration=//'",
