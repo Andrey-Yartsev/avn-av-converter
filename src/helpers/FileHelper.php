@@ -214,4 +214,13 @@ class FileHelper
             'ffprobe.binaries' => exec('which ffprobe')
         ]);
     }
+
+    /**
+     * @param string $path
+     * @return string
+     */
+    public static function getExt($path)
+    {
+        return strtolower(pathinfo(parse_url($path, PHP_URL_PATH), PATHINFO_EXTENSION));
+    }
 }
