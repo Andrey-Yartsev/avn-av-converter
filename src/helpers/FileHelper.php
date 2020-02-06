@@ -123,7 +123,7 @@ class FileHelper
                     ]
                 ];
                 if (strpos($filePath, 'amazonaws.com')) {
-                    $options['https']['header'] = "User-Agent: SecretCacheFlyUserAgent\r\n";
+                    $options['https']['header'] = "User-Agent: j/S%/qyd+_RP^tAgEjC6RZVU96(*b5#\r\n";
                     Logger::send('debug', ['url' => $filePath, 'header' => 'set']);
                 }
                 $context = stream_context_create($options);
