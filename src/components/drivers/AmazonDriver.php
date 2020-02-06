@@ -195,16 +195,16 @@ class AmazonDriver extends Driver
             if ($ext == 'gif') {
                 // @todo handle as image
                 if (!$this->getVideoDuration($filePath)) {
-                    $tmpPath = PUBPATH . '/upload/' . md5($filePath) . '_ani.gif';
                     $localPath = FileHelper::getLocalPath($filePath);
+                    $tmpPath = PUBPATH . '/upload/' . md5($filePath) . '_gif.mp4';
                     shell_exec(
                         sprintf(
-                            'convert -loop 0 -delay 1 %s %s',
+                            'ffmpeg -f gif -i %s %s',
                             escapeshellarg($localPath),
                             escapeshellarg($tmpPath)
                         )
                     );
-                    $keyName = 'temp_video/' . md5($filePath) . '_ani.gif';
+                    $keyName = 'temp_video/' . pathinfo($tmpPath, PATHINFO_BASENAME);
                     $s3Client->putObject([
                         'Bucket' => $this->s3['bucket'],
                         'Key' => $keyName,
@@ -411,7 +411,7 @@ class AmazonDriver extends Driver
             $localPath = FileHelper::getLocalPath($filePath);
             return (float) shell_exec(
                 sprintf(
-                    ' exiftool -Duration -b %s',
+                    'exiftool -Duration -b %s',
                     escapeshellarg($localPath)
                 )
             );
