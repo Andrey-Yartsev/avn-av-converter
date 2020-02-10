@@ -74,7 +74,6 @@ return [
                             'name'    => 'locked',
                             'maxSize' => 30,
                             'blur'    => 1,
-                            'quality' => 20,
                             'watermark' => false,
                         ]
                     ]
@@ -108,7 +107,6 @@ return [
                         'name'    => 'locked',
                         'maxSize' => 30,
                         'blur'    => 1,
-                        'quality' => 20,
                         'watermark' => false,
                     ]
                 ],
