@@ -75,6 +75,7 @@ return [
                             'maxSize' => 30,
                             'blur'    => 1,
                             'quality' => 20,
+                            'watermark' => false,
                         ]
                     ]
                 ],
@@ -108,6 +109,7 @@ return [
                         'maxSize' => 30,
                         'blur'    => 1,
                         'quality' => 20,
+                        'watermark' => false,
                     ]
                 ],
                 'needProtect' => true,
