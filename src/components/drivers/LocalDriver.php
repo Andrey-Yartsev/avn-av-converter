@@ -144,6 +144,7 @@ class LocalDriver extends Driver
         $name = $size['name'] ?? null;
         $maxSize = $size['maxSize'] ?? null;
         $quality = $size['quality'] ?? 86;
+        $doWatermark = $size['watermark'] ?? true;
         $image = $this->imagine->open($filePath);
         if ($image->getImagick()) {
             $image->getImagick()->setImageBackgroundColor('white');
@@ -172,9 +173,11 @@ class LocalDriver extends Driver
             'resolution-y' => 72,
             'resolution-x' => 72,
         ]);
-        
-        $this->setWatermark(PUBPATH . $savedPath, $watermark);
-        
+
+        if ($doWatermark) {
+            $this->setWatermark(PUBPATH . $savedPath, $watermark);
+        }
+
         $fileSize = filesize(PUBPATH . $savedPath);
         if ($this->storage) {
             $url = $this->storage->upload(PUBPATH . $savedPath, $this->storage->generatePath($fileName));
