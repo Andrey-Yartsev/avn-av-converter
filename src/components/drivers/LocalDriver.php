@@ -145,6 +145,7 @@ class LocalDriver extends Driver
         $maxSize = $size['maxSize'] ?? null;
         $quality = $size['quality'] ?? 86;
         $doWatermark = $size['watermark'] ?? true;
+        $fixRatio = $size['fixRatio'] ?? true;
         $image = $this->imagine->open($filePath);
         if ($image->getImagick()) {
             $image->getImagick()->setImageBackgroundColor('white');
@@ -152,7 +153,7 @@ class LocalDriver extends Driver
         }
 
         if ($maxSize) {
-            $image = $this->resizeAdaptive($image, $maxSize);
+            $image = $this->resizeAdaptive($image, $maxSize, $fixRatio);
         } elseif ($height && $height == $width) {
             $image = $this->crop($image, $height);
         } elseif ($width && $height) {
@@ -226,9 +227,10 @@ class LocalDriver extends Driver
     /**
      * @param AbstractImage $image
      * @param int $maxSize
+     * @param bool $fixRatio
      * @return AbstractImage
      */
-    protected function resizeAdaptive($image, $maxSize)
+    protected function resizeAdaptive($image, $maxSize, $fixRatio = true)
     {
         $portraitRatio = 4 / 3;
         $landscapeRatio = 16 / 9;
@@ -237,7 +239,7 @@ class LocalDriver extends Driver
         $imageWidth = $imageSize->getWidth();
         if ($imageHeight >= $imageWidth) {
             $height = $imageHeight;
-            if ($imageHeight / $imageWidth > $portraitRatio) {
+            if ($fixRatio && $imageHeight / $imageWidth > $portraitRatio) {
                 $height = $imageWidth * $portraitRatio;
                 $sizeBox = new Box($imageWidth, $height);
                 $cropPoint = new Point(0, ceil(($imageHeight - $height) / 2));
@@ -249,7 +251,7 @@ class LocalDriver extends Driver
             }
         } else {
             $width = $imageWidth;
-            if ($imageWidth / $imageHeight > $landscapeRatio) {
+            if ($fixRatio && $imageWidth / $imageHeight > $landscapeRatio) {
                 $width = $imageHeight * $landscapeRatio;
                 $sizeBox = new Box($width, $imageHeight);
                 $cropPoint = new Point(ceil(($imageWidth - $width) / 2), 0);
