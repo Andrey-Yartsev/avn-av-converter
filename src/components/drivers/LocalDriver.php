@@ -143,6 +143,7 @@ class LocalDriver extends Driver
         $blur = $size['blur'] ?? null;
         $name = $size['name'] ?? null;
         $maxSize = $size['maxSize'] ?? null;
+        $quality = $size['quality'] ?? 86;
         $image = $this->imagine->open($filePath);
         if ($image->getImagick()) {
             $image->getImagick()->setImageBackgroundColor('white');
@@ -166,7 +167,7 @@ class LocalDriver extends Driver
         $savedPath = '/upload/' . $fileName;
         
         $image->save(PUBPATH . $savedPath, [
-            'jpeg_quality' => 86,
+            'jpeg_quality' => $quality,
             'resolution-units' => ImageInterface::RESOLUTION_PIXELSPERINCH,
             'resolution-y' => 72,
             'resolution-x' => 72,
