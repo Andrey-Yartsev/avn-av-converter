@@ -64,6 +64,7 @@ return [
                         [
                             'name'    => 'preview',
                             'maxSize' => 760,
+                            'fixRatio' => false,
                         ],
                         [
                             'name'   => 'thumb',
@@ -75,6 +76,7 @@ return [
                             'maxSize' => 30,
                             'blur'    => 1,
                             'watermark' => false,
+                            'fixRatio' => false,
                         ]
                     ]
                 ],
@@ -86,12 +88,13 @@ return [
                 'thumbSizes' => [
                     [
                         'name'   => 'source',
-                        'width'  => 3840,
-                        'height' => 2160,
+                        'maxSize'  => 3840,
+                        'fixRatio' => false,
                     ],
                     [
                         'name'    => 'preview',
                         'maxSize' => 960,
+                        'fixRatio' => false,
                     ],
                     [
                         'name'   => 'square_preview',
@@ -108,6 +111,7 @@ return [
                         'maxSize' => 30,
                         'blur'    => 1,
                         'watermark' => false,
+                        'fixRatio' => false,
                     ]
                 ],
                 'needProtect' => true,
