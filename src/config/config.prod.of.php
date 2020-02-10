@@ -73,7 +73,8 @@ return [
                         [
                             'name'    => 'locked',
                             'maxSize' => 30,
-                            'blur'    => 10
+                            'blur'    => 1,
+                            'quality' => 20,
                         ]
                     ]
                 ],
@@ -105,7 +106,8 @@ return [
                     [
                         'name'    => 'locked',
                         'maxSize' => 30,
-                        'blur'    => 10
+                        'blur'    => 1,
+                        'quality' => 20,
                     ]
                 ],
                 'needProtect' => true,
