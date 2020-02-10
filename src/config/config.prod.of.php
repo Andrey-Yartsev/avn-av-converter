@@ -54,6 +54,7 @@ return [
                         [
                             'name'   => 'thumb',
                             'maxSize' => 300,
+                            'fixRatio' => false,
                         ],
                     ]
                 ],
@@ -122,6 +123,7 @@ return [
                         [
                             'name'   => 'thumb',
                             'maxSize' => 300,
+                            'fixRatio' => false,
                         ],
                     ]
                 ],
