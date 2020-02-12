@@ -51,6 +51,10 @@ class UploadForm extends Form
                     ]);
                     $this->file['ContentType'] = $response['ContentType'] ?? null;
                     $this->fileType = isset($response['ContentType']) ? FileHelper::getTypeByMimeType($response['ContentType']) : 'None';
+                    if (stripos($this->file['Location'], 'https://of2transcoder.s3-accelerate.amazonaws.com/upload/') !== 0) {
+                        $this->setErrors('Invalid input.');
+                        return false;
+                    }
                 }
             } else {
                 $this->fileType = FileHelper::getTypeFile($this->filePath);
