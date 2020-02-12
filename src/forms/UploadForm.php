@@ -51,7 +51,7 @@ class UploadForm extends Form
                     ]);
                     $this->file['ContentType'] = $response['ContentType'] ?? null;
                     $this->fileType = isset($response['ContentType']) ? FileHelper::getTypeByMimeType($response['ContentType']) : 'None';
-                    if (!stripos($this->file['Location'], $this->file['Key'])) {
+                    if (stripos($this->file['Location'], 'https://avnstars-media.s3-accelerate.amazonaws.com/upload/') !== 0) {
                         $this->setErrors('Invalid input.');
                         return false;
                     }
