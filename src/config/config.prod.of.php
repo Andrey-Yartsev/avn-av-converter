@@ -31,14 +31,14 @@ return [
                 's3' => [
                     'region' => 'us-east-1',
                     'bucket' => 'of2transcoder',
-                    'key' => 'AKIAIEGIIC3WZYGPIPCA',
-                    'secret' => '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'
+                    'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
+                    'secret' => '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'
                 ],
                 'transcoder' => [
                     'region' => 'us-east-1',
                     'bucket' => 'of2transcoder',
-                    'key' => 'AKIAIEGIIC3WZYGPIPCA',
-                    'secret' => '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',
+                    'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
+                    'secret' => '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',
                     'pipeline' => '1542729803060-wvvyxu',
                     'preset' => '1579715526552-cf3kd8'
                 ],
@@ -135,8 +135,8 @@ return [
                 'url' => 'https://of2media.s3.amazonaws.com',
                 'region' => 'us-east-1',
                 'bucket' => 'of2media',
-                'key' => 'AKIAIEGIIC3WZYGPIPCA',
-                'secret' => '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'
+                'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
+                'secret' => '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'
             ]
         ],
         'of_geo_big' => [
@@ -152,14 +152,14 @@ return [
                 's3' => [
                     'region' => 'us-east-1',
                     'bucket' => 'of2transcoder',
-                    'key' => 'AKIAIEGIIC3WZYGPIPCA',
-                    'secret' => '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'
+                    'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
+                    'secret' => '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'
                 ],
                 'transcoder' => [
                     'region' => 'us-east-1',
                     'bucket' => 'of2transcoder',
-                    'key' => 'AKIAIEGIIC3WZYGPIPCA',
-                    'secret' => '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',
+                    'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
+                    'secret' => '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',
                     'pipeline' => '1542729803060-wvvyxu',
                     'preset' => '1569329259686-o0zwis'
                 ],
@@ -220,8 +220,8 @@ return [
                 'url' => 'https://s3.amazonaws.com/of2media',
                 'region' => 'us-east-1',
                 'bucket' => 'of2media',
-                'key' => 'AKIAIEGIIC3WZYGPIPCA',
-                'secret' => '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'
+                'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
+                'secret' => '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'
             ]
         ],
         'of_geo' => [
@@ -293,8 +293,8 @@ return [
                 'url' => 'https://s3.amazonaws.com/of2media',
                 'region' => 'us-east-1',
                 'bucket' => 'of2media',
-                'key' => 'AKIAIEGIIC3WZYGPIPCA',
-                'secret' => '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'
+                'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
+                'secret' => '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'
             ]
         ],
     ]
