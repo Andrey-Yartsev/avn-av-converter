@@ -10,7 +10,7 @@ return [
     ],
     'protect' => [
         'type' => 'cloudfront',
-        'key_pair_id' => 'APKAJKLR6VB3PTZVDEBA',
+        'key_pair_id' => 'APKAJZU4IULC2OKULHGA',
         'private_key' => '/var/www/convert/src/config/pk.of.cf.pem',
         'expires' => '+1 year',
         'url' => 'https://cdn2.onlyfans.com',
