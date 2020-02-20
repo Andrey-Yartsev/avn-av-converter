@@ -51,8 +51,13 @@ class UploadForm extends Form
                     ]);
                     $this->file['ContentType'] = $response['ContentType'] ?? null;
                     $this->fileType = isset($response['ContentType']) ? FileHelper::getTypeByMimeType($response['ContentType']) : 'None';
-                    $host = strpos($this->preset, 'of') !== false ? 'https://of2transcoder.s3-accelerate.amazonaws.com/upload/' : 'https://avnstars-media.s3-accelerate.amazonaws.com/upload/';
-                    if (stripos($this->file['Location'], $host) !== 0) {
+                    $allowedHosts = [
+                        'https://of2transcoder.s3-accelerate.amazonaws.com/upload/',
+                        'https://avnstars-media.s3-accelerate.amazonaws.com/upload/',
+                        'https://avnsocial-dev.s3-accelerate.amazonaws.com/upload/'
+                    ];
+                    $host = substr($this->file['Location'], 0, strpos($this->file['Location'], '/upload/')+8);
+                    if (!in_array($host, $allowedHosts)) {
                         $this->setErrors('Invalid input.');
                         return false;
                     }
