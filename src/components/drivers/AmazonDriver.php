@@ -249,19 +249,21 @@ class AmazonDriver extends Driver
         try {
             $outputSettings = [];
             foreach ($this->transcoder['presets'] as $presetSettings) {
-                $outputSettings[] = [
+                $outputSetting = [
                     'Key'      => $dir . '_' . $presetSettings['preset'] . '.mp4',
                     'Rotate'   => 'auto',
                     'PresetId' => $presetSettings['preset']
                 ];
+                if ($watermarkKey) {
+                    Logger::send('process', ['processId' => $processId, 'step' => 'Set watermark', 'data' => ['status' => 'success', 'preset' => $presetSettings]]);
+                    $outputSetting['Watermarks'][] = [
+                        'InputKey' => $watermarkKey,
+                        'PresetWatermarkId' => 'BottomRight'
+                    ];
+                }
+                $outputSettings[] = $outputSetting;
             }
-            if ($watermarkKey) {
-                Logger::send('process', ['processId' => $processId, 'step' => 'Set watermark', 'data' => ['status' => 'success']]);
-                $outputSettings['Watermarks'][] = [
-                    'InputKey' => $watermarkKey,
-                    'PresetWatermarkId' => 'BottomRight'
-                ];
-            }
+            
             Logger::send('debug', [
                 'PipelineId'      => $this->transcoder['pipeline'],
                 'OutputKeyPrefix' => 'files/',
@@ -286,7 +288,7 @@ class AmazonDriver extends Driver
                     'Interlaced'  => 'auto',
                     'Container'   => 'auto',
                 ],
-                'Outputs' => $outputSettings,
+                'Outputs' => array_values($outputSettings),
             ]);
         } catch (\Exception $e) {
             Logger::send('process', ['processId' => $processId, 'step' => 'Create transcoder job', 'data' => [
