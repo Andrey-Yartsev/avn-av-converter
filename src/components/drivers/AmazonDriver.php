@@ -258,7 +258,13 @@ class AmazonDriver extends Driver
         $transcoderClient = $this->getTranscoderClient();
         try {
             $outputSettings = [];
+            list($width, $height) = FileHelper::getVideoDimensions($filePath);
+            Logger::send('process', ['processId' => $processId, 'step' => 'Get dimensions', 'data' => "$width X $height"]);
             foreach ($this->transcoder['presets'] as $presetId => $presetSettings) {
+                if ($height && !empty($presetSettings['height']) && $presetSettings['height'] > $height) {
+                    Logger::send('process', ['processId' => $processId, 'step' => 'Skip preset with height ' . $presetSettings['height']]);
+                    continue;
+                }
                 $outputSetting = [
                     'Key'      => $dir . '_' . strtolower($presetSettings['name']) . '.mp4',
                     'Rotate'   => 'auto',
@@ -452,5 +458,14 @@ class AmazonDriver extends Driver
                 escapeshellarg($filePath)
             )
         );
+    }
+    
+    /**
+     * @param string $filePath
+     * @return array
+     */
+    public function getVideoDimensions($filePath)
+    {
+        return explode(PHP_EOL, trim(shell_exec(sprintf("ffprobe -v error -select_streams v:0 -show_entries stream=width,height %s | grep -e width -e height | sed 's/width=//' | sed 's/height=//'", escapeshellarg($filePath)))));
     }
 }

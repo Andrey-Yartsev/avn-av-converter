@@ -41,9 +41,9 @@ $cfg = [
                     'secret' => 'Ie9dhRuq/dWiAJM2MduBdajyTmxz7b9mnFX4Gjcp',
                     'pipeline' => '1542729803060-wvvyxu',
                     'presets' => [
-                        '1579715526552-cf3kd8' => ['name' => 'source'],
-                        '1351620000001-000010' => ['name' => '720p'],
-                        '1351620000001-000040' => ['name' => '360p'],
+                        '1579715526552-cf3kd8' => ['name' => 'source', 'height' => null],
+                        '1351620000001-000010' => ['name' => '720p', 'height' => 720],
+                        '1351620000001-000061' => ['name' => '240p', 'height' => 240],
                     ]
                 ],
                 'thumbs' => [

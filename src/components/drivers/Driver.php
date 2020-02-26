@@ -149,6 +149,15 @@ abstract class Driver
         return FileHelper::getVideoDuration($filePath);
     }
     
+    /**
+     * @param string $filePath
+     * @return array
+     */
+    public function getVideoDimensions($filePath)
+    {
+        return FileHelper::getVideoDimensions($filePath);
+    }
+    
     abstract public function getStatus($processId);
     
     /**
