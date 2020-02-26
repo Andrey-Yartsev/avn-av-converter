@@ -106,6 +106,7 @@ class AmazonDriver extends Driver
         $output = $jobData['Output'];
 
         if ($this->previews && !$this->needPreviewOnStart) {
+            Logger::send('process', ['processId' => $process->getId(), 'step' => 'Start make previews']);
             $driver = Driver::loadByConfig($this->presetName, $this->previews);
             $videoUrl = $this->url . '/files/' . $output['Key'];
             $previewPath = $this->getVideoFrame($videoUrl, 0);
@@ -117,6 +118,7 @@ class AmazonDriver extends Driver
                 $driver->createPhotoPreview($thumbUrl);
             }
             foreach ($driver->getResult() as $result) {
+                Logger::send('process', ['processId' => $process->getId(), 'step' => 'End make previews']);
                 $this->result[] = $result;
             }
         }
@@ -144,6 +146,7 @@ class AmazonDriver extends Driver
                                 'Bucket' => $this->s3['bucket'],
                                 'Key' => 'files/' . $output['Key'],
                             ]);
+                            Logger::send('process', ['processId' => $process->getId(), 'step' => 'Moved file']);
                             $this->result[] = new VideoResponse([
                                 'name'     => $responseName,
                                 'url'      => $storage->url . '/files/' . $output['Key'],
@@ -153,6 +156,7 @@ class AmazonDriver extends Driver
                                 'size'     => $output['FileSize'] ?? 0
                             ]);
                         } else {
+                            Logger::send('process', ['processId' => $process->getId(), 'step' => 'Error move file']);
                             Logger::send('converter.fatal', [
                                 'path' => 's3://' . $this->s3['bucket'] . '/files/' . $output['Key'],
                                 'error' => 'File exists'

@@ -171,7 +171,7 @@ abstract class Driver
      */
     public function getResult()
     {
-        return $this->result;
+        return array_values($this->result);
     }
     
     /**
