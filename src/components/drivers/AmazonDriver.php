@@ -108,15 +108,12 @@ class AmazonDriver extends Driver
         if ($this->previews && !$this->needPreviewOnStart) {
             $driver = Driver::loadByConfig($this->presetName, $this->previews);
             $videoUrl = $this->url . '/files/' . $output['Key'];
-            Logger::send('debug', compact('videoUrl'));
             $previewPath = $this->getVideoFrame($videoUrl, 0);
-            Logger::send('debug', compact('previewPath'));
             if ($previewPath) {
-                $driver->createPhotoPreview($previewPath/*, $process->getWatermark()*/);
+                $driver->createPhotoPreview($previewPath);
             } elseif (!empty($output['ThumbnailPattern'])) {
                 $thumbUrl = $this->url . '/files/' . $output['ThumbnailPattern'] . '.jpg';
                 $thumbUrl = str_replace('{count}', '00001', $thumbUrl);
-                Logger::send('debug', compact('thumbUrl'));
                 $driver->createPhotoPreview($thumbUrl);
             }
             foreach ($driver->getResult() as $result) {
@@ -124,56 +121,65 @@ class AmazonDriver extends Driver
             }
         }
         
-        if ($this->hasStorage()) {
-            $storage = $this->getStorage();
-            if ($storage instanceof S3Storage && $storage->bucket != $this->s3['bucket']) {
-                try {
-                    $s3Client = $this->getS3Client();
-                    if ($s3Client->doesObjectExist($this->s3['bucket'], 'files/' . $output['Key'])) {
-                        $s3Client->copyObject([
-                            'Bucket'     => $storage->bucket,
-                            'Key'        => 'files/' . $output['Key'],
-                            'CopySource' => $this->s3['bucket'] . '/files/' . $output['Key'],
+        foreach ($jobData['Outputs'] as $output) {
+            if (isset($this->transcoder['presets'][$output['PresetId']])) {
+                $responseName = $this->transcoder['presets'][$output['PresetId']]['name'];
+            } else {
+                Logger::send('process', ['processId' => $process->getId(), 'step' => 'Skip output #' . $output['PresetId']]);
+                continue;
+            }
+            if ($this->hasStorage()) {
+                $storage = $this->getStorage();
+                if ($storage instanceof S3Storage && $storage->bucket != $this->s3['bucket']) {
+                    try {
+                        $s3Client = $this->getS3Client();
+                        if ($s3Client->doesObjectExist($this->s3['bucket'], 'files/' . $output['Key'])) {
+                            $s3Client->copyObject([
+                                'Bucket'     => $storage->bucket,
+                                'Key'        => 'files/' . $output['Key'],
+                                'CopySource' => $this->s3['bucket'] . '/files/' . $output['Key'],
+                            ]);
+                            $s3Client->deleteObject([
+                                'Bucket' => $this->s3['bucket'],
+                                'Key' => 'files/' . $output['Key'],
+                            ]);
+                            $this->result[] = new VideoResponse([
+                                'name'     => $responseName,
+                                'url'      => $storage->url . '/files/' . $output['Key'],
+                                'width'    => $output['Width'] ?? 0,
+                                'height'   => $output['Height'] ?? 0,
+                                'duration' => $output['Duration'] ?? 0,
+                                'size'     => $output['FileSize'] ?? 0
+                            ]);
+                            return true;
+                        } else {
+                            Logger::send('converter.fatal', [
+                                'path' => 's3://' . $this->s3['bucket'] . '/files/' . $output['Key'],
+                                'error' => 'File exists'
+                            ]);
+                        }
+                    } catch (\Throwable $exception) {
+                        Logger::send('converter.fatal', [
+                            'job' => $jobData['Output'],
+                            'error' => $exception->getMessage()
                         ]);
-                        $s3Client->deleteObject([
-                            'Bucket' => $this->s3['bucket'],
-                            'Key' => 'files/' . $output['Key'],
-                        ]);
-                        $this->result[] = new VideoResponse([
-                            'name'     => 'source',
-                            'url'      => $storage->url . '/files/' . $output['Key'],
-                            'width'    => $output['Width'] ?? 0,
-                            'height'   => $output['Height'] ?? 0,
-                            'duration' => $output['Duration'] ?? 0,
-                            'size'     => $output['FileSize'] ?? 0
-                        ]);
-                        Logger::send('converter.aws.readJob', $jobData['Output']);
-                        return true;
-                    } else {
-                    
+                        $jobId = $jobData['Output']['Id'] ?? 'unknown';
+                        $this->error = 'Job #' . $jobId . ' failed.';
+                        return false;
                     }
-                } catch (\Throwable $exception) {
-                    Logger::send('converter.fatal', [
-                        'job' => $jobData['Output'],
-                        'error' => $exception->getMessage()
-                    ]);
-                    $jobId = $jobData['Output']['Id'] ?? 'unknown';
-                    $this->error = 'Job #' . $jobId . ' failed.';
-                    return false;
                 }
             }
-        }
     
-        $this->result[] = new VideoResponse([
-            'name'     => 'source',
-            'url'      => $this->url . '/files/' . $output['Key'],
-            'width'    => $output['Width'] ?? 0,
-            'height'   => $output['Height'] ?? 0,
-            'duration' => $output['Duration'] ?? 0,
-            'size'     => $output['FileSize'] ?? 0
-        ]);
+            $this->result[] = new VideoResponse([
+                'name'     => $responseName,
+                'url'      => $this->url . '/files/' . $output['Key'],
+                'width'    => $output['Width'] ?? 0,
+                'height'   => $output['Height'] ?? 0,
+                'duration' => $output['Duration'] ?? 0,
+                'size'     => $output['FileSize'] ?? 0
+            ]);
+        }
         
-        Logger::send('converter.aws.readJob', $jobData['Output']);
         return true;
     }
 
@@ -248,14 +254,18 @@ class AmazonDriver extends Driver
         $transcoderClient = $this->getTranscoderClient();
         try {
             $outputSettings = [];
-            foreach ($this->transcoder['presets'] as $presetSettings) {
+            foreach ($this->transcoder['presets'] as $presetId => $presetSettings) {
                 $outputSetting = [
                     'Key'      => $dir . '_' . strtolower($presetSettings['name']) . '.mp4',
                     'Rotate'   => 'auto',
-                    'PresetId' => $presetSettings['preset']
+                    'PresetId' => $presetId
                 ];
                 if ($watermarkKey) {
-                    Logger::send('process', ['processId' => $processId, 'step' => 'Set watermark', 'data' => ['status' => 'success', 'preset' => $presetSettings]]);
+                    Logger::send('process', [
+                        'processId' => $processId,
+                        'step'      => 'Set watermark',
+                        'data'      => ['status' => 'success', 'presetId' => $presetId, 'settings' => $presetSettings]
+                    ]);
                     $outputSetting['Watermarks'][] = [
                         'InputKey' => $watermarkKey,
                         'PresetWatermarkId' => 'BottomRight'
