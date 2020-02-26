@@ -124,7 +124,7 @@ class AmazonDriver extends Driver
         foreach ($jobData['Outputs'] as $output) {
             if (isset($this->transcoder['presets'][$output['PresetId']])) {
                 $responseName = $this->transcoder['presets'][$output['PresetId']]['name'];
-                Logger::send('process', ['processId' => $process->getId(), 'step' => 'Find t #' . $output['PresetId'] . " ($responseName)"]);
+                Logger::send('process', ['processId' => $process->getId(), 'step' => 'Find #' . $output['PresetId'] . " ($responseName)"]);
             } else {
                 Logger::send('process', ['processId' => $process->getId(), 'step' => 'Skip output #' . $output['PresetId']]);
                 continue;
@@ -152,7 +152,6 @@ class AmazonDriver extends Driver
                                 'duration' => $output['Duration'] ?? 0,
                                 'size'     => $output['FileSize'] ?? 0
                             ]);
-                            return true;
                         } else {
                             Logger::send('converter.fatal', [
                                 'path' => 's3://' . $this->s3['bucket'] . '/files/' . $output['Key'],
@@ -169,16 +168,16 @@ class AmazonDriver extends Driver
                         return false;
                     }
                 }
+            } else {
+                $this->result[] = new VideoResponse([
+                    'name'     => $responseName,
+                    'url'      => $this->url . '/files/' . $output['Key'],
+                    'width'    => $output['Width'] ?? 0,
+                    'height'   => $output['Height'] ?? 0,
+                    'duration' => $output['Duration'] ?? 0,
+                    'size'     => $output['FileSize'] ?? 0
+                ]);
             }
-    
-            $this->result[] = new VideoResponse([
-                'name'     => $responseName,
-                'url'      => $this->url . '/files/' . $output['Key'],
-                'width'    => $output['Width'] ?? 0,
-                'height'   => $output['Height'] ?? 0,
-                'duration' => $output['Duration'] ?? 0,
-                'size'     => $output['FileSize'] ?? 0
-            ]);
         }
         
         return true;
