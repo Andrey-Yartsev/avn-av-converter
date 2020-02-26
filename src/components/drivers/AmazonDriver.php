@@ -94,7 +94,7 @@ class AmazonDriver extends Driver
     {
         $transcoderClient = $this->getTranscoderClient();
         $response = $transcoderClient->readJob(['Id' => $jobId]);
-        Logger::send('converter.aws.readJob', $response);
+        Logger::send('converter.aws.readJob', $response->toArray());
         $jobData = (array) $response->get('Job');
         if (strtolower($jobData['Status']) != 'complete') {
             if (strtolower($jobData['Status']) == 'error') {
@@ -250,7 +250,7 @@ class AmazonDriver extends Driver
             $outputSettings = [];
             foreach ($this->transcoder['presets'] as $presetSettings) {
                 $outputSetting = [
-                    'Key'      => $dir . '_' . $presetSettings['preset'] . '.mp4',
+                    'Key'      => $dir . '_' . strtolower($presetSettings['name']) . '.mp4',
                     'Rotate'   => 'auto',
                     'PresetId' => $presetSettings['preset']
                 ];
