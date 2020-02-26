@@ -124,6 +124,7 @@ class AmazonDriver extends Driver
         foreach ($jobData['Outputs'] as $output) {
             if (isset($this->transcoder['presets'][$output['PresetId']])) {
                 $responseName = $this->transcoder['presets'][$output['PresetId']]['name'];
+                Logger::send('process', ['processId' => $process->getId(), 'step' => 'Find t #' . $output['PresetId'] . " ($responseName)"]);
             } else {
                 Logger::send('process', ['processId' => $process->getId(), 'step' => 'Skip output #' . $output['PresetId']]);
                 continue;
