@@ -262,6 +262,19 @@ class AmazonDriver extends Driver
                     'PresetWatermarkId' => 'BottomRight'
                 ];
             }
+            Logger::send('debug', [
+                'PipelineId'      => $this->transcoder['pipeline'],
+                'OutputKeyPrefix' => 'files/',
+                'Input' => [
+                    'Key'         => $keyName,
+                    'FrameRate'   => 'auto',
+                    'Resolution'  => 'auto',
+                    'AspectRatio' => 'auto',
+                    'Interlaced'  => 'auto',
+                    'Container'   => 'auto',
+                ],
+                'Outputs' => $outputSettings,
+            ]);
             $job = $transcoderClient->createJob([
                 'PipelineId'      => $this->transcoder['pipeline'],
                 'OutputKeyPrefix' => 'files/',
