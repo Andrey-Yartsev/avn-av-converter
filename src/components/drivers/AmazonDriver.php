@@ -128,7 +128,7 @@ class AmazonDriver extends Driver
                 $this->result[] = $result;
             }
         }
-        
+        $responseName = 'source';
         foreach ($jobData['Outputs'] as $output) {
             if (isset($this->transcoder['presets'][$output['PresetId']])) {
                 $responseName = $this->transcoder['presets'][$output['PresetId']]['name'];
