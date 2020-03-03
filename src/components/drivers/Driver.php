@@ -55,13 +55,13 @@ abstract class Driver
     }
     
     abstract public function processPhoto($filePath, $callback, $processId = null, $watermark = []);
-
+    
     abstract public function processAudio($filePath, $callback, $processId = null, $watermark = []);
     
     abstract public function processVideo($filePath, $callback, $processId = null, $watermark = []);
     
     abstract public function createPhotoPreview($filePath, $watermark = []);
-
+    
     /**
      * @param string $filePath
      * @return array
@@ -83,14 +83,14 @@ abstract class Driver
         }
         return $result;
     }
-
+    
     public function createThumbsFormVideo($filePath)
     {
         if (empty($this->thumbs)) {
             return false;
         }
         $duration = $this->getVideoDuration($filePath);
-
+        
         if ($duration > $this->thumbs['maxCount']) {
             $maxCount = $this->thumbs['maxCount'];
             $step = floor($duration / $this->thumbs['maxCount']);
@@ -98,7 +98,7 @@ abstract class Driver
             $maxCount = $duration;
             $step = 1;
         }
-
+        
         $driver = Driver::loadByConfig($this->presetName, $this->thumbs);
         if ($duration == 0) {
             $tempPreviewFile = $this->getVideoFrame($filePath, $duration);
@@ -113,9 +113,9 @@ abstract class Driver
                 }
             }
         }
-
+        
         $result = [];
-    
+        
         $protect = $this->needProtect ? new ProtectUrl() : null;
         foreach ($driver->getResult() as $index => $item) {
             $result[] = [
@@ -139,7 +139,7 @@ abstract class Driver
         }
         return true;
     }
-
+    
     /**
      * @param string $filePath
      * @return float
@@ -199,7 +199,9 @@ abstract class Driver
     {
         if (isset($watermark['imagePath'])) {
             $localPath = PUBPATH . '/upload/' . uniqid('watermark_') . basename($watermark['imagePath']);
-            file_put_contents($localPath, file_get_contents($watermark['imagePath']));
+            $client = new \GuzzleHttp\Client();
+            $response = $client->get($watermark['imagePath'], ['headers' => ['User-Agent' => 'SecretCacheFlyUserAgent']]);
+            file_put_contents($localPath, $response->getBody());
             return $localPath;
         } elseif ($watermark['text']) {
             $localPath = PUBPATH . '/upload/' . uniqid('watermark_') . md5($watermark['text']) . '.png';

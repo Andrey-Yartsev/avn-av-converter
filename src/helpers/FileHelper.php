@@ -19,7 +19,7 @@ class FileHelper
     const TYPE_VIDEO = 'video';
     const TYPE_IMAGE = 'image';
     const TYPE_AUDIO = 'audio';
-
+    
     protected static $firstVideoStreams = [];
     protected static $firstAudioStreams = [];
     /**
@@ -81,7 +81,7 @@ class FileHelper
         ]);
         return false;
     }
-
+    
     /**
      * @param $fileUrl
      * @param $fileType
@@ -117,22 +117,20 @@ class FileHelper
             } else {
                 $localPath = PUBPATH . '/upload/' . md5($filePath) . '.' . pathinfo($filePath, PATHINFO_EXTENSION);
                 Logger::send('debug', ['localPath' => $localPath, 'filePath' => $filePath]);
-                $options = [
-                    'https' => [
-                        'method' => 'GET'
-                    ]
-                ];
+                $userAgent = '';
                 if (strpos($filePath, 'amazonaws.com')) {
                     // @TODO need refactoring
                     if (strpos($filePath, 'avnstars')) {
-                        $options['https']['header'] = "User-Agent: SecretCacheFlyUserAgent\r\n";
+                        $userAgent = 'SecretCacheFlyUserAgent';
                     } else {
-                        $options['https']['header'] = "User-Agent: j/S%/qyd+_RP^tAgEjC6RZVU96(*b5#\r\n";
+                        $userAgent = 'j/S%/qyd+_RP^tAgEjC6RZVU96(*b5#';
                     }
                     Logger::send('debug', ['url' => $filePath, 'header' => 'set']);
                 }
-                $context = stream_context_create($options);
-                file_put_contents($localPath, file_get_contents($filePath, false, $context));
+                $client = new \GuzzleHttp\Client();
+                $response = $client->get($filePath, ['headers' => ['User-Agent' => $userAgent]]);
+                Logger::send('debug', ['localPath' => $localPath, 'filePath' => $filePath, 'downloaded' => true]);
+                file_put_contents($localPath, $response->getBody());
             }
         }
         
@@ -160,7 +158,7 @@ class FileHelper
     {
         return floor((float)self::getFirstVideoStream($filePath)->get('duration'));
     }
-
+    
     /**
      * @param $filePath
      * @return float
@@ -194,7 +192,7 @@ class FileHelper
         }
         return self::$firstVideoStreams[$filePath];
     }
-
+    
     /**
      * @param $filePath
      * @return FFProbe\DataMapping\Stream
@@ -219,7 +217,7 @@ class FileHelper
             'ffprobe.binaries' => exec('which ffprobe')
         ]);
     }
-
+    
     /**
      * @param string $path
      * @return string

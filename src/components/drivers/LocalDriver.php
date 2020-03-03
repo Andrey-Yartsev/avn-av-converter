@@ -27,7 +27,7 @@ class LocalDriver extends Driver
     public $withSource = false;
     /** @var GdImagine|GmagickImagine|ImagickImagine */
     protected $imagine;
-
+    
     public function __construct($presetName, array $config = [])
     {
         parent::__construct($presetName, $config);
@@ -46,7 +46,7 @@ class LocalDriver extends Driver
                 throw new \Exception();
         }
     }
-
+    
     public function createPhotoPreview($filePath, $watermark = [])
     {
         Logger::send('create.preview', ['filePath' => $filePath, 'step' => 'Make photo preview']);
@@ -60,35 +60,35 @@ class LocalDriver extends Driver
         }
         return true;
     }
-
+    
     public function createVideoPreview($filePath, $watermark = [], $seconds = 1)
     {
         throw new \Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
     }
-
+    
     public function processAudio($filePath, $callback, $processId = null, $watermark = [])
     {
         throw new \Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
     }
-
+    
     public function getStatus($processId)
     {
         throw new \Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
     }
-
+    
     public function processPhoto($filePath, $callback, $processId = null, $watermark = [])
     {
         $localPath = FileHelper::getLocalPath($filePath);
         Logger::send('process', ['processId' => $processId, 'step' => 'Get local path', 'localPath' => $localPath]);
-
+        
         Logger::send('process', ['processId' => $processId, 'step' => 'fixedOrientation()', 'localPath' => $localPath]);
         $this->fixedOrientation($localPath);
-
+        
         foreach ($this->thumbSizes as $size) {
             Logger::send('process', ['processId' => $processId, 'step' => 'Make photo size: ' . $size['name'] ?? null]);
             $this->resizeImage($localPath, $size, $watermark);
         }
-
+        
         if ($this->withSource) {
             Logger::send('process', ['processId' => $processId, 'step' => 'Process source']);
             $this->fixedOrientation($localPath);
@@ -112,7 +112,7 @@ class LocalDriver extends Driver
         }
         return $processId;
     }
-
+    
     public function processVideo($filePath, $callback, $processId = null, $watermark = [])
     {
         throw new \Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
@@ -128,7 +128,7 @@ class LocalDriver extends Driver
         exec($command);
         return $this->imagine->open($localPath);
     }
-
+    
     /**
      * @param string $filePath
      * @param array $size
@@ -151,7 +151,7 @@ class LocalDriver extends Driver
             $image->getImagick()->setImageBackgroundColor('white');
             $image->getImagick()->setImageAlphaChannel(\Imagick::ALPHACHANNEL_REMOVE);
         }
-
+        
         if ($maxSize) {
             $image = $this->resizeAdaptive($image, $maxSize, $fixRatio);
         } elseif ($height && $height == $width) {
@@ -159,11 +159,11 @@ class LocalDriver extends Driver
         } elseif ($width && $height) {
             $image = $this->resize($image, $width, $height);
         }
-
+        
         if ($blur) {
             $image->effects()->blur($blur);
         }
-
+        
         $imageSize = $image->getSize();
         $fileName = $imageSize->getWidth() . 'x' . $imageSize->getHeight() . '_' . urlencode(pathinfo($filePath, PATHINFO_FILENAME)) . '.jpg';
         $savedPath = '/upload/' . $fileName;
@@ -174,11 +174,11 @@ class LocalDriver extends Driver
             'resolution-y' => 72,
             'resolution-x' => 72,
         ]);
-
+        
         if ($doWatermark) {
             $this->setWatermark(PUBPATH . $savedPath, $watermark);
         }
-
+        
         $fileSize = filesize(PUBPATH . $savedPath);
         if ($this->storage) {
             $url = $this->storage->upload(PUBPATH . $savedPath, $this->storage->generatePath($fileName));
@@ -220,10 +220,10 @@ class LocalDriver extends Driver
             $sizeBox = new Box($width, $height);
             $image->resize($sizeBox);
         }
-    
+        
         return $image;
     }
-
+    
     /**
      * @param AbstractImage $image
      * @param int $maxSize
@@ -262,10 +262,10 @@ class LocalDriver extends Driver
                 $image->resize($sizeBox);
             }
         }
-
+        
         return $image;
     }
-
+    
     /**
      * @param AbstractImage $image
      * @param int $size
@@ -287,12 +287,12 @@ class LocalDriver extends Driver
         
         $startX = round(($width - $size) / 2);
         $startY = round(($height - $size) / 2);
-
+        
         $cropPoint = new Point($startX, $startY);
         $sizeBox = new Box($size, $size);
-    
+        
         $image->crop($cropPoint, $sizeBox);
-
+        
         return $image;
     }
     
@@ -315,7 +315,9 @@ class LocalDriver extends Driver
             try {
                 if (!is_file($watermark['imagePath'])) {
                     $localSavedFile = PUBPATH . '/upload/' . md5($watermark['imagePath']) . '.' . pathinfo($watermark['imagePath'], PATHINFO_EXTENSION);
-                    file_put_contents($localSavedFile, file_get_contents($watermark['imagePath']));
+                    $client = new \GuzzleHttp\Client();
+                    $response = $client->get($watermark['imagePath'], ['headers' => ['User-Agent' => 'SecretCacheFlyUserAgent']]);
+                    file_put_contents($localSavedFile, $response->getBody());
                 } else {
                     $localSavedFile = $watermark['imagePath'];
                 }
