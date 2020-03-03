@@ -133,7 +133,7 @@ class AmazonDriver extends Driver
             if (isset($this->transcoder['presets'][$output['PresetId']])) {
                 $responseName = $this->transcoder['presets'][$output['PresetId']]['name'];
                 Logger::send('process', ['processId' => $process->getId(), 'step' => 'Find #' . $output['PresetId'] . " ($responseName)"]);
-            } else {
+            } elseif (empty($this->transcoder['preset']) ||  $this->transcoder['preset'] != $output['PresetId']) {
                 Logger::send('process', ['processId' => $process->getId(), 'step' => 'Skip output #' . $output['PresetId']]);
                 continue;
             }
