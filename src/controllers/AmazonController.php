@@ -55,7 +55,11 @@ class AmazonController extends Controller
                 }
                 $presetName = $options['presetName'];
                 $process = Process::find($options['processId']);
-                $amazonDriver = new AmazonDriver($presetName, $presents[$presetName]['video']);
+                $amazonDriver = $process->getDriver();
+                if (!$amazonDriver instanceof AmazonDriver) {
+                    Logger::send('process', ['processId' => $options['processId'], 'step' => 'Wrong driver']);
+                    continue;
+                }
                 if ($amazonDriver->readJob($options['jobId'], $process)) {
                     try {
                         $json = [

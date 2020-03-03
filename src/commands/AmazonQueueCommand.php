@@ -40,7 +40,11 @@ class AmazonQueueCommand extends Command
             $options = json_decode($job, true);
             $presetName = $options['presetName'];
             $process = Process::find($options['processId']);
-            $amazonDriver = new AmazonDriver($presetName, $presents[$presetName]['video']);
+            $amazonDriver = $process->getDriver();
+            if (!$amazonDriver instanceof AmazonDriver) {
+                Logger::send('process', ['processId' => $options['processId'], 'step' => 'Wrong driver']);
+                continue;
+            }
             $output->writeln('Read job #' . $options['jobId']);
             if ($amazonDriver->readJob($options['jobId'], $process)) {
                 $output->writeln('Job #' . $options['jobId'] . ' complete');

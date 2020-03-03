@@ -56,7 +56,9 @@ return [
                     'key'      => 'AKIAJQCE37RKJ3OTOIZA',
                     'secret'   => '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',
                     'pipeline' => '1535375850253-dxzlpd',
-                    'preset'   => '1579269726017-sc9hr7'
+                    'presets' => [
+                        '1579269726017-sc9hr7' => ['name' => 'source', 'height' => null]
+                    ]
                 ],
                 'thumbs' => [
                     'driver'     => \Converter\components\drivers\LocalDriver::class,

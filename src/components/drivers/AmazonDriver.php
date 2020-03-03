@@ -15,6 +15,7 @@ use Converter\components\Process;
 use Converter\components\Redis;
 use Converter\components\storages\S3Storage;
 use Converter\helpers\FileHelper;
+use Converter\response\AudioResponse;
 use Converter\response\StatusResponse;
 use Converter\response\VideoResponse;
 use FFMpeg\Coordinate\TimeCode;
@@ -45,7 +46,12 @@ class AmazonDriver extends Driver
 
     public function processAudio($filePath, $callback, $processId = null, $watermark = [])
     {
-        throw new \Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
+        Logger::send('process', ['processId' => $processId, 'step' => 'Send to upload amazon queue']);
+        Redis::getInstance()->sAdd('amazon:upload', json_encode([
+            'presetName' => $this->presetName,
+            'processId' => $processId
+        ]));
+        return $processId;
     }
 
     public function processPhoto($filePath, $callback, $processId = null, $watermark = [])
@@ -147,14 +153,23 @@ class AmazonDriver extends Driver
                                 'Key' => 'files/' . $output['Key'],
                             ]);
                             Logger::send('process', ['processId' => $process->getId(), 'step' => 'Moved file']);
-                            $this->result[] = new VideoResponse([
-                                'name'     => $responseName,
-                                'url'      => $storage->url . '/files/' . $output['Key'],
-                                'width'    => $output['Width'] ?? 0,
-                                'height'   => $output['Height'] ?? 0,
-                                'duration' => $output['Duration'] ?? 0,
-                                'size'     => $output['FileSize'] ?? 0
-                            ]);
+                            if ($process->getFileType() == FileHelper::TYPE_VIDEO) {
+                                $this->result[] = new VideoResponse([
+                                    'name'     => $responseName,
+                                    'url'      => $storage->url . '/files/' . $output['Key'],
+                                    'width'    => $output['Width'] ?? 0,
+                                    'height'   => $output['Height'] ?? 0,
+                                    'duration' => $output['Duration'] ?? 0,
+                                    'size'     => $output['FileSize'] ?? 0
+                                ]);
+                            } elseif ($process->getFileType() == FileHelper::TYPE_AUDIO) {
+                                $this->result[] = new AudioResponse([
+                                    'name'     => $responseName,
+                                    'url'      => $storage->url . '/files/' . $output['Key'],
+                                    'duration' => $output['Duration'] ?? 0,
+                                    'size'     => $output['FileSize'] ?? 0
+                                ]);
+                            }
                         } else {
                             Logger::send('process', ['processId' => $process->getId(), 'step' => 'Error move file']);
                             Logger::send('converter.fatal', [
@@ -173,14 +188,24 @@ class AmazonDriver extends Driver
                     }
                 }
             } else {
-                $this->result[] = new VideoResponse([
-                    'name'     => $responseName,
-                    'url'      => $this->url . '/files/' . $output['Key'],
-                    'width'    => $output['Width'] ?? 0,
-                    'height'   => $output['Height'] ?? 0,
-                    'duration' => $output['Duration'] ?? 0,
-                    'size'     => $output['FileSize'] ?? 0
-                ]);
+                if ($process->getFileType() == FileHelper::TYPE_VIDEO) {
+                    $this->result[] = new VideoResponse([
+                        'name'     => $responseName,
+                        'url'      => $this->url . '/files/' . $output['Key'],
+                        'width'    => $output['Width'] ?? 0,
+                        'height'   => $output['Height'] ?? 0,
+                        'duration' => $output['Duration'] ?? 0,
+                        'size'     => $output['FileSize'] ?? 0
+                    ]);
+                } elseif ($process->getFileType() == FileHelper::TYPE_AUDIO) {
+                    $this->result[] = new AudioResponse([
+                        'name'     => $responseName,
+                        'url'      => $this->url . '/files/' . $output['Key'],
+                        'duration' => $output['Duration'] ?? 0,
+                        'size'     => $output['FileSize'] ?? 0
+                    ]);
+                }
+                
             }
         }
         
@@ -258,45 +283,46 @@ class AmazonDriver extends Driver
         $transcoderClient = $this->getTranscoderClient();
         try {
             $outputSettings = [];
-            list($width, $height) = FileHelper::getVideoDimensions($filePath);
-            Logger::send('process', ['processId' => $processId, 'step' => 'Get dimensions', 'data' => "$width X $height"]);
-            foreach ($this->transcoder['presets'] as $presetId => $presetSettings) {
-                if ($height && !empty($presetSettings['height']) && $presetSettings['height'] > $height) {
-                    Logger::send('process', ['processId' => $processId, 'step' => 'Skip preset with height ' . $presetSettings['height']]);
-                    continue;
+            if (!empty($this->transcoder['preset'])) {
+                $ext = null;
+                if ($process->getFileType() == FileHelper::TYPE_VIDEO) {
+                    $ext = 'mp4';
+                } elseif ($process->getFileType() == FileHelper::TYPE_AUDIO) {
+                    $ext = 'mp3';
                 }
-                $outputSetting = [
-                    'Key'      => $dir . '_' . strtolower($presetSettings['name']) . '.mp4',
+                $outputSettings[] = [
+                    'Key'      => $dir . '.' . $ext,
                     'Rotate'   => 'auto',
-                    'PresetId' => $presetId
+                    'PresetId' => $this->transcoder['preset']
                 ];
-                if ($watermarkKey) {
-                    Logger::send('process', [
-                        'processId' => $processId,
-                        'step'      => 'Set watermark',
-                        'data'      => ['status' => 'success', 'presetId' => $presetId, 'settings' => $presetSettings]
-                    ]);
-                    $outputSetting['Watermarks'][] = [
-                        'InputKey' => $watermarkKey,
-                        'PresetWatermarkId' => 'BottomRight'
+            } else {
+                list($width, $height) = FileHelper::getVideoDimensions($filePath);
+                Logger::send('process', ['processId' => $processId, 'step' => 'Get dimensions', 'data' => "$width X $height"]);
+                foreach ($this->transcoder['presets'] as $presetId => $presetSettings) {
+                    if ($height && !empty($presetSettings['height']) && $presetSettings['height'] > $height) {
+                        Logger::send('process', ['processId' => $processId, 'step' => 'Skip preset with height ' . $presetSettings['height']]);
+                        continue;
+                    }
+                    $outputSetting = [
+                        'Key'      => $dir . '_' . strtolower($presetSettings['name']) . '.mp4',
+                        'Rotate'   => 'auto',
+                        'PresetId' => $presetId
                     ];
+                    if ($watermarkKey) {
+                        Logger::send('process', [
+                            'processId' => $processId,
+                            'step'      => 'Set watermark',
+                            'data'      => ['status' => 'success', 'presetId' => $presetId, 'settings' => $presetSettings]
+                        ]);
+                        $outputSetting['Watermarks'][] = [
+                            'InputKey' => $watermarkKey,
+                            'PresetWatermarkId' => 'BottomRight'
+                        ];
+                    }
+                    $outputSettings[] = $outputSetting;
                 }
-                $outputSettings[] = $outputSetting;
             }
             
-            Logger::send('debug', [
-                'PipelineId'      => $this->transcoder['pipeline'],
-                'OutputKeyPrefix' => 'files/',
-                'Input' => [
-                    'Key'         => $keyName,
-                    'FrameRate'   => 'auto',
-                    'Resolution'  => 'auto',
-                    'AspectRatio' => 'auto',
-                    'Interlaced'  => 'auto',
-                    'Container'   => 'auto',
-                ],
-                'Outputs' => $outputSettings,
-            ]);
             $job = $transcoderClient->createJob([
                 'PipelineId'      => $this->transcoder['pipeline'],
                 'OutputKeyPrefix' => 'files/',
