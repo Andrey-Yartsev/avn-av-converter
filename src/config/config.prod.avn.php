@@ -12,10 +12,17 @@ return [
         'port'     => null,
         'database' => 1
     ],
+    'protect' => [
+        'type' => 'cloudfront',
+        'key_pair_id' => 'APKAIZQN3TWWCTQ5Z6ZQ',
+        'private_key' => '/var/www/html/src/config/pk.avn.cf.pem',
+        'expires' => '+1 year',
+        'url' => 'https://cdn2-media.avn.com',
+    ],
     'presets' => [
         'avn' => [
             'callback' => 'https://stars.avn.com/api2/v2/converter/ready',
-            'video'    => [
+            'audio'    => [
                 'driver'     => \Converter\components\drivers\AmazonDriver::class,
                 'url'        => 'https://avnstars-media.s3.amazonaws.com',
                 's3'         => [
@@ -30,7 +37,26 @@ return [
                     'key'      => 'AKIAJQCE37RKJ3OTOIZA',
                     'secret'   => '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',
                     'pipeline' => '1535375850253-dxzlpd',
-                    'preset'   => '1552337470087-x0jvu6'
+                    'preset'   => '1351620000001-300020'
+                ],
+            ],
+            'video'    => [
+                'driver'     => \Converter\components\drivers\AmazonDriver::class,
+                'url'        => 'https://avnstars-media.s3.amazonaws.com',
+                'needProtect' => true,
+                's3'         => [
+                    'region' => 'us-east-1',
+                    'bucket' => 'avnstars-media',
+                    'key'    => 'AKIAJNM2CVRJSS3CFXIA',
+                    'secret' => '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'
+                ],
+                'transcoder' => [
+                    'region'   => 'us-east-1',
+                    'bucket'   => 'avnstars-media',
+                    'key'      => 'AKIAJQCE37RKJ3OTOIZA',
+                    'secret'   => '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',
+                    'pipeline' => '1535375850253-dxzlpd',
+                    'preset'   => '1579269726017-sc9hr7'
                 ],
                 'thumbs' => [
                     'driver'     => \Converter\components\drivers\LocalDriver::class,
