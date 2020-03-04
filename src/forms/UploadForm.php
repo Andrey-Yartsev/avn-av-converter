@@ -45,6 +45,23 @@ class UploadForm extends Form
             if ($this->file && is_array($this->file)) {
                 $s3Storage = FileStorage::loadByPreset($this->preset);
                 if ($s3Storage instanceof S3Storage) {
+                    $allowedBuckets = [
+                        'of2transcoder',
+                        'avnstars-media',
+                        'avnsocial-dev',
+                    ];
+                    if (($this->file['Key'] ?? '') !== ($this->file['key'] ?? '')) {
+                        $this->setErrors('Invalid input.');
+                        return false;
+                    }
+                    if (!in_array($this->file['Bucket'] ?? '', $allowedBuckets)) {
+                        $this->setErrors('Invalid input.');
+                        return false;
+                    }
+                    if (strpos($this->file['Location'] ?? '', $this->file['Key'] ?? '') === false) {
+                        $this->setErrors('Invalid input.');
+                        return false;
+                    }
                     $response = $s3Storage->getClient()->headObject([
                         'Bucket' => $this->file['Bucket'],
                         'Key' => $this->file['Key'],
