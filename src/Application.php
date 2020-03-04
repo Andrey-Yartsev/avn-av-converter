@@ -10,6 +10,7 @@ use Converter\components\Config;
 use Converter\components\Logger;
 use Converter\exceptions\HttpException;
 use Converter\exceptions\NotFoundHttpException;
+use Ramsey\Uuid\Uuid;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Sentry;
@@ -73,6 +74,8 @@ class Application
      */
     public function sendException($exception, $message = null, $file = null, $line = null)
     {
+        $uid = Uuid::uuid4()->toString();
+
         // PHP errors have 5 args, always
         $isPhpError = (func_num_args() === 5);
         
@@ -96,7 +99,8 @@ class Application
             $sentryConfig = Config::getInstance()->get('sentry', false);
             if ($sentryConfig) {
                 $data = [
-                    'isProd' => $isProd
+                    'isProd' => $isProd,
+                    'uid' => $uid,
                 ];
                 Sentry\init($sentryConfig);
                 Sentry\configureScope(function (Sentry\State\Scope $scope) use ($data): void {
@@ -111,11 +115,15 @@ class Application
             'error' => [
                 'code'    => $code,
                 'message' => $message,
+                'uid' => $uid,
             ]
         ];
         if (!$isProd) {
             $message['error']['file'] = $file;
             $message['error']['line'] = $line;
+        } elseif (!$exception instanceof HttpException) {
+            $message['error']['code'] = 0;
+            $message['error']['message'] = 'Something went wrong.';
         }
         $error_reporting = error_reporting();
         Logger::send('converter.fatal', [
@@ -126,6 +134,7 @@ class Application
                 'line' => $line,
                 'trace' => $trace,
                 'error_reporting' => $error_reporting,
+                'uid' => $uid,
             ]
         ]);
         if ($error_reporting !== 0) {
