@@ -50,19 +50,17 @@ class UploadForm extends Form
                         'avnstars-media',
                         'avnsocial-dev',
                     ];
-                    if (($this->file['dev'] ?? '') !== 'e[~aEf<y+DZ([G8,') {
-                        if (($this->file['Key'] ?? '') !== ($this->file['key'] ?? '')) {
-                            $this->setErrors('Invalid input.');
-                            return false;
-                        }
-                        if (!in_array($this->file['Bucket'] ?? '', $allowedBuckets)) {
-                            $this->setErrors('Invalid input.');
-                            return false;
-                        }
-                        if (strpos($this->file['Location'] ?? '', $this->file['Key'] ?? '') === false) {
-                            $this->setErrors('Invalid input.');
-                            return false;
-                        }
+                    if (($this->file['Key'] ?? '') !== ($this->file['key'] ?? '')) {
+                        $this->setErrors('Invalid input.');
+                        return false;
+                    }
+                    if (!in_array($this->file['Bucket'] ?? '', $allowedBuckets)) {
+                        $this->setErrors('Invalid input.');
+                        return false;
+                    }
+                    if (strpos($this->file['Location'] ?? '', $this->file['Key'] ?? '') === false) {
+                        $this->setErrors('Invalid input.');
+                        return false;
                     }
                     $response = $s3Storage->getClient()->headObject([
                         'Bucket' => $this->file['Bucket'],
