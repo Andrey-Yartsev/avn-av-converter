@@ -54,10 +54,10 @@ class UploadForm extends Form
                         $this->setErrors('Invalid input.');
                         return false;
                     }
-                    if (strpos($this->file['Location'] ?? '', $this->file['Key'] ?? '') === false) {
-                        $this->setErrors('Invalid input.');
-                        return false;
-                    }
+//                    if (strpos($this->file['Location'] ?? '', $this->file['Key'] ?? '') === false) {
+//                        $this->setErrors('Invalid input.');
+//                        return false;
+//                    }
                     $response = $s3Storage->getClient()->headObject([
                         'Bucket' => $this->file['Bucket'],
                         'Key' => $this->file['Key'],
