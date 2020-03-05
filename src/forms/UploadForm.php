@@ -50,10 +50,6 @@ class UploadForm extends Form
                         'avnstars-media',
                         'avnsocial-dev',
                     ];
-                    if (($this->file['Key'] ?? '') !== ($this->file['key'] ?? '')) {
-                        $this->setErrors('Invalid input.');
-                        return false;
-                    }
                     if (!in_array($this->file['Bucket'] ?? '', $allowedBuckets)) {
                         $this->setErrors('Invalid input.');
                         return false;
