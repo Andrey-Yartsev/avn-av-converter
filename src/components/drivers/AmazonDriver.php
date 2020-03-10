@@ -137,55 +137,53 @@ class AmazonDriver extends Driver
                 Logger::send('process', ['processId' => $process->getId(), 'step' => 'Skip output #' . $output['PresetId']]);
                 continue;
             }
-            if ($this->hasStorage()) {
-                $storage = $this->getStorage();
-                if ($storage instanceof S3Storage && $storage->bucket != $this->s3['bucket']) {
-                    try {
-                        $s3Client = $this->getS3Client();
-                        if ($s3Client->doesObjectExist($this->s3['bucket'], 'files/' . $output['Key'])) {
-                            $s3Client->copyObject([
-                                'Bucket'     => $storage->bucket,
-                                'Key'        => 'files/' . $output['Key'],
-                                'CopySource' => $this->s3['bucket'] . '/files/' . $output['Key'],
+            $storage = $this->getStorage();
+            if ($storage instanceof S3Storage && $storage->bucket != $this->s3['bucket']) {
+                try {
+                    $s3Client = $this->getS3Client();
+                    if ($s3Client->doesObjectExist($this->s3['bucket'], 'files/' . $output['Key'])) {
+                        $s3Client->copyObject([
+                            'Bucket'     => $storage->bucket,
+                            'Key'        => 'files/' . $output['Key'],
+                            'CopySource' => $this->s3['bucket'] . '/files/' . $output['Key'],
+                        ]);
+                        $s3Client->deleteObject([
+                            'Bucket' => $this->s3['bucket'],
+                            'Key'    => 'files/' . $output['Key'],
+                        ]);
+                        Logger::send('process', ['processId' => $process->getId(), 'step' => 'Moved file']);
+                        if ($process->getFileType() == FileHelper::TYPE_VIDEO) {
+                            $this->result[] = new VideoResponse([
+                                'name'     => $responseName,
+                                'url'      => $storage->url . '/files/' . $output['Key'],
+                                'width'    => $output['Width'] ?? 0,
+                                'height'   => $output['Height'] ?? 0,
+                                'duration' => $output['Duration'] ?? 0,
+                                'size'     => $output['FileSize'] ?? 0
                             ]);
-                            $s3Client->deleteObject([
-                                'Bucket' => $this->s3['bucket'],
-                                'Key' => 'files/' . $output['Key'],
-                            ]);
-                            Logger::send('process', ['processId' => $process->getId(), 'step' => 'Moved file']);
-                            if ($process->getFileType() == FileHelper::TYPE_VIDEO) {
-                                $this->result[] = new VideoResponse([
-                                    'name'     => $responseName,
-                                    'url'      => $storage->url . '/files/' . $output['Key'],
-                                    'width'    => $output['Width'] ?? 0,
-                                    'height'   => $output['Height'] ?? 0,
-                                    'duration' => $output['Duration'] ?? 0,
-                                    'size'     => $output['FileSize'] ?? 0
-                                ]);
-                            } elseif ($process->getFileType() == FileHelper::TYPE_AUDIO) {
-                                $this->result[] = new AudioResponse([
-                                    'name'     => $responseName,
-                                    'url'      => $storage->url . '/files/' . $output['Key'],
-                                    'duration' => $output['Duration'] ?? 0,
-                                    'size'     => $output['FileSize'] ?? 0
-                                ]);
-                            }
-                        } else {
-                            Logger::send('process', ['processId' => $process->getId(), 'step' => 'Error move file']);
-                            Logger::send('converter.fatal', [
-                                'path' => 's3://' . $this->s3['bucket'] . '/files/' . $output['Key'],
-                                'error' => 'File exists'
+                        } elseif ($process->getFileType() == FileHelper::TYPE_AUDIO) {
+                            $this->result[] = new AudioResponse([
+                                'name'     => $responseName,
+                                'url'      => $storage->url . '/files/' . $output['Key'],
+                                'duration' => $output['Duration'] ?? 0,
+                                'size'     => $output['FileSize'] ?? 0
                             ]);
                         }
-                    } catch (\Throwable $exception) {
+                    } else {
+                        Logger::send('process', ['processId' => $process->getId(), 'step' => 'Error move file']);
                         Logger::send('converter.fatal', [
-                            'job' => $jobData['Output'],
-                            'error' => $exception->getMessage()
+                            'path'  => 's3://' . $this->s3['bucket'] . '/files/' . $output['Key'],
+                            'error' => 'File exists'
                         ]);
-                        $jobId = $jobData['Output']['Id'] ?? 'unknown';
-                        $this->error = 'Job #' . $jobId . ' failed.';
-                        return false;
                     }
+                } catch (\Throwable $exception) {
+                    Logger::send('converter.fatal', [
+                        'job'   => $jobData['Output'],
+                        'error' => $exception->getMessage()
+                    ]);
+                    $jobId = $jobData['Output']['Id'] ?? 'unknown';
+                    $this->error = 'Job #' . $jobId . ' failed.';
+                    return false;
                 }
             } else {
                 if ($process->getFileType() == FileHelper::TYPE_VIDEO) {
@@ -205,7 +203,7 @@ class AmazonDriver extends Driver
                         'size'     => $output['FileSize'] ?? 0
                     ]);
                 }
-                
+        
             }
         }
         
