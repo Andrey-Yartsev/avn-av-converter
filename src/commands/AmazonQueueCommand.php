@@ -131,6 +131,8 @@ class AmazonQueueCommand extends Command
                 }
             } catch (\Exception $e) {
                 $output->writeln('<error>' . $e->getMessage() . '</error>');
+                Logger::send('process', ['processId' => $process->getId(), 'step' => 'Failed', 'data' => $e->getMessage()]);
+                Redis::getInstance()->sRem('amazon:queue', $job);
                 continue;
             }
             
