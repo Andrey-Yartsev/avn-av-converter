@@ -148,7 +148,7 @@ class UploadForm extends Form
                 'file'       => $this->file
             ];
     
-            $processId = Process::createQueue($process);
+            $processId = Process::createQueue($process, $processId);
             $process['isDelay'] = true;
             Logger::send('process', ['processId' => $processId, 'step' => 'create', 'data' => $process]);
             

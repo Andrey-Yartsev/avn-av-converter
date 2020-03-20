@@ -33,94 +33,107 @@ class AmazonQueueCommand extends Command
             return 1;
         }
         
-        $presents = Config::getInstance()->get('presets');
         $jobs = Redis::getInstance()->sMembers('amazon:queue');
         foreach ($jobs as $job) {
             $output->writeln('<info>Catch ' . $job . '</info>');
             $options = json_decode($job, true);
             $presetName = $options['presetName'];
             $process = Process::find($options['processId']);
+            if (empty($process)) {
+                $output->writeln('<error>Process not found</error>');
+                Redis::getInstance()->sRem('amazon:queue', $job);
+                Logger::send('process', ['processId' => $options['processId'], 'step' => 'Not founded']);
+                continue;
+            }
             $amazonDriver = $process->getDriver();
             if (!$amazonDriver instanceof AmazonDriver) {
+                $output->writeln('<error>Wrong driver</error>');
+                Redis::getInstance()->sRem('amazon:queue', $job);
                 Logger::send('process', ['processId' => $options['processId'], 'step' => 'Wrong driver']);
                 continue;
             }
             $output->writeln('Read job #' . $options['jobId']);
-            if ($amazonDriver->readJob($options['jobId'], $process)) {
-                $output->writeln('Job #' . $options['jobId'] . ' complete');
-                try {
-                    $json = [
-                        'processId' => $options['processId'],
-                        'preset'    => $presetName,
-                        'baseUrl'   => Config::getInstance()->get('baseUrl'),
-                        'files'     => $amazonDriver->getResult()
-                    ];
-                    Logger::send('process', ['processId' => $options['processId'], 'step' => 'Job success', 'data' => $json]);
+            try {
+                if ($amazonDriver->readJob($options['jobId'], $process)) {
+                    $output->writeln('Job #' . $options['jobId'] . ' complete');
                     try {
-                        $client = new Client();
-                        $response = $client->request('POST', $process->getCallbackUrl(), [
-                            'json' => $json
-                        ]);
-                        Logger::send('converter.callback.sendCallback', [
-                            'type' => 'amazon_main',
-                            'request' => $json,
-                            'httpCode' => $response->getStatusCode(),
-                            'response' => $response->getBody()
-                        ]);
-                        Logger::send('process', ['processId' => $options['processId'], 'step' => 'Send callback', 'data' => [
-                            'httpCode' => $response->getStatusCode(),
-                            'response' => $response->getBody()
-                        ]]);
+                        $json = [
+                            'processId' => $options['processId'],
+                            'preset'    => $presetName,
+                            'baseUrl'   => Config::getInstance()->get('baseUrl'),
+                            'files'     => $amazonDriver->getResult()
+                        ];
+                        Logger::send('process', ['processId' => $options['processId'], 'step' => 'Job success', 'data' => $json]);
+                        try {
+                            $client = new Client();
+                            $response = $client->request('POST', $process->getCallbackUrl(), [
+                                'json' => $json
+                            ]);
+                            Logger::send('converter.callback.sendCallback', [
+                                'type' => 'amazon_main',
+                                'request' => $json,
+                                'httpCode' => $response->getStatusCode(),
+                                'response' => $response->getBody()
+                            ]);
+                            Logger::send('process', ['processId' => $options['processId'], 'step' => 'Send callback', 'data' => [
+                                'httpCode' => $response->getStatusCode(),
+                                'response' => $response->getBody()
+                            ]]);
+                        } catch (\Exception $e) {
+                            $this->failedCallback($e->getMessage(), $process->getCallbackUrl(), $options['processId'], $json);
+                        }
+                        $output->writeln(json_encode($amazonDriver->getResult()));
+                        Redis::getInstance()->sRem('amazon:queue', $job);
+                        Redis::getInstance()->del('queue:' . $options['processId']);
+                        // @TODO removed original file
                     } catch (\Exception $e) {
-                        $this->failedCallback($e->getMessage(), $process->getCallbackUrl(), $options['processId'], $json);
-                    }
-                    $output->writeln(json_encode($amazonDriver->getResult()));
-                    Redis::getInstance()->sRem('amazon:queue', $job);
-                    Redis::getInstance()->del('queue:' . $options['processId']);
-                    // @TODO removed original file
-                } catch (\Exception $e) {
-                    $output->writeln('<error>' . $e->getMessage() . '</error>');
-                    Redis::getInstance()->sRem('amazon:queue', $job);
-                    $this->failedCallback($e->getMessage(), $process->getCallbackUrl(), $options['processId'], [
-                        'processId' => $options['processId'],
-                        'baseUrl'   => Config::getInstance()->get('baseUrl'),
-                        'preset'    => $presetName,
-                        'files'     => $amazonDriver->getResult()
-                    ]);
-                }
-            } else {
-                if (($error = $amazonDriver->getError())) {
-                    Redis::getInstance()->sRem('amazon:queue', $job);
-                    Logger::send('process', ['processId' => $options['processId'], 'step' => 'Job failed', 'data' => ['error' => $error]]);
-                    try {
-                        $client = new Client();
-                        $response = $client->request('POST', $process->getCallbackUrl(), [
-                            'json' => [
-                                'processId' => $options['processId'],
-                                'error' => $error
-                            ]
-                        ]);
-                        Logger::send('converter.callback.sendCallback', [
-                            'type' => 'amazon_main',
-                            'request' => [
-                                'processId' => $options['processId'],
-                                'error' => $error
-                            ],
-                            'httpCode' => $response->getStatusCode(),
-                            'response' => $response->getBody()
-                        ]);
-                    } catch (\Exception $e) {
+                        $output->writeln('<error>' . $e->getMessage() . '</error>');
+                        Redis::getInstance()->sRem('amazon:queue', $job);
                         $this->failedCallback($e->getMessage(), $process->getCallbackUrl(), $options['processId'], [
                             'processId' => $options['processId'],
-                            'error' => $error
+                            'baseUrl'   => Config::getInstance()->get('baseUrl'),
+                            'preset'    => $presetName,
+                            'files'     => $amazonDriver->getResult()
                         ]);
                     }
-                    
-                    $output->writeln('<error>Job #' . $options['jobId'] . ' error</error>');
                 } else {
-                    $output->writeln('<error>Job #' . $options['jobId'] . ' not complete</error>');
+                    if (($error = $amazonDriver->getError())) {
+                        Redis::getInstance()->sRem('amazon:queue', $job);
+                        Logger::send('process', ['processId' => $options['processId'], 'step' => 'Job failed', 'data' => ['error' => $error]]);
+                        try {
+                            $client = new Client();
+                            $response = $client->request('POST', $process->getCallbackUrl(), [
+                                'json' => [
+                                    'processId' => $options['processId'],
+                                    'error' => $error
+                                ]
+                            ]);
+                            Logger::send('converter.callback.sendCallback', [
+                                'type' => 'amazon_main',
+                                'request' => [
+                                    'processId' => $options['processId'],
+                                    'error' => $error
+                                ],
+                                'httpCode' => $response->getStatusCode(),
+                                'response' => $response->getBody()
+                            ]);
+                        } catch (\Exception $e) {
+                            $this->failedCallback($e->getMessage(), $process->getCallbackUrl(), $options['processId'], [
+                                'processId' => $options['processId'],
+                                'error' => $error
+                            ]);
+                        }
+            
+                        $output->writeln('<error>Job #' . $options['jobId'] . ' error</error>');
+                    } else {
+                        $output->writeln('<error>Job #' . $options['jobId'] . ' not complete</error>');
+                    }
                 }
+            } catch (\Exception $e) {
+                $output->writeln('<error>' . $e->getMessage() . '</error>');
+                continue;
             }
+            
             sleep(1);
         }
         $this->release();
