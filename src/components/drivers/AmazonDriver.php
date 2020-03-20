@@ -98,6 +98,7 @@ class AmazonDriver extends Driver
      */
     public function readJob($jobId, $process)
     {
+        Logger::send('process', ['processId' => $process->getId(), 'step' => 'readJob()']);
         $transcoderClient = $this->getTranscoderClient();
         $response = $transcoderClient->readJob(['Id' => $jobId]);
         Logger::send('converter.aws.readJob', $response->toArray());
@@ -170,11 +171,17 @@ class AmazonDriver extends Driver
                             ]);
                         }
                     } else {
-                        Logger::send('process', ['processId' => $process->getId(), 'step' => 'Error move file']);
-                        Logger::send('converter.fatal', [
-                            'path'  => 's3://' . $this->s3['bucket'] . '/files/' . $output['Key'],
-                            'error' => 'File exists'
-                        ]);
+                        if ($responseName == 'source') {
+                            Logger::send('process', ['processId' => $process->getId(), 'step' => 'File not exists (source)']);
+                            die;
+                        } else {
+                            Logger::send('process', ['processId' => $process->getId(), 'step' => 'File not exists']);
+                            Logger::send('converter.fatal', [
+                                'path'  => 's3://' . $this->s3['bucket'] . '/files/' . $output['Key'],
+                                'error' => 'File not exists'
+                            ]);
+                        }
+                        
                     }
                 } catch (\Throwable $exception) {
                     Logger::send('converter.fatal', [

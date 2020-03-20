@@ -77,6 +77,8 @@ class ProcessController extends Controller
                     'processId' => $process['id'],
                     'success'   => true
                 ];
+            } else {
+                Logger::send('process', ['processId' => $process['id'], 'step' => 'Data not found. Skip']);
             }
         }
     
