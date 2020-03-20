@@ -106,7 +106,7 @@ class AmazonDriver extends Driver
         if (strtolower($jobData['Status']) != 'complete') {
             if (strtolower($jobData['Status']) == 'error') {
                 Logger::send('converter.aws.readJob', $jobData['Output']);
-                $this->error = $jobData['Output']['StatusDetail'];
+                $this->error = isset($jobData['Output']['StatusDetail']) ? $jobData['Output']['StatusDetail'] : 'Internal error';
             }
             return false;
         }
@@ -173,7 +173,13 @@ class AmazonDriver extends Driver
                     } else {
                         if ($responseName == 'source') {
                             Logger::send('process', ['processId' => $process->getId(), 'step' => 'File not exists (source)']);
-                            die;
+                            $finishTime = round($jobData['Timing']['FinishTimeMillis']/100);
+                            $deltaTime = time() - $finishTime;
+                            if ($deltaTime > 300) {
+                                $this->error = 'File not exists (source)';
+                                return false;
+                            }
+                            return false;
                         } else {
                             Logger::send('process', ['processId' => $process->getId(), 'step' => 'File not exists']);
                             Logger::send('converter.fatal', [
@@ -181,7 +187,6 @@ class AmazonDriver extends Driver
                                 'error' => 'File not exists'
                             ]);
                         }
-                        
                     }
                 } catch (\Throwable $exception) {
                     Logger::send('converter.fatal', [
