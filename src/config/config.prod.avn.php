@@ -96,8 +96,12 @@ return [
             'image'    => [
                 'driver'     => \Converter\components\drivers\LocalDriver::class,
                 'engine'     => 'imagick',
-                'withSource' => true,
                 'thumbSizes' => [
+                    [
+                        'name' => 'source',
+                        'maxSize' => 3840,
+                        'fixRatio' => false,
+                    ],
                     [
                         'name'    => 'preview',
                         'maxSize' => 760,
@@ -110,7 +114,9 @@ return [
                     [
                         'name'    => 'locked',
                         'maxSize' => 50,
-                        'blur'    => 10
+                        'blur'    => 10,
+                        'watermark' => false,
+                        'fixRatio' => false,
                     ]
                 ]
             ],
