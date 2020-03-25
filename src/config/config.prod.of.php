@@ -80,7 +80,7 @@ $cfg = [
                         [
                             'name' => 'locked',
                             'maxSize' => 30,
-                            'blur' => 1,
+                            'blur' => 10,
                             'watermark' => false,
                             'fixRatio' => false,
                         ]
@@ -115,7 +115,7 @@ $cfg = [
                     [
                         'name' => 'locked',
                         'maxSize' => 30,
-                        'blur' => 1,
+                        'blur' => 10,
                         'watermark' => false,
                         'fixRatio' => false,
                     ]
