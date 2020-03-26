@@ -34,12 +34,15 @@ class AmazonQueueCommand extends Command
         }
         
         $jobs = Redis::getInstance()->sMembers('amazon:queue');
+        Logger::send('amazon.queue', ['count' => count($jobs)]);
         foreach ($jobs as $job) {
             $output->writeln('<info>Catch ' . $job . '</info>');
             $options = json_decode($job, true);
             $presetName = $options['presetName'];
             $process = Process::find($options['processId']);
+            Logger::send('amazon.queue', ['job' => $job, 'step' => 'Start']);
             if (empty($process)) {
+                Logger::send('amazon.queue', ['job' => $job, 'step' => 'Process #' . $options['processId'] . ' not found']);
                 $output->writeln('<error>Process not found</error>');
                 Redis::getInstance()->sRem('amazon:queue', $job);
                 Logger::send('process', ['processId' => $options['processId'], 'step' => 'Not founded']);
@@ -47,6 +50,7 @@ class AmazonQueueCommand extends Command
             }
             $amazonDriver = $process->getDriver();
             if (!$amazonDriver instanceof AmazonDriver) {
+                Logger::send('amazon.queue', ['job' => $job, 'step' => 'Process #' . $options['processId'] . ' wrong driver']);
                 $output->writeln('<error>Wrong driver</error>');
                 Redis::getInstance()->sRem('amazon:queue', $job);
                 Logger::send('process', ['processId' => $options['processId'], 'step' => 'Wrong driver']);
@@ -54,7 +58,9 @@ class AmazonQueueCommand extends Command
             }
             $output->writeln('Read job #' . $options['jobId']);
             try {
+                
                 if ($amazonDriver->readJob($options['jobId'], $process)) {
+                    Logger::send('amazon.queue', ['job' => $job, 'step' => 'readJob():true']);
                     $output->writeln('Job #' . $options['jobId'] . ' complete');
                     try {
                         $json = [
@@ -64,6 +70,7 @@ class AmazonQueueCommand extends Command
                             'files'     => $amazonDriver->getResult()
                         ];
                         Logger::send('process', ['processId' => $options['processId'], 'step' => 'Job success', 'data' => $json]);
+                        Logger::send('amazon.queue', ['job' => $job, 'step' => 'Job success']);
                         try {
                             $client = new Client();
                             $response = $client->request('POST', $process->getCallbackUrl(), [
@@ -79,7 +86,9 @@ class AmazonQueueCommand extends Command
                                 'httpCode' => $response->getStatusCode(),
                                 'response' => $response->getBody()
                             ]]);
+                            Logger::send('amazon.queue', ['job' => $job, 'step' => 'Send callback ' . $response->getStatusCode()]);
                         } catch (\Exception $e) {
+                            Logger::send('amazon.queue', ['job' => $job, 'step' => 'Error send callback ' . $e->getMessage()]);
                             $this->failedCallback($e->getMessage(), $process->getCallbackUrl(), $options['processId'], $json);
                         }
                         $output->writeln(json_encode($amazonDriver->getResult()));
@@ -123,9 +132,10 @@ class AmazonQueueCommand extends Command
                                 'error' => $error
                             ]);
                         }
-            
+                        Logger::send('amazon.queue', ['job' => $job, 'step' => 'readJob():false:' . $error]);
                         $output->writeln('<error>Job #' . $options['jobId'] . ' error</error>');
                     } else {
+                        Logger::send('amazon.queue', ['job' => $job, 'step' => 'readJob():not complete']);
                         $output->writeln('<error>Job #' . $options['jobId'] . ' not complete</error>');
                     }
                 }
