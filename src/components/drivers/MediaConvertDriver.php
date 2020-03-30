@@ -7,6 +7,7 @@
 namespace Converter\components\drivers;
 
 
+use Aws\Credentials\Credentials;
 use Aws\MediaConvert\MediaConvertClient;
 use Aws\S3\S3Client;
 use Converter\components\Logger;
@@ -28,7 +29,7 @@ class MediaConvertDriver extends AmazonDriver
         return new MediaConvertClient([
             'version' => 'latest',
             'region' => $this->mediaConfig['region'],
-            'profile' => 'default',
+            'credentials' => new Credentials($this->mediaConfig['key'], $this->mediaConfig['secret']),
             'endpoint' => 'https://q25wbt2lc.mediaconvert.us-east-1.amazonaws.com'
         ]);
     }
@@ -200,7 +201,7 @@ class MediaConvertDriver extends AmazonDriver
                 'ImageY' => 10,
                 'Layer' => 10,
                 'ImageInserterInput' => $watermarkKey,
-                'Opacity' => 0,
+                'Opacity' => 100,
             ];
         }
         $client = $this->getClient();
