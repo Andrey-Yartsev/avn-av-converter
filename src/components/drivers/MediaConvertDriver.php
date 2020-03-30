@@ -53,7 +53,7 @@ class MediaConvertDriver extends AmazonDriver
             $outputDetails = $jobData['OutputGroupDetails'][0]['OutputDetails'] ?? [];
             $outputs = $jobData['Settings']['OutputGroups'][0]['Outputs'] ?? [];
             $path = $jobData['Settings']['OutputGroups'][0]['OutputGroupSettings']['FileGroupSettings']['Destination'] ?? null;
-            $path = str_replace('s3://test-of2/', '', $path);
+            $path = str_replace("s3://{$this->s3['bucket']}/", '', $path);
             $sourcePath = null;
             foreach ($outputDetails as $index => $outputDetail) {
                 if (empty($outputs[$index])) {
@@ -124,7 +124,7 @@ class MediaConvertDriver extends AmazonDriver
                                 }
                                 return false;
                             } else {
-                                Logger::send('process', ['processId' => $process->getId(), 'step' => 'File not exists']);
+                                Logger::send('process', ['processId' => $process->getId(), 'step' => 'File not exists', 'path'  => 's3://' . $this->s3['bucket'] . '/' . $file['path'],]);
                                 Logger::send('converter.fatal', [
                                     'path'  => 's3://' . $this->s3['bucket'] . '/' . $file['path'],
                                     'error' => 'File not exists'
@@ -211,7 +211,7 @@ class MediaConvertDriver extends AmazonDriver
                 'OutputGroupSettings' => [
                     'Type' => 'FILE_GROUP_SETTINGS',
                     'FileGroupSettings' => [
-                        'Destination' => 's3://test-of2/123'
+                        'Destination' => "s3://{$this->s3['bucket']}/$processId/$processId"
                     ]
                 ],
                 'Outputs' => [],
@@ -236,7 +236,6 @@ class MediaConvertDriver extends AmazonDriver
                 ],
                 'Queue' => $this->mediaConfig['queue'],
             ]);
-            Logger::send('process', ['processId' => $process->getId(), 'debug' => $job->toArray()]);
         } catch (\Throwable $e) {
             Logger::send('process', ['processId' => $processId, 'step' => 'Create media convert job', 'data' => [
                 'status' => 'failed',
