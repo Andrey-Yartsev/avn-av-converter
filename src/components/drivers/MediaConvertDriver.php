@@ -12,7 +12,9 @@ use Aws\S3\S3Client;
 use Converter\components\Logger;
 use Converter\components\Process;
 use Converter\components\Redis;
+use Converter\components\storages\S3Storage;
 use Converter\helpers\FileHelper;
+use Converter\response\VideoResponse;
 
 class MediaConvertDriver extends AmazonDriver
 {
@@ -37,13 +39,120 @@ class MediaConvertDriver extends AmazonDriver
      */
     public function readJob($jobId, $process)
     {
-        Logger::send('process', ['processId' => $process->getId(), 'step' => __CLASS__ . '::' . __METHOD__]);
+        Logger::send('process', ['processId' => $process->getId(), 'jobId' => $jobId, 'step' =>  __METHOD__]);
         $client = $this->getClient();
         try {
-            $job = $client->getJob(['ID' => $jobId]);
-            Logger::send('process', ['processId' => $process->getId(), 'debug' => $job->toArray()]);
+            $response = $client->getJob(['Id' => $jobId]);
+            Logger::send('converter.aws.readJob', $response->toArray());
+            $jobData = (array) $response->get('Job');
+            if (strtolower($jobData['Status']) != 'complete') {
+                return false;
+            }
+            
+            $files = [];
+            $outputDetails = $jobData['OutputGroupDetails'][0]['OutputDetails'] ?? [];
+            $outputs = $jobData['Settings']['OutputGroups'][0]['Outputs'] ?? [];
+            $path = $jobData['Settings']['OutputGroups'][0]['OutputGroupSettings']['FileGroupSettings']['Destination'] ?? null;
+            $path = str_replace('s3://test-of2/', '', $path);
+            $sourcePath = null;
+            foreach ($outputDetails as $index => $outputDetail) {
+                if (empty($outputs[$index])) {
+                    continue;
+                }
+                $nameModifier = $outputs[$index]['NameModifier'];
+                $files[] = [
+                    'duration' => round($outputDetail['DurationInMs']/1000),
+                    'height' => $outputDetail['VideoDetails']['HeightInPx'],
+                    'width' => $outputDetail['VideoDetails']['WidthInPx'],
+                    'url' => $this->url . '/' . $path . $nameModifier . '.mp4',
+                    'path' => $path . $nameModifier . '.mp4',
+                    'name' => substr($nameModifier, 1),
+                    'presetId' => $outputs[$index]['Preset'],
+                ];
+                if ($nameModifier == '_source') {
+                    $sourcePath = $path . $nameModifier . '.mp4';
+                }
+            }
+            
+            if ($this->previews && !$this->needPreviewOnStart) {
+                Logger::send('process', ['processId' => $process->getId(), 'step' => 'Start make previews']);
+                $driver = Driver::loadByConfig($this->presetName, $this->previews);
+                $videoUrl = $this->url . $sourcePath;
+                $previewPath = $this->getVideoFrame($videoUrl, 0);
+                if ($previewPath) {
+                    $driver->createPhotoPreview($previewPath);
+                }
+                foreach ($driver->getResult() as $result) {
+                    Logger::send('process', ['processId' => $process->getId(), 'step' => 'End make previews']);
+                    $this->result[] = $result;
+                }
+            }
+    
+            foreach ($files as $file) {
+                if (isset($this->mediaConfig['presets'][$file['presetId']])) {
+                    Logger::send('process', ['processId' => $process->getId(), 'step' => "Find # {$file['presetId']} ({$file['name']})"]);
+                } else {
+                    Logger::send('process', ['processId' => $process->getId(), 'step' => "Skip # {$file['presetId']} ({$file['name']})"]);
+                    continue;
+                }
+                $storage = $this->getStorage();
+                if ($storage instanceof S3Storage && $storage->bucket != $this->s3['bucket']) {
+                    try {
+                        $s3Client = $this->getS3Client();
+                        if ($s3Client->doesObjectExist($this->s3['bucket'], $file['path'])) {
+                            $s3Client->copyObject([
+                                'Bucket'     => $storage->bucket,
+                                'Key'        => $file['path'],
+                                'CopySource' => $this->s3['bucket'] . '/' . $file['path'],
+                            ]);
+                            $s3Client->deleteObject([
+                                'Bucket' => $this->s3['bucket'],
+                                'Key'    => $file['path'],
+                            ]);
+                            Logger::send('process', ['processId' => $process->getId(), 'step' => 'Moved file']);
+                            if ($process->getFileType() == FileHelper::TYPE_VIDEO) {
+                                $this->result[] = new VideoResponse($file);
+                            }
+                        } else {
+                            if ($file['name'] == 'source') {
+                                Logger::send('process', ['processId' => $process->getId(), 'step' => 'File not exists (source)']);
+                                $finishTime = round($jobData['Timing']['FinishTimeMillis']/100);
+                                $deltaTime = time() - $finishTime;
+                                if ($deltaTime > 300) {
+                                    $this->error = 'File not exists (source)';
+                                    return false;
+                                }
+                                return false;
+                            } else {
+                                Logger::send('process', ['processId' => $process->getId(), 'step' => 'File not exists']);
+                                Logger::send('converter.fatal', [
+                                    'path'  => 's3://' . $this->s3['bucket'] . '/' . $file['path'],
+                                    'error' => 'File not exists'
+                                ]);
+                            }
+                        }
+                    } catch (\Throwable $exception) {
+                        Logger::send('converter.fatal', [
+                            'job'   => $jobData['Output'],
+                            'error' => $exception->getMessage()
+                        ]);
+                        $jobId = $jobData['Output']['Id'] ?? 'unknown';
+                        $this->error = 'Job #' . $jobId . ' failed.';
+                        return false;
+                    }
+                } else {
+                    if ($process->getFileType() == FileHelper::TYPE_VIDEO) {
+                        $this->result[] = new VideoResponse($file);
+                    }
+                }
+            }
         } catch (\Throwable $e) {
-        
+            Logger::send('process', ['processId' => $process->getId(), 'step' => 'Failed read job', 'data' => [
+                'status' => 'failed',
+                'error' => $e->getMessage(),
+                'code' => $e->getCode()
+            ]]);
+            return false;
         }
     }
     
