@@ -11,6 +11,7 @@ use Aws\MediaConvert\MediaConvertClient;
 use Aws\S3\S3Client;
 use Converter\components\Logger;
 use Converter\components\Process;
+use Converter\components\Redis;
 use Converter\helpers\FileHelper;
 
 class MediaConvertDriver extends AmazonDriver
@@ -25,7 +26,8 @@ class MediaConvertDriver extends AmazonDriver
         return new MediaConvertClient([
             'version' => 'latest',
             'region' => $this->mediaConfig['region'],
-            
+            'profile' => 'default',
+            'endpoint' => 'https://q25wbt2lc.mediaconvert.us-east-1.amazonaws.com'
         ]);
     }
     
@@ -53,18 +55,33 @@ class MediaConvertDriver extends AmazonDriver
     {
         $processId = $process->getId();
         $filePath = $process->getFilePath();
-        Logger::send('process', ['processId' => $processId, 'step' =>  __CLASS__ . '::' . __METHOD__]);
+        Logger::send('process', ['processId' => $processId, 'step' =>  __METHOD__]);
     
         $file = $process->getFile();
         if ($file) {
             $keyName = 's3://' . $file['Bucket'] . '/' . $file['Key'];
             Logger::send('process', ['processId' => $processId, 'step' => 'Set keyName', 'keyName' => $keyName]);
         } else {
-            $keyName = '';
+            Logger::send('process', ['processId' => $processId, 'step' => 'Error']);
+            return false;
         }
        
         $s3Client = $this->getS3Client();
-        $inputSettings = ['FileInput' => $keyName];
+        $inputSettings = [
+            'FileInput' => $keyName,
+            'AudioSelectors' => [
+                'Audio Selector 1' => [
+                    'Offset' => 0,
+                    'DefaultSelection' => 'DEFAULT',
+                    'ProgramSelection' => 1,
+                ]
+            ],
+            'VideoSelector' => [
+                'ColorSpace' => 'FOLLOW',
+                'Rotate' => 'DEGREE_0',
+                'AlphaBehavior' => 'DISCARD',
+            ]
+        ];
     
         $watermarkKey = $this->getWatermark($s3Client, $process->getWatermark());
         if ($watermarkKey) {
@@ -76,7 +93,6 @@ class MediaConvertDriver extends AmazonDriver
                 'Opacity' => 0,
             ];
         }
-        
         $client = $this->getClient();
         try {
             list($width, $height) = FileHelper::getVideoDimensions($filePath);
@@ -120,7 +136,20 @@ class MediaConvertDriver extends AmazonDriver
             ]]);
             return false;
         }
-        return true;
+        $job = (array)$job->get('Job');
+        Logger::send('process', ['processId' => $processId, 'step' => 'Create MediaConvert job', 'data' => ['status' => 'success', 'jobId' => $job['Id']]]);
+        if (strtolower($job['Status']) == 'submitted') {
+            Logger::send('process', ['processId' => $processId, 'step' => 'Added to amazon:queue', 'data' => ['status' => 'success']]);
+            Redis::getInstance()->sAdd('amazon:queue', json_encode([
+                'jobId' => $job['Id'],
+                'processId' => $processId,
+                'presetName' => $this->presetName
+            ]));
+            return true;
+        } else {
+            Logger::send('process', ['processId' => $processId, 'step' => 'Wrong job', 'data' => $job]);
+            return false;
+        }
     }
     
     /**

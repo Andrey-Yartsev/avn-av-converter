@@ -14,6 +14,9 @@ class SystemController extends Controller
 {
     public function actionStatus()
     {
+        $process = \Converter\components\Process::find('');
+        $driver = $process->getDriver();
+        $driver->readJob('', $process);
         $redis = Redis::getInstance();
         $retries = [];
         
