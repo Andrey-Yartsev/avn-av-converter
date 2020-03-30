@@ -7,6 +7,7 @@
 namespace Converter\commands;
 
 
+use Converter\components\drivers\AmazonDriver;
 use Converter\components\Logger;
 use Converter\components\Process;
 use Symfony\Component\Console\Command\Command;
@@ -34,7 +35,7 @@ class UploadCommand extends Command
             ]);
             Logger::send('process', ['processId' => $params['processId'], 'step' => 'Amazon driver', 'data' => ['status' => 'init']]);
             if ($process) {
-                if ($amazonDriver->createJob($process)) {
+                if ($amazonDriver instanceof AmazonDriver && $amazonDriver->createJob($process)) {
                     Logger::send('worker.upload.run', [
                         'step' => $params['processId'] . ' success file uploaded'
                     ]);

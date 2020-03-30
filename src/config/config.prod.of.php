@@ -25,7 +25,7 @@ $cfg = [
                 'needPreviewOnStart' => false,
             ],
             'video' => [
-                'driver' => \Converter\components\drivers\AmazonDriver::class,
+                'driver' => \Converter\components\drivers\ElasticTranscoderDriver::class,
                 'url' => 'https://of2transcoder.s3-accelerate.amazonaws.com',
                 'needProtect' => true,
                 's3' => [
@@ -151,7 +151,7 @@ $cfg = [
                 'outputFormat' => 'mp3',
             ],
             'video' => [
-                'driver' => \Converter\components\drivers\AmazonDriver::class,
+                'driver' => \Converter\components\drivers\ElasticTranscoderDriver::class,
                 'url' => 'https://of2transcoder.s3.amazonaws.com',
                 's3' => [
                     'region' => 'us-east-1',
