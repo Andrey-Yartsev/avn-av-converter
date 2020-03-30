@@ -154,6 +154,7 @@ class MediaConvertDriver extends AmazonDriver
             ]]);
             return false;
         }
+        return true;
     }
     
     /**
