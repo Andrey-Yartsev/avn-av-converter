@@ -39,6 +39,7 @@ $cfg = [
                     'queue' => 'arn:aws:mediaconvert:us-east-1:315135013854:queues/Default',
                     'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
                     'secret' => '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',
+                    'url' => 'https://of2transcoder.s3-accelerate.amazonaws.com',
                     'sourcePresets' => [
                         'System-Generic_Uhd_Mp4_Hevc_Aac_16x9_3840x2160p_24Hz_8Mbps' => ['name' => 'source', 'height' => 2160],
                         'System-Generic_Hd_Mp4_Avc_Aac_16x9_1920x1080p_24Hz_6Mbps' => ['name' => 'source', 'height' => 1080],
