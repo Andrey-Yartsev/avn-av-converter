@@ -221,6 +221,9 @@ class MediaConvertDriver extends AmazonDriver
             list($presetId, $presetSettings) = $this->getSourcePresetId($width, $height);
             if ($presetId) {
                 $this->mediaConfig['presets'][$presetId] = $presetSettings;
+                Logger::send('process', ['processId' => $processId, 'step' => 'Selected source preset ' . $presetSettings['height']]);
+            } else {
+                Logger::send('process', ['processId' => $processId, 'step' => 'No selected source preset']);
             }
             foreach ($this->mediaConfig['presets'] as $presetId => $presetSettings) {
                 if ($height && !empty($presetSettings['height']) && $presetSettings['height'] > $height) {
