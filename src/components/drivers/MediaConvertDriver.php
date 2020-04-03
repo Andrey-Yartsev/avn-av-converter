@@ -90,12 +90,6 @@ class MediaConvertDriver extends AmazonDriver
             }
     
             foreach ($files as $file) {
-                if (isset($this->mediaConfig['presets'][$file['presetId']])) {
-                    Logger::send('process', ['processId' => $process->getId(), 'step' => "Find # {$file['presetId']} ({$file['name']})"]);
-                } else {
-                    Logger::send('process', ['processId' => $process->getId(), 'step' => "Skip # {$file['presetId']} ({$file['name']})"]);
-                    continue;
-                }
                 $storage = $this->getStorage();
                 if ($storage instanceof S3Storage && $storage->bucket != $this->s3['bucket']) {
                     try {
