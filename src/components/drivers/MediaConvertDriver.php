@@ -104,7 +104,7 @@ class MediaConvertDriver extends AmazonDriver
                                 'Bucket' => $this->s3['bucket'],
                                 'Key'    => $file['path'],
                             ]);
-                            Logger::send('process', ['processId' => $process->getId(), 'step' => 'Moved file']);
+                            Logger::send('process', ['processId' => $process->getId(), 'step' => 'Moved file (' . $file['name'] . ')']);
                             if ($process->getFileType() == FileHelper::TYPE_VIDEO) {
                                 $this->result[] = new VideoResponse($file);
                             }
