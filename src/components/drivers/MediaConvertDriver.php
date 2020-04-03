@@ -213,11 +213,15 @@ class MediaConvertDriver extends AmazonDriver
                 'OutputGroupSettings' => [
                     'Type' => 'FILE_GROUP_SETTINGS',
                     'FileGroupSettings' => [
-                        'Destination' => "s3://{$this->s3['bucket']}/$processId/$processId"
+                        'Destination' => "s3://{$this->s3['bucket']}/files/$processId/$processId"
                     ]
                 ],
                 'Outputs' => [],
             ];
+            list($presetId, $presetSettings) = $this->getSourcePresetId($width, $height);
+            if ($presetId) {
+                $this->mediaConfig['presets'][$presetId] = $presetSettings;
+            }
             foreach ($this->mediaConfig['presets'] as $presetId => $presetSettings) {
                 if ($height && !empty($presetSettings['height']) && $presetSettings['height'] > $height) {
                     Logger::send('process', ['processId' => $processId, 'step' => 'Skip preset with height ' . $presetSettings['height']]);
@@ -260,6 +264,16 @@ class MediaConvertDriver extends AmazonDriver
             Logger::send('process', ['processId' => $processId, 'step' => 'Wrong job', 'data' => $job]);
             return false;
         }
+    }
+    
+    protected function getSourcePresetId($width, $height)
+    {
+        foreach ($this->mediaConfig['presets'] as $presetId => $presetSettings) {
+            if ($height && !empty($presetSettings['height']) && $presetSettings['height'] < $height) {
+                return [$presetId, $presetSettings];
+            }
+        }
+        return [null, null];
     }
     
     /**
