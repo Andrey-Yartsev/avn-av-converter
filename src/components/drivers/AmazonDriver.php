@@ -138,7 +138,8 @@ abstract class AmazonDriver extends Driver
         }
         shell_exec(
             sprintf(
-                'ffmpeg -ss %s -i %s -vframes 1 %s',
+                'ffmpeg -user-agent %s -ss %s -i %s -vframes 1 %s',
+                escapeshellarg(FileHelper::getUserAgent($sourcePath)),
                 escapeshellarg((string) TimeCode::fromSeconds($seconds)),
                 escapeshellarg($sourcePath),
                 escapeshellarg($framePath)
@@ -168,7 +169,8 @@ abstract class AmazonDriver extends Driver
         }
         return (float) shell_exec(
             sprintf(
-                "ffprobe -v error -select_streams v:0 -show_entries stream=duration %s | grep -i duration | sed 's/duration=//'",
+                "ffprobe -user_agent %s -v error -select_streams v:0 -show_entries stream=duration %s | grep -i duration | sed 's/duration=//'",
+                escapeshellarg(FileHelper::getUserAgent($filePath)),
                 escapeshellarg($filePath)
             )
         );
@@ -180,6 +182,20 @@ abstract class AmazonDriver extends Driver
      */
     public function getVideoDimensions($filePath)
     {
-        return explode(PHP_EOL, trim(shell_exec(sprintf("ffprobe -v error -select_streams v:0 -show_entries stream=width,height %s | grep -e width -e height | sed 's/width=//' | sed 's/height=//'", escapeshellarg($filePath)))));
+        return explode(
+            PHP_EOL,
+            trim(
+                shell_exec(
+                    sprintf(
+                        "ffprobe -user_agent %s -v error -select_streams v:0 -show_entries stream=width,height %s"
+                            . " | grep -e width -e height"
+                            . " | sed 's/width=//'"
+                            . " | sed 's/height=//'",
+                        escapeshellarg(FileHelper::getUserAgent($filePath)),
+                        escapeshellarg($filePath)
+                    )
+                )
+            )
+        );
     }
 }
