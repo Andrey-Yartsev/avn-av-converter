@@ -29,7 +29,7 @@ $cfg = [
                 'needProtect' => true,
                 's3' => [
                     'region' => 'us-east-1',
-                    'bucket' => 'test-of2',
+                    'bucket' => 'of2transcoder',
                     'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
                     'secret' => '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'
                 ],
