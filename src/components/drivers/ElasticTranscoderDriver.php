@@ -43,7 +43,7 @@ class ElasticTranscoderDriver extends AmazonDriver
      */
     public function readJob($jobId, $process)
     {
-        Logger::send('process', ['processId' => $process->getId(), 'step' => 'readJob()']);
+        Logger::send('process', ['processId' => $process->getId(), 'step' => __METHOD__]);
         $transcoderClient = $this->getTranscoderClient();
         $response = $transcoderClient->readJob(['Id' => $jobId]);
         Logger::send('converter.aws.readJob', $response->toArray());

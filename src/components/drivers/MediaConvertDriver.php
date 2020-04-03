@@ -95,15 +95,17 @@ class MediaConvertDriver extends AmazonDriver
                     try {
                         $s3Client = $this->getS3Client();
                         if ($s3Client->doesObjectExist($this->s3['bucket'], $file['path'])) {
+                            $targetPath = $storage->generatePath($file['path']);
                             $s3Client->copyObject([
                                 'Bucket'     => $storage->bucket,
-                                'Key'        => $file['path'],
+                                'Key'        => $targetPath,
                                 'CopySource' => $this->s3['bucket'] . '/' . $file['path'],
                             ]);
                             $s3Client->deleteObject([
                                 'Bucket' => $this->s3['bucket'],
                                 'Key'    => $file['path'],
                             ]);
+                            $file['url'] = $storage->url . '/' . $targetPath;
                             Logger::send('process', ['processId' => $process->getId(), 'step' => "Moved file s3://{$this->s3['bucket']}/{$file['path']} => s3://{$storage->bucket}/{$file['path']}"]);
                             if ($process->getFileType() == FileHelper::TYPE_VIDEO) {
                                 $this->result[] = new VideoResponse($file);
