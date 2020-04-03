@@ -78,7 +78,7 @@ class MediaConvertDriver extends AmazonDriver
             if ($this->previews && !$this->needPreviewOnStart) {
                 Logger::send('process', ['processId' => $process->getId(), 'step' => 'Start make previews']);
                 $driver = Driver::loadByConfig($this->presetName, $this->previews);
-                $videoUrl = $this->url . $sourcePath;
+                $videoUrl = $this->url . '/' . $sourcePath;
                 $previewPath = $this->getVideoFrame($videoUrl, 0);
                 if ($previewPath) {
                     $driver->createPhotoPreview($previewPath);
