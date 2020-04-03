@@ -44,7 +44,7 @@ $cfg = [
                         'System-Generic_Hd_Mp4_Avc_Aac_16x9_1920x1080p_24Hz_6Mbps' => ['name' => 'source', 'height' => 1080],
                         'System-Generic_Hd_Mp4_Avc_Aac_16x9_1280x720p_50Hz_6.0Mbps' => ['name' => 'source', 'height' => 720],
                         'System-Generic_Sd_Mp4_Avc_Aac_4x3_640x480p_24Hz_1.5Mbps' => ['name' => 'source', 'height' => 480],
-                        'System-Generic_Sd_Mp4_Avc_Aac_16x9_Sdr_640x360p_30Hz_0.8Mbps_Qvbr_Vq7' => ['name' => '240p', 'height' => 360],
+                        'System-Generic_Sd_Mp4_Avc_Aac_16x9_Sdr_640x360p_30Hz_0.8Mbps_Qvbr_Vq7' => ['name' => 'source', 'height' => 360],
                     ],
                     'presets' => [
                         'System-Generic_Hd_Mp4_Avc_Aac_16x9_1280x720p_50Hz_6.0Mbps' => ['name' => '720p', 'height' => 720],
