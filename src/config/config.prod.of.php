@@ -16,6 +16,132 @@ $cfg = [
         'url' => 'https://cdn2.onlyfans.com',
     ],
     'presets' => [
+        'of' => [
+            'callback' => 'https://onlyfans.com/converter/geo',
+            'audio' => [
+                'driver' => \Converter\components\drivers\CloudConvertDriver::class,
+                'token' => 'TnjiK5KWTh4PU9ceXIiQ9PoRGK_PXZOyR7whEi3rpAK8mweQJyuq650aWorqA2p78ohq2MYoHH9PjrEkzQEG7w',
+                'outputFormat' => 'mp3',
+                'needPreviewOnStart' => false,
+            ],
+            'video' => [
+                'driver' => \Converter\components\drivers\MediaConvertDriver::class,
+                'needProtect' => true,
+                's3' => [
+                    'region' => 'us-east-1',
+                    'bucket' => 'test-of2',
+                    'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
+                    'secret' => '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'
+                ],
+                'mediaConfig' => [
+                    'region' => 'us-east-1',
+                    'role' => 'arn:aws:iam::315135013854:role/TEST1',
+                    'queue' => 'arn:aws:mediaconvert:us-east-1:315135013854:queues/Default',
+                    'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
+                    'secret' => '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',
+                    'presets' => [
+                        'System-Generic_Uhd_Mp4_Hevc_Aac_16x9_3840x2160p_24Hz_8Mbps' => ['name' => 'source', 'height' => null],
+                        'System-Generic_Hd_Mp4_Avc_Aac_16x9_1280x720p_50Hz_6.0Mbps' => ['name' => '720p', 'height' => 720],
+                        'System-Generic_Sd_Mp4_Avc_Aac_16x9_Sdr_640x360p_30Hz_0.8Mbps_Qvbr_Vq7' => ['name' => '240p', 'height' => 240],
+                    ]
+                ],
+                'thumbs' => [
+                    'driver' => \Converter\components\drivers\LocalDriver::class,
+                    'engine' => 'imagick',
+                    'maxCount' => 1,
+                    'thumbSizes' => [
+                        [
+                            'name' => 'thumb',
+                            'maxSize' => 300,
+                            'fixRatio' => false,
+                        ],
+                    ]
+                ],
+                'previews' => [
+                    'driver' => \Converter\components\drivers\LocalDriver::class,
+                    'engine' => 'imagick',
+                    'thumbSizes' => [
+                        [
+                            'name' => 'preview',
+                            'maxSize' => 760,
+                            'fixRatio' => false,
+                        ],
+                        [
+                            'name' => 'square_preview',
+                            'width' => 960,
+                            'height' => 960,
+                        ],
+                        [
+                            'name' => 'thumb',
+                            'width' => 150,
+                            'height' => 150,
+                        ],
+                        [
+                            'name' => 'locked',
+                            'maxSize' => 30,
+                            'blur' => 10,
+                            'watermark' => false,
+                            'fixRatio' => false,
+                        ]
+                    ]
+                ],
+                'needPreviewOnStart' => false,
+            ],
+            'image' => [
+                'driver' => \Converter\components\drivers\LocalDriver::class,
+                'engine' => 'imagick',
+                'thumbSizes' => [
+                    [
+                        'name' => 'source',
+                        'maxSize' => 3840,
+                        'fixRatio' => false,
+                    ],
+                    [
+                        'name' => 'preview',
+                        'maxSize' => 960,
+                        'fixRatio' => false,
+                    ],
+                    [
+                        'name' => 'square_preview',
+                        'width' => 960,
+                        'height' => 960,
+                    ],
+                    [
+                        'name' => 'thumb',
+                        'width' => 300,
+                        'height' => 300,
+                    ],
+                    [
+                        'name' => 'locked',
+                        'maxSize' => 30,
+                        'blur' => 10,
+                        'watermark' => false,
+                        'fixRatio' => false,
+                    ]
+                ],
+                'needProtect' => true,
+                'thumbs' => [
+                    'driver' => \Converter\components\drivers\LocalDriver::class,
+                    'engine' => 'imagick',
+                    'thumbSizes' => [
+                        [
+                            'name' => 'thumb',
+                            'maxSize' => 300,
+                            'fixRatio' => false,
+                        ],
+                    ]
+                ],
+                'needPreviewOnStart' => false,
+            ],
+            'storage' => [
+                'driver' => \Converter\components\storages\S3Storage::class,
+                'url' => 'https://of2media.s3.amazonaws.com',
+                'region' => 'us-east-1',
+                'bucket' => 'of2media',
+                'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
+                'secret' => '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'
+            ]
+        ],
         'of_beta' => [
             'callback' => 'https://onlyfans.com/converter/geo',
             'audio' => [
@@ -304,7 +430,7 @@ $cfg = [
     ]
 ];
 
-$cfg['presets']['of_beta2'] = $cfg['presets']['of_beta'];
+$cfg['presets']['of_beta2'] = $cfg['presets']['of'];
 $cfg['presets']['of_beta2']['callback'] .= '?beta=a919992d95bbfafb47b2c6f5b0109e73';
 
 return $cfg;

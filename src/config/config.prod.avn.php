@@ -23,8 +23,9 @@ return [
         'avn' => [
             'callback' => 'https://stars.avn.com/api2/v2/converter/ready',
             'audio'    => [
-                'driver'     => \Converter\components\drivers\AmazonDriver::class,
+                'driver'     => \Converter\components\drivers\ElasticTranscoderDriver::class,
                 'url'        => 'https://avnstars-media.s3.amazonaws.com',
+                'needPreviewOnStart' => false,
                 's3'         => [
                     'region' => 'us-east-1',
                     'bucket' => 'avnstars-media',
@@ -41,7 +42,7 @@ return [
                 ],
             ],
             'video'    => [
-                'driver'     => \Converter\components\drivers\AmazonDriver::class,
+                'driver'     => \Converter\components\drivers\ElasticTranscoderDriver::class,
                 'url'        => 'https://avnstars-media.s3.amazonaws.com',
                 'needProtect' => true,
                 's3'         => [
@@ -57,7 +58,7 @@ return [
                     'secret'   => 'Uqzv8YQpj34PGFDohoMZs3+2eCQjpUG4Ax4/oR0Q',
                     'pipeline' => '1535375850253-dxzlpd',
                     'presets' => [
-                        '1579269726017-sc9hr7' => ['name' => 'source', 'height' => null]
+                        '1585728653156-zq3fwx' => ['name' => 'source', 'height' => null]
                     ]
                 ],
                 'thumbs' => [
