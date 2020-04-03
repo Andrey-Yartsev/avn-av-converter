@@ -427,7 +427,11 @@ $cfg = [
                 'secret' => 'Ie9dhRuq/dWiAJM2MduBdajyTmxz7b9mnFX4Gjcp'
             ]
         ],
-    ]
+    ],
+    's3_secret_user_agent' => [
+        'of2transcoder' => 'SecretCacheFlyUserAgent',
+        'of2media' => 'j/S%/qyd+_RP^tAgEjC6RZVU96(*b5#',
+    ],
 ];
 
 $cfg['presets']['of_beta2'] = $cfg['presets']['of'];

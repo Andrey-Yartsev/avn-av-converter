@@ -117,14 +117,8 @@ class FileHelper
             } else {
                 $localPath = PUBPATH . '/upload/' . md5($filePath) . '.' . pathinfo($filePath, PATHINFO_EXTENSION);
                 Logger::send('debug', ['localPath' => $localPath, 'filePath' => $filePath]);
-                $userAgent = '';
-                if (strpos($filePath, 'amazonaws.com')) {
-                    // @TODO need refactoring
-                    if (strpos($filePath, 'avnstars')) {
-                        $userAgent = 'SecretCacheFlyUserAgent';
-                    } else {
-                        $userAgent = 'j/S%/qyd+_RP^tAgEjC6RZVU96(*b5#';
-                    }
+                $userAgent = static::getUserAgent($filePath);
+                if ($userAgent) {
                     Logger::send('debug', ['url' => $filePath, 'header' => 'set']);
                 }
                 $client = new \GuzzleHttp\Client();
@@ -135,6 +129,30 @@ class FileHelper
         }
         
         return $localPath;
+    }
+
+    /**
+     * @param string $path
+     * @return string|null
+     */
+    public static function getUserAgent($path)
+    {
+        $host = @parse_url($path, PHP_URL_HOST);
+        if (!$host || strpos($host, 'amazonaws.com') === false) {
+            return null;
+        }
+        // @todo move to local configs before remove
+        $defaults = [
+            'avnstars' => 'SecretCacheFlyUserAgent',
+            'of2transcoder' => 'SecretCacheFlyUserAgent',
+            'of2media' => 'j/S%/qyd+_RP^tAgEjC6RZVU96(*b5#',
+        ];
+        foreach (Config::getInstance()->get('s3_secret_user_agent', $defaults) as $key => $value) {
+            if (strpos($host, $key) !== false) {
+                return $value;
+            }
+        }
+        return null;
     }
     
     /**
