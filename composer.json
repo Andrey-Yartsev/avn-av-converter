@@ -18,7 +18,8 @@
     "imagine/imagine": "^1",
     "php-ffmpeg/php-ffmpeg": "^0.13.0",
     "aws/aws-php-sns-message-validator": "1.5",
-    "ramsey/uuid": "^3.9"
+    "ramsey/uuid": "^3.9",
+    "sentry/sdk": "^2.1"
   },
   "autoload": {
     "psr-4": {
