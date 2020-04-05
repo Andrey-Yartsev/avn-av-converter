@@ -83,11 +83,17 @@ class Process
         $process = self::find($processId);
         if ($process) {
             $queue = $process->getData();
+            $process->log("Change preset {$queue['presetName']} => {$presetName}");
             $queue['presetName'] = $presetName;
             Redis::getInstance()->set('queue:' . $processId, json_encode($queue));
             return self::start($processId);
         }
         return false;
+    }
+    
+    public function delete()
+    {
+        Redis::getInstance()->del('queue:' . $this->getId());
     }
     
     /**
@@ -98,10 +104,9 @@ class Process
     {
         $process = self::find($processId);
         if ($process) {
-            Logger::send('process', ['processId' => $processId, 'step' => 'Start convert']);
+            $process->log('Start convert');
             $queue = $process->getData();
             $driver = $process->getDriver();
-            Logger::send('process', ['processId' => $processId, 'step' => 'debug', 'queue' => $queue]);
             if (!$driver) {
                 return false;
             }
@@ -110,77 +115,38 @@ class Process
             try {
                 switch ($queue['fileType']) {
                     case FileHelper::TYPE_VIDEO:
-                        Logger::send('process', ['processId' => $processId, 'step' => 'Start process video']);
+                        $process->log('Start process video');
                         $driver->processVideo($queue['filePath'], $queue['callback'], $processId, $watermark);
                         break;
                     case FileHelper::TYPE_IMAGE:
-                        Logger::send('process', ['processId' => $processId, 'step' => 'Start process image']);
+                        $process->log('Start process image');
                         $driver->processPhoto($queue['filePath'], $queue['callback'], $processId, $watermark);
                         break;
                     case FileHelper::TYPE_AUDIO:
-                        Logger::send('process', ['processId' => $processId, 'step' => 'Start process audio']);
+                        $process->log('Start process audio');
                         $driver->processAudio($queue['filePath'], $queue['callback'], $processId, $watermark);
                         break;
                     default:
                         return false;
                 }
             } catch (\Throwable $e) {
-                Logger::send('process', ['processId' => $processId, 'step' => 'error', 'data' => $e->getMessage()]);
-                $client = new Client();
-                $response = $client->request('POST', $queue['callback'], [
-                    'json' => [
-                        'processId' => $processId,
-                        'baseUrl'   => Config::getInstance()->get('baseUrl'),
-                        'error'     => $e->getMessage(),
-                        'preset'    => $queue['presetName'] ?? ''
-                    ]
+                $process->log('Error on convert', ['error' => $e->getMessage()]);
+                $process->sendCallback([
+                    'error' => $e->getMessage(),
                 ]);
-                Logger::send('converter.callback.response', [
-                    'processId' => $processId,
-                    'response' => $response->getBody()
-                ]);
-                Logger::send('process', ['processId' => $processId, 'step' => 'Send to callback']);
-                Redis::getInstance()->del('queue:' . $processId);
             }
             
             $hasResult = $driver->getResult();
-            Logger::send('process', ['processId' => $processId, 'step' => ' convert done', 'result' => $hasResult]);
+            $process->log('Convert done', ['result' => $hasResult]);
             if ($hasResult) {
-                $resultBody = [
-                    'processId' => $processId,
-                    'files'     => $driver->getResult()
-                ];
-                Logger::send('converter.callback.result', [
-                    'processId' => $processId,
-                    'resultBody' => json_encode($resultBody)
+                $process->sendCallback([
+                    'files' => $driver->getResult()
                 ]);
-    
-                try {
-                    $client = new Client();
-                    $response = $client->request('POST', $queue['callback'], [
-                        'json' => $resultBody
-                    ]);
-                    Logger::send('converter.callback.response', [
-                        'processId' => $processId,
-                        'response' => $response->getBody()
-                    ]);
-                    Logger::send('process', ['processId' => $processId, 'step' => 'Send to callback']);
-                    Redis::getInstance()->del('queue:' . $processId);
-                } catch (\Exception $e) {
-                    $params = [
-                        'url'       => $queue['callback'],
-                        'processId' => $processId,
-                        'body'      => $resultBody
-                    ];
-                    Logger::send('process', ['processId' => $processId, 'step' => 'Error send callback', 'data' => [
-                        'error' => $e->getMessage()
-                    ]]);
-                    Redis::getInstance()->set('retry:' . $processId, json_encode($params));
-                    Redis::getInstance()->incr('retry:' . $processId . ':count');
-                }
             }
             
             return true;
+        } else {
+            $process->log('Process not found');
         }
         return false;
     }
@@ -192,6 +158,34 @@ class Process
     public static function exists($processId)
     {
         return Redis::getInstance()->exists('queue:' . $processId);
+    }
+    
+    public function sendCallback($data)
+    {
+        $data['processId'] = $this->getId();
+        $data['baseUrl'] = Config::getInstance()->get('baseUrl');
+        $data['preset'] = $this->getPresetName();
+    
+        try {
+            $client = new Client();
+            $response = $client->request('POST', $this->getCallbackUrl(), [
+                'json' => $data
+            ]);
+            $this->log('Send to callback, code:' . $response->getStatusCode());
+            $this->delete();
+            return true;
+        } catch (\Throwable $e) {
+            $this->log('Error send callback', [
+                'error' => $e->getMessage()
+            ]);
+            Redis::getInstance()->set('retry:' . $this->getId(), json_encode([
+                'url'       => $this->getCallbackUrl(),
+                'processId' => $this->getId(),
+                'body'      => $data
+            ]));
+            Redis::getInstance()->incr('retry:' . $this->getId() . ':count');
+            return false;
+        }
     }
     
     /**
@@ -284,8 +278,12 @@ class Process
         return $this->presetSettings;
     }
     
+    /**
+     * @param $step
+     * @param array $data
+     */
     public function log($step, $data = [])
     {
-        Logger::send('process', ['processId' => $this->getId(), 'step' =>  $step, 'data' => $data]);
+        Logger::send('process', ['processId' => $this->getId(), 'step' => $step, 'data' => $data]);
     }
 }
