@@ -186,6 +186,15 @@ class Process
     }
     
     /**
+     * @param $processId
+     * @return bool
+     */
+    public static function exists($processId)
+    {
+        return Redis::getInstance()->exists('queue:' . $processId);
+    }
+    
+    /**
      * @return string
      */
     public function getId()
@@ -275,12 +284,8 @@ class Process
         return $this->presetSettings;
     }
     
-    /**
-     * @param $processId
-     * @return bool
-     */
-    public static function exists($processId)
+    public function log($step, $data = [])
     {
-        return Redis::getInstance()->exists('queue:' . $processId);
+        Logger::send('process', ['processId' => $this->getId(), 'step' =>  $step, 'data' => $data]);
     }
 }

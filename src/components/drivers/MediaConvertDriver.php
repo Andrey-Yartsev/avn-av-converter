@@ -30,7 +30,7 @@ class MediaConvertDriver extends AmazonDriver
             'version' => 'latest',
             'region' => $this->mediaConfig['region'],
             'credentials' => new Credentials($this->mediaConfig['key'], $this->mediaConfig['secret']),
-            'endpoint' => 'https://q25wbt2lc.mediaconvert.us-east-1.amazonaws.com'
+            'endpoint' => $this->mediaConfig['endpoint']
         ]);
     }
     
@@ -40,7 +40,7 @@ class MediaConvertDriver extends AmazonDriver
      */
     public function readJob($jobId, $process)
     {
-        Logger::send('process', ['processId' => $process->getId(), 'jobId' => $jobId, 'step' =>  __METHOD__]);
+        $process->log(__METHOD__, ['jobId' => $jobId]);
         $client = $this->getClient();
         try {
             $response = $client->getJob(['Id' => $jobId]);
@@ -76,7 +76,7 @@ class MediaConvertDriver extends AmazonDriver
             }
             
             if ($this->previews && !$this->needPreviewOnStart) {
-                Logger::send('process', ['processId' => $process->getId(), 'step' => 'Start make previews']);
+                $process->log('Start make previews');
                 $driver = Driver::loadByConfig($this->presetName, $this->previews);
                 $videoUrl = $this->url . '/' . $sourcePath;
                 $previewPath = $this->getVideoFrame($videoUrl, 0);
@@ -84,7 +84,7 @@ class MediaConvertDriver extends AmazonDriver
                     $driver->createPhotoPreview($previewPath);
                 }
                 foreach ($driver->getResult() as $result) {
-                    Logger::send('process', ['processId' => $process->getId(), 'step' => 'End make previews']);
+                    $process->log('End make previews');
                     $this->result[] = $result;
                 }
             }
@@ -106,13 +106,13 @@ class MediaConvertDriver extends AmazonDriver
                                 'Key'    => $file['path'],
                             ]);
                             $file['url'] = $storage->url . '/' . $targetPath;
-                            Logger::send('process', ['processId' => $process->getId(), 'step' => "Moved file s3://{$this->s3['bucket']}/{$file['path']} => s3://{$storage->bucket}/{$file['path']}"]);
+                            $process->log("Moved file s3://{$this->s3['bucket']}/{$file['path']} => s3://{$storage->bucket}/$targetPath");
                             if ($process->getFileType() == FileHelper::TYPE_VIDEO) {
                                 $this->result[] = new VideoResponse($file);
                             }
                         } else {
                             if ($file['name'] == 'source') {
-                                Logger::send('process', ['processId' => $process->getId(), 'step' => 'File not exists (source)']);
+                                $process->log('File not exists (source)');
                                 $finishTime = round($jobData['Timing']['FinishTimeMillis']/100);
                                 $deltaTime = time() - $finishTime;
                                 if ($deltaTime > 300) {
@@ -121,7 +121,7 @@ class MediaConvertDriver extends AmazonDriver
                                 }
                                 return false;
                             } else {
-                                Logger::send('process', ['processId' => $process->getId(), 'step' => 'File not exists', 'path'  => 's3://' . $this->s3['bucket'] . '/' . $file['path'],]);
+                                $process->log('File not exists', ['path' => 's3://' . $this->s3['bucket'] . '/' . $file['path']]);
                                 Logger::send('converter.fatal', [
                                     'path'  => 's3://' . $this->s3['bucket'] . '/' . $file['path'],
                                     'error' => 'File not exists'
@@ -144,11 +144,11 @@ class MediaConvertDriver extends AmazonDriver
                 }
             }
         } catch (\Throwable $e) {
-            Logger::send('process', ['processId' => $process->getId(), 'step' => 'Failed read job', 'data' => [
+            $process->log('Failed read job', [
                 'status' => 'failed',
                 'error' => $e->getMessage(),
                 'code' => $e->getCode()
-            ]]);
+            ]);
             return false;
         }
         return true;
@@ -162,14 +162,14 @@ class MediaConvertDriver extends AmazonDriver
     {
         $processId = $process->getId();
         $filePath = $process->getFilePath();
-        Logger::send('process', ['processId' => $processId, 'step' =>  __METHOD__]);
+        $process->log(__METHOD__);
     
         $file = $process->getFile();
         if ($file) {
             $keyName = 's3://' . $file['Bucket'] . '/' . $file['Key'];
-            Logger::send('process', ['processId' => $processId, 'step' => 'Set keyName', 'keyName' => $keyName]);
+            $process->log('Set keyName', ['keyName' => $keyName]);
         } else {
-            Logger::send('process', ['processId' => $processId, 'step' => 'Error']);
+            $process->log('S3 file object not found');
             return false;
         }
        
@@ -203,7 +203,7 @@ class MediaConvertDriver extends AmazonDriver
         $client = $this->getClient();
         try {
             list($width, $height) = FileHelper::getVideoDimensions($filePath);
-            Logger::send('process', ['processId' => $processId, 'step' => 'Get dimensions', 'data' => "$width X $height"]);
+            $process->log('Get dimensions', ['dimensions' => "$width X $height"]);
             $outputGroup = [
                 'Name' => 'Group',
                 'OutputGroupSettings' => [
@@ -217,13 +217,13 @@ class MediaConvertDriver extends AmazonDriver
             list($presetId, $presetSettings) = $this->getSourcePresetId($width, $height);
             if ($presetId) {
                 $this->mediaConfig['presets'][$presetId] = $presetSettings;
-                Logger::send('process', ['processId' => $processId, 'step' => 'Selected source preset ' . $presetSettings['height']]);
+                $process->log('Selected source preset ' . $presetSettings['height']);
             } else {
-                Logger::send('process', ['processId' => $processId, 'step' => 'No selected source preset']);
+                $process->log('No selected source preset');
             }
             foreach ($this->mediaConfig['presets'] as $presetId => $presetSettings) {
                 if ($height && !empty($presetSettings['height']) && $presetSettings['height'] > $height) {
-                    Logger::send('process', ['processId' => $processId, 'step' => 'Skip preset with height ' . $presetSettings['height']]);
+                    $process->log('Skip preset with height ' . $presetSettings['height']);
                     continue;
                 }
                 $outputGroup['Outputs'][] = [
@@ -242,17 +242,17 @@ class MediaConvertDriver extends AmazonDriver
                 'Queue' => $this->mediaConfig['queue'],
             ]);
         } catch (\Throwable $e) {
-            Logger::send('process', ['processId' => $processId, 'step' => 'Create media convert job', 'data' => [
+            $process->log('Create media convert job', [
                 'status' => 'failed',
                 'error' => $e->getMessage(),
                 'code' => $e->getCode()
-            ]]);
+            ]);
             return false;
         }
         $job = (array)$job->get('Job');
-        Logger::send('process', ['processId' => $processId, 'step' => 'Create MediaConvert job', 'data' => ['status' => 'success', 'jobId' => $job['Id']]]);
+        $process->log('Create MediaConvert job', ['status' => 'success', 'jobId' => $job['Id']]);
         if (strtolower($job['Status']) == 'submitted') {
-            Logger::send('process', ['processId' => $processId, 'step' => 'Added to amazon:queue', 'data' => ['status' => 'success']]);
+            $process->log('Added to amazon:queue', ['status' => 'success']);
             Redis::getInstance()->sAdd('amazon:queue', json_encode([
                 'jobId' => $job['Id'],
                 'processId' => $processId,
@@ -260,7 +260,7 @@ class MediaConvertDriver extends AmazonDriver
             ]));
             return true;
         } else {
-            Logger::send('process', ['processId' => $processId, 'step' => 'Wrong job', 'data' => $job]);
+            $process->log('Wrong job', $job);
             return false;
         }
     }
