@@ -338,14 +338,18 @@ class MediaConvertDriver extends AmazonDriver
     protected function getWatermark($s3Client, $watermark = [])
     {
         $watermarkKey = parent::getWatermark($s3Client, $watermark);
-        $localPath = FileHelper::getLocalPath($s3Client->getObjectUrl($this->s3['bucket'], $watermarkKey));
-        if (file_exists($localPath)) {
-            list($width, $height) = getimagesize($localPath);
-            $this->watermarkInfo = [
-                'width' => $width,
-                'height' => $height
-            ];
+        if ($watermarkKey) {
+            $localPath = FileHelper::getLocalPath($s3Client->getObjectUrl($this->s3['bucket'], $watermarkKey));
+            if (file_exists($localPath)) {
+                list($width, $height) = getimagesize($localPath);
+                $this->watermarkInfo = [
+                    'width' => $width,
+                    'height' => $height
+                ];
+            }
+            return "s3://{$this->s3['bucket']}/$watermarkKey";
         }
-        return $watermarkKey ? "s3://{$this->s3['bucket']}/$watermarkKey" : $watermarkKey;
+        
+        return $watermarkKey;
     }
 }
