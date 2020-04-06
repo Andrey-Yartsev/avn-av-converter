@@ -38,7 +38,7 @@ class AmazonController extends Controller
             file_get_contents($message['SubscribeURL']);
         } elseif ($message['Type'] === 'Notification') {
             $messageRaw = json_decode($message['Message'], true);
-            $messageRaw = isset($messageRaw['details']) ? $messageRaw['detail'] : $messageRaw;
+            $messageRaw = isset($messageRaw['detail']) ? $messageRaw['detail'] : $messageRaw;
             if (isset($messageRaw['state']) && $messageRaw['state'] == 'PROGRESSING') {
                 return;
             }
