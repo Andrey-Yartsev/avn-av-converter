@@ -26,6 +26,24 @@ class MediaConvertDriver extends AmazonDriver
     ];
     
     /**
+     * @param $filePath
+     * @param $callback
+     * @param null $processId
+     * @param array $watermark
+     * @return null|string
+     */
+    public function processVideo($filePath, $callback, $processId = null, $watermark = [])
+    {
+        $fileExt = FileHelper::getExt($filePath);
+        if (isset($this->mediaConfig['presetForGif']) && $fileExt == 'gif') {
+            Process::restart($processId, $this->mediaConfig['presetForGif']);
+            return $processId;
+        } else {
+            return parent::processVideo($filePath, $callback, $processId, $watermark);
+        }
+    }
+    
+    /**
      * @return MediaConvertClient
      */
     protected function getClient()
