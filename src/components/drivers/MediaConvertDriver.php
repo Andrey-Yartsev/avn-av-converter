@@ -203,8 +203,8 @@ class MediaConvertDriver extends AmazonDriver
         $client = $this->getClient();
         try {
             list($width, $height) = FileHelper::getVideoDimensions($filePath);
-            $width = $width % 2 == 1 ? --$width : $width;
-            $height = $height % 2 == 1 ? --$height : $height;
+            $width = $this->roundNumberToEven($width);
+            $height = $this->roundNumberToEven($height);
             $process->log('Get dimensions', ['dimensions' => "$width X $height"]);
             $process->log('Get watermark', ['settings' => $process->getWatermark()]);
             $watermarkKey = $this->getWatermark($s3Client, $process->getWatermark());
@@ -244,8 +244,8 @@ class MediaConvertDriver extends AmazonDriver
                     'Preset' => $presetId,
                     'NameModifier' => '_' . $presetSettings['name'],
                     'VideoDescription' => [
-                        'Width' => round($width * $ratio),
-                        'Height' => round($height * $ratio)
+                        'Width' => $this->roundNumberToEven($width * $ratio),
+                        'Height' => $this->roundNumberToEven($height * $ratio)
                     ]
                 ];
                 $process->log("Set preset {$presetSettings['name']} with " . round($width * $ratio) . "X" . round($height * $ratio));
@@ -307,6 +307,18 @@ class MediaConvertDriver extends AmazonDriver
                 'secret' => $this->s3['secret']
             ]
         ]);
+    }
+    
+    /**
+     * @param $number
+     * @return mixed
+     */
+    protected function roundNumberToEven($number)
+    {
+        if ($number % 2 == 1) {
+            return round(--$number);
+        }
+        return round($number);
     }
     
     /**
