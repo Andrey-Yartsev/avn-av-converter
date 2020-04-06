@@ -251,11 +251,8 @@ class FileHelper
      */
     public static function getFileID3($filePath)
     {
-        $localPath = self::getLocalPath($filePath);
-        if (!file_exists($localPath)) {
-            return [];
-        }
-        $getID3 = new \getID3();
-        return $getID3->analyze($filePath);
+        $json = shell_exec(sprintf("exiftool -json %s", escapeshellarg($filePath)));
+        $array = json_decode($json, true);
+        return is_array($array) ? current($array) : [];
     }
 }

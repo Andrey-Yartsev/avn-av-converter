@@ -226,12 +226,12 @@ class MediaConvertDriver extends AmazonDriver
             $process->log('Error get dimensions', ['error' => $exception->getMessage()]);
             $process->log('Try get dimensions from ID3');
             $info = FileHelper::getFileID3($filePath);
-            if (empty($info['video']['resolution_x']) && empty($info['video']['resolution_y'])) {
+            if (empty($info['SourceImageWidth']) && empty($info['SourceImageHeight'])) {
                 $process->log('Empty ID3 info');
                 return false;
             }
-            $width = $info['video']['resolution_x'];
-            $height = $info['video']['resolution_y'];
+            $width = $info['SourceImageWidth'];
+            $height = $info['SourceImageHeight'];
         }
         
         try {
