@@ -294,8 +294,8 @@ class MediaConvertDriver extends AmazonDriver
     
     protected function getSourcePresetId($width, $height)
     {
-        foreach ($this->mediaConfig['sourcePresets'] as $presetId => $presetSettings) {
-            if ($height && !empty($presetSettings['height']) && $presetSettings['height'] <= $height) {
+        foreach (array_reverse($this->mediaConfig['sourcePresets']) as $presetId => $presetSettings) {
+            if ($height && !empty($presetSettings['height']) && $presetSettings['height'] >= $height) {
                 return [$presetId, $presetSettings];
             }
         }
