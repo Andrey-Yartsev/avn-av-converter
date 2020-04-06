@@ -251,7 +251,7 @@ class FileHelper
      */
     public static function getFileID3($filePath)
     {
-        $json = shell_exec(sprintf("exiftool -json %s", escapeshellarg($filePath)));
+        $json = shell_exec(sprintf("exiftool -json %s", escapeshellarg(self::getLocalPath($filePath))));
         $array = json_decode($json, true);
         return is_array($array) ? current($array) : [];
     }
