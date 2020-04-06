@@ -25,9 +25,6 @@ class AmazonController extends Controller
     {
         $message = Message::fromRawPostData();
         $validator = new MessageValidator();
-        Logger::send('amazon.sns.notification', [
-            'messageRaw' => $message
-        ]);
         try {
             $validator->validate($message);
         } catch (InvalidSnsMessageException $e) {
@@ -41,14 +38,13 @@ class AmazonController extends Controller
             file_get_contents($message['SubscribeURL']);
         } elseif ($message['Type'] === 'Notification') {
             $messageRaw = json_decode($message['Message'], true);
-            if ($messageRaw['state'] == 'PROGRESSING') {
+            if (isset($messageRaw['state']) && $messageRaw['state'] == 'PROGRESSING') {
                 return;
             }
             Logger::send('amazon.sns.notification', [
                 'messageId' => $message['MessageId'],
                 'messageRaw' => $messageRaw
             ]);
-            $presents = Config::getInstance()->get('presets');
             $jobs = Redis::getInstance()->sMembers('amazon:queue');
             foreach ($jobs as $job) {
                 $options = json_decode($job, true);
