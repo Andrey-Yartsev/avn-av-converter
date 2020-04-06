@@ -189,21 +189,22 @@ class MediaConvertDriver extends AmazonDriver
                 'AlphaBehavior' => 'DISCARD',
             ]
         ];
-    
-        $watermarkKey = $this->getWatermark($s3Client, $process->getWatermark());
-        if ($watermarkKey) {
-            $inputSettings['ImageInserter']['InsertableImages'][] = [
-                'ImageX' => 10,
-                'ImageY' => 10,
-                'Layer' => 10,
-                'ImageInserterInput' => $watermarkKey,
-                'Opacity' => 100,
-            ];
-        }
+        
         $client = $this->getClient();
         try {
             list($width, $height) = FileHelper::getVideoDimensions($filePath);
             $process->log('Get dimensions', ['dimensions' => "$width X $height"]);
+            $process->log('Get watermark', ['settings' => $process->getWatermark()]);
+            $watermarkKey = $this->getWatermark($s3Client, $process->getWatermark());
+            if ($watermarkKey) {
+                $inputSettings['ImageInserter']['InsertableImages'][] = [
+                    'ImageX' => -10,
+                    'ImageY' => -10,
+                    'Layer' => 10,
+                    'ImageInserterInput' => $watermarkKey,
+                    'Opacity' => 100,
+                ];
+            }
             $outputGroup = [
                 'Name' => 'Group',
                 'OutputGroupSettings' => [
@@ -226,7 +227,7 @@ class MediaConvertDriver extends AmazonDriver
                     $process->log('Skip preset with height ' . $presetSettings['height']);
                     continue;
                 }
-                $ratio = round($presetSettings['height'] / $height, 4);
+                $ratio = $presetSettings['name'] == 'source' ? 1 :round($presetSettings['height'] / $height, 4);
                 $outputGroup['Outputs'][] = [
                     'Preset' => $presetId,
                     'NameModifier' => '_' . $presetSettings['name'],
@@ -235,6 +236,7 @@ class MediaConvertDriver extends AmazonDriver
                         'Height' => round($height * $ratio)
                     ]
                 ];
+                $process->log("Set preset {$presetSettings['height']} with " . round($width * $ratio) . "X" . round($height * $ratio));
             }
     
             $jobSettings['OutputGroups'][] = $outputGroup;
