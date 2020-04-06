@@ -207,8 +207,8 @@ class MediaConvertDriver extends AmazonDriver
             $width = $this->roundNumberToEven($width);
             $height = $this->roundNumberToEven($height);
             $process->log('Get dimensions', ['dimensions' => "$width X $height"]);
-            $process->log('Get watermark', ['settings' => $process->getWatermark()]);
             $watermarkKey = $this->getWatermark($s3Client, $process->getWatermark());
+            $process->log('Get watermark', ['settings' => $process->getWatermark(), 'key' => $watermarkKey]);
             if ($watermarkKey) {
                 $inputSettings['ImageInserter']['InsertableImages'][] = [
                     'ImageX' => $width - 10 - $this->watermarkInfo['width'],
