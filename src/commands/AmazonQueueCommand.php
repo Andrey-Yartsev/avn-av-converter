@@ -28,14 +28,14 @@ class AmazonQueueCommand extends Command
     
     public function execute(InputInterface $input, OutputInterface $output)
     {
+        $totalJobs = count(Redis::getInstance()->sMembers('amazon:queue'));
         if (!$this->lock()) {
-            Logger::send('amazon.queue', ['step' => 'Process already working!']);
+            Logger::send('amazon.queue', ['step' => 'Process already working!', 'totalJobs' => $totalJobs]);
             $output->writeln('Process already working!');
             return 1;
         }
-        
-        $jobs = Redis::getInstance()->sMembers('amazon:queue');
-        Logger::send('amazon.queue', ['count' => count($jobs)]);
+        $jobs = Redis::getInstance()->sRandMember('amazon:queue', 300);
+        Logger::send('amazon.queue', ['count' => count($jobs), 'total' => $totalJobs]);
         foreach ($jobs as $job) {
             $output->writeln('<info>Catch ' . $job . '</info>');
             $options = json_decode($job, true);
