@@ -25,7 +25,9 @@ class AmazonController extends Controller
     {
         $message = Message::fromRawPostData();
         $validator = new MessageValidator();
-        
+        Logger::send('amazon.sns.notification', [
+            'messageRaw' => $message
+        ]);
         try {
             $validator->validate($message);
         } catch (InvalidSnsMessageException $e) {
