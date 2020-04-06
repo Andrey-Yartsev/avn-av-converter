@@ -236,7 +236,7 @@ class MediaConvertDriver extends AmazonDriver
                 $process->log('No selected source preset');
             }
             foreach ($this->mediaConfig['presets'] as $presetId => $presetSettings) {
-                if ($height && !empty($presetSettings['height']) && $presetSettings['height'] > $height) {
+                if ($presetSettings['name'] != 'source' && !empty($presetSettings['height']) && $presetSettings['height'] > $height) {
                     $process->log('Skip preset with height ' . $presetSettings['height']);
                     continue;
                 }
