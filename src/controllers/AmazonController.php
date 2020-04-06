@@ -54,6 +54,10 @@ class AmazonController extends Controller
                 }
                 $presetName = $options['presetName'];
                 $process = Process::find($options['processId']);
+                if (!$process instanceof Process) {
+                    Logger::send('process', ['processId' => $options['processId'], 'step' => 'Not found on aws/sns']);
+                    die;
+                }
                 $amazonDriver = $process->getDriver();
                 if (!$amazonDriver instanceof AmazonDriver) {
                     Logger::send('process', ['processId' => $options['processId'], 'step' => 'Wrong driver']);
