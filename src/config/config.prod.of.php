@@ -37,7 +37,14 @@ $cfg = [
                 'mediaConfig' => [
                     'region' => 'us-east-1',
                     'role' => 'arn:aws:iam::315135013854:role/MediaConvert',
-                    'queue' => 'arn:aws:mediaconvert:us-east-1:315135013854:queues/Default',
+                    'queues' => [
+                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/Default',
+                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/of1',
+                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/of2',
+                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/of3',
+                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/of4',
+                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/of5',
+                    ],
                     'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
                     'secret' => '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',
                     'endpoint' => 'https://q25wbt2lc.mediaconvert.us-east-1.amazonaws.com',

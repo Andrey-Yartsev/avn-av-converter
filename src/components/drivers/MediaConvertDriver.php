@@ -255,13 +255,18 @@ class MediaConvertDriver extends AmazonDriver
             }
     
             $jobSettings['OutputGroups'][] = $outputGroup;
+            if (isset($this->mediaConfig['queues'])) {
+                $queue = $this->mediaConfig['queues'][array_rand($this->mediaConfig['queues'])];
+            } else {
+                $queue = $this->mediaConfig['queue'];
+            }
             $job = $client->createJob([
                 'Role' => $this->mediaConfig['role'],
                 'Settings' => [
                     'Inputs' => [$inputSettings],
                     'OutputGroups' => [$outputGroup],
                 ],
-                'Queue' => $this->mediaConfig['queue'],
+                'Queue' => $queue,
             ]);
         } catch (\Throwable $e) {
             $process->log('Create media convert job', [
