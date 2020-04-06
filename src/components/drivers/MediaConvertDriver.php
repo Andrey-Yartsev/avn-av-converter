@@ -86,6 +86,8 @@ class MediaConvertDriver extends AmazonDriver
                 $previewPath = $this->getVideoFrame($videoUrl, 0);
                 if ($previewPath) {
                     $driver->createPhotoPreview($previewPath);
+                } else {
+                    $process->log('Failed get video frame');
                 }
                 foreach ($driver->getResult() as $result) {
                     $process->log('End make previews');
@@ -240,7 +242,7 @@ class MediaConvertDriver extends AmazonDriver
                         'Height' => round($height * $ratio)
                     ]
                 ];
-                $process->log("Set preset {$presetSettings['height']} with " . round($width * $ratio) . "X" . round($height * $ratio));
+                $process->log("Set preset {$presetSettings['name']} with " . round($width * $ratio) . "X" . round($height * $ratio));
             }
     
             $jobSettings['OutputGroups'][] = $outputGroup;
