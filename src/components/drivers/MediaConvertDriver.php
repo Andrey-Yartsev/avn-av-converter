@@ -317,10 +317,11 @@ class MediaConvertDriver extends AmazonDriver
      */
     protected function roundNumberToEven($number)
     {
+        $number = round($number);
         if ($number % 2) {
-            return round($number - 1);
+            return $number - 1;
         }
-        return round($number);
+        return $number;
     }
     
     /**
