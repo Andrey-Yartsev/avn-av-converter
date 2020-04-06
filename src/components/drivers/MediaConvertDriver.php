@@ -69,7 +69,8 @@ class MediaConvertDriver extends AmazonDriver
             Logger::send('converter.aws.readJob', $response->toArray());
             $jobData = (array) $response->get('Job');
             if (strtolower($jobData['Status']) != 'complete') {
-                $process->log('Status ' . $jobData['Status']);
+                $percent = $jobData['JobPercentComplete'] ?? 'null';
+                $process->log("Status {$jobData['Status']}, $percent%");
                 if (strtolower($jobData['Status']) == 'error') {
                     $this->error = $jobData['ErrorMessage'] ?? '';
                 }
@@ -308,7 +309,7 @@ class MediaConvertDriver extends AmazonDriver
                 'Queue' => $queue,
             ]);
         } catch (\Throwable $e) {
-            $process->log('Create media convert job', [
+            $process->log('Failed create media convert job', [
                 'status' => 'failed',
                 'error' => $e->getMessage(),
                 'code' => $e->getCode()
