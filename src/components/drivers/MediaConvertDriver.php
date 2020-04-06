@@ -20,6 +20,10 @@ use Converter\response\VideoResponse;
 class MediaConvertDriver extends AmazonDriver
 {
     protected $mediaConfig = [];
+    protected $watermarkInfo = [
+        'width' => 0,
+        'height' => 0
+    ];
     
     /**
      * @return MediaConvertClient
@@ -198,8 +202,8 @@ class MediaConvertDriver extends AmazonDriver
             $watermarkKey = $this->getWatermark($s3Client, $process->getWatermark());
             if ($watermarkKey) {
                 $inputSettings['ImageInserter']['InsertableImages'][] = [
-                    'ImageX' => -10,
-                    'ImageY' => -10,
+                    'ImageX' => $width - 10 - $this->watermarkInfo['width'],
+                    'ImageY' => $height - 10 - $this->watermarkInfo['height'],
                     'Layer' => 10,
                     'ImageInserterInput' => $watermarkKey,
                     'Opacity' => 100,
@@ -305,6 +309,14 @@ class MediaConvertDriver extends AmazonDriver
     protected function getWatermark($s3Client, $watermark = [])
     {
         $watermarkKey = parent::getWatermark($s3Client, $watermark);
+        $localPath = FileHelper::getLocalPath($s3Client->getObjectUrl($this->s3['bucket'], $watermarkKey));
+        if (file_exists($localPath)) {
+            list($width, $height) = getimagesize($localPath);
+            $this->watermarkInfo = [
+                'width' => $width,
+                'height' => $height
+            ];
+        }
         return $watermarkKey ? "s3://{$this->s3['bucket']}/$watermarkKey" : $watermarkKey;
     }
 }
