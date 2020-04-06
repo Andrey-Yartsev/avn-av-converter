@@ -226,9 +226,14 @@ class MediaConvertDriver extends AmazonDriver
                     $process->log('Skip preset with height ' . $presetSettings['height']);
                     continue;
                 }
+                $ratio = round($presetSettings['height'] / $height, 4);
                 $outputGroup['Outputs'][] = [
                     'Preset' => $presetId,
-                    'NameModifier' => '_' . $presetSettings['name']
+                    'NameModifier' => '_' . $presetSettings['name'],
+                    'VideoDescription' => [
+                        'Width' => round($width * $ratio),
+                        'Height' => round($height * $ratio)
+                    ]
                 ];
             }
     

@@ -29,6 +29,7 @@ class AmazonQueueCommand extends Command
     public function execute(InputInterface $input, OutputInterface $output)
     {
         if (!$this->lock()) {
+            Logger::send('amazon.queue', ['step' => 'Process already working!']);
             $output->writeln('Process already working!');
             return 1;
         }

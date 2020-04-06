@@ -14,6 +14,7 @@ class SystemController extends Controller
 {
     public function actionStatus()
     {
+        throw new \Exception('Test');
         $process = \Converter\components\Process::find('');
         $driver = $process->getDriver();
         $driver->readJob('', $process);
