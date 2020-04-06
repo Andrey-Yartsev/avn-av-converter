@@ -240,15 +240,17 @@ class MediaConvertDriver extends AmazonDriver
                     continue;
                 }
                 $ratio = $presetSettings['name'] == 'source' ? 1 :round($presetSettings['height'] / $height, 4);
+                $newWidth = $this->roundNumberToEven($width * $ratio);
+                $newHeight = $this->roundNumberToEven($height * $ratio);
                 $outputGroup['Outputs'][] = [
                     'Preset' => $presetId,
                     'NameModifier' => '_' . $presetSettings['name'],
                     'VideoDescription' => [
-                        'Width' => $this->roundNumberToEven($width * $ratio),
-                        'Height' => $this->roundNumberToEven($height * $ratio)
+                        'Width' => $newWidth,
+                        'Height' => $newHeight
                     ]
                 ];
-                $process->log("Set preset {$presetSettings['name']} with " . round($width * $ratio) . "X" . round($height * $ratio));
+                $process->log("Set preset {$presetSettings['name']} with $newWidth X $newHeight");
             }
     
             $jobSettings['OutputGroups'][] = $outputGroup;
@@ -315,8 +317,8 @@ class MediaConvertDriver extends AmazonDriver
      */
     protected function roundNumberToEven($number)
     {
-        if ($number % 2 == 1) {
-            return round(--$number);
+        if ($number % 2) {
+            return round($number - 1);
         }
         return round($number);
     }
