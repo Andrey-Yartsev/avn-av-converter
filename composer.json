@@ -19,7 +19,8 @@
     "php-ffmpeg/php-ffmpeg": "^0.13.0",
     "aws/aws-php-sns-message-validator": "1.5",
     "ramsey/uuid": "^3.9",
-    "sentry/sdk": "2.1"
+    "sentry/sdk": "2.1",
+    "james-heinrich/getid3": "^1.9"
   },
   "autoload": {
     "psr-4": {

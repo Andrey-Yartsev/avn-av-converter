@@ -244,4 +244,18 @@ class FileHelper
     {
         return strtolower(pathinfo(parse_url($path, PHP_URL_PATH), PATHINFO_EXTENSION));
     }
+    
+    /**
+     * @param $filePath
+     * @return array
+     */
+    public static function getFileID3($filePath)
+    {
+        $localPath = self::getLocalPath($filePath);
+        if (!file_exists($localPath)) {
+            return [];
+        }
+        $getID3 = new \getID3();
+        return $getID3->analyze($filePath);
+    }
 }
