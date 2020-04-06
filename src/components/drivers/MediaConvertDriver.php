@@ -210,9 +210,17 @@ class MediaConvertDriver extends AmazonDriver
             $watermarkKey = $this->getWatermark($s3Client, $process->getWatermark());
             $process->log('Get watermark', ['settings' => $process->getWatermark(), 'key' => $watermarkKey]);
             if ($watermarkKey) {
+                $imageX = $width - 10 - $this->watermarkInfo['width'];
+                $imageY = $height - 10 - $this->watermarkInfo['height'];
+                if ($imageX < 0) {
+                    $imageX = 0;
+                }
+                if ($imageY < 0) {
+                    $imageY = 0;
+                }
                 $inputSettings['ImageInserter']['InsertableImages'][] = [
-                    'ImageX' => $width - 10 - $this->watermarkInfo['width'],
-                    'ImageY' => $height - 10 - $this->watermarkInfo['height'],
+                    'ImageX' => $imageX,
+                    'ImageY' => $imageY,
                     'Layer' => 10,
                     'ImageInserterInput' => $watermarkKey,
                     'Opacity' => 100,
