@@ -51,6 +51,7 @@ class MediaConvertDriver extends AmazonDriver
             Logger::send('converter.aws.readJob', $response->toArray());
             $jobData = (array) $response->get('Job');
             if (strtolower($jobData['Status']) != 'complete') {
+                $process->log('Status ' . $jobData['Status']);
                 return false;
             }
             
