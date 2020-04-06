@@ -52,6 +52,9 @@ class MediaConvertDriver extends AmazonDriver
             $jobData = (array) $response->get('Job');
             if (strtolower($jobData['Status']) != 'complete') {
                 $process->log('Status ' . $jobData['Status']);
+                if (strtolower($jobData['Status']) == 'error') {
+                    $this->error = $jobData['ErrorMessage'] ?? '';
+                }
                 return false;
             }
             
@@ -200,6 +203,8 @@ class MediaConvertDriver extends AmazonDriver
         $client = $this->getClient();
         try {
             list($width, $height) = FileHelper::getVideoDimensions($filePath);
+            $width = $width % 2 == 1 ? --$width : $width;
+            $height = $height % 2 == 1 ? --$height : $height;
             $process->log('Get dimensions', ['dimensions' => "$width X $height"]);
             $process->log('Get watermark', ['settings' => $process->getWatermark()]);
             $watermarkKey = $this->getWatermark($s3Client, $process->getWatermark());
