@@ -349,7 +349,7 @@ class MediaConvertDriver extends AmazonDriver
                 return [$presetId, $presetSettings];
             }
         }
-        return current($this->mediaConfig['sourcePresets']);
+        return [$presetId, $presetSettings];
     }
     
     /**
