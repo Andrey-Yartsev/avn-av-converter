@@ -323,7 +323,7 @@ class MediaConvertDriver extends AmazonDriver
                 'error' => $e->getMessage(),
                 'code' => $e->getCode()
             ]);
-            $this->error = $e->getMessage();
+            Process::restart($process->getId(), $this->mediaConfig['presetForGif']);
             return false;
         }
         $job = (array)$job->get('Job');
