@@ -7,6 +7,7 @@
 namespace Converter\helpers;
 
 
+use Aws\S3\S3Client;
 use Converter\components\Config;
 use Converter\components\Logger;
 use Converter\response\AudioResponse;
@@ -153,6 +154,45 @@ class FileHelper
             }
         }
         return null;
+    }
+
+    /**
+     * @param string $path
+     * @return string|null
+     */
+    public static function getSignedUrl($path)
+    {
+        $host = @parse_url($path, PHP_URL_HOST);
+        if (!$host || strpos($host, 'amazonaws.com') === false) {
+            return $path;
+        }
+        foreach (Config::getInstance()->get('s3_url_sign', []) as $key => $settings) {
+            if (strpos($host, $key) === false) {
+                continue;
+            }
+            try {
+                $client = new S3Client([
+                    'version' => 'latest',
+                    'region'  => $settings['region'],
+                    'credentials' => [
+                        'key' => $settings['key'],
+                        'secret' => $settings['secret'],
+                    ],
+                ]);
+                $command = $client->getCommand(
+                    'GetObject',
+                    [
+                        'Bucket' => $settings['bucket'],
+                        'Key' => ltrim(parse_url($path, PHP_URL_PATH), '/'),
+                    ]
+                );
+                $request = $client->createPresignedRequest($command, $settings['expires']);
+                return (string) $request->getUri();
+            } catch (\Throwable $e) {
+                Logger::send('s3_url_sign', ['error' => $e->getMessage()] + compact('path'));
+            }
+        }
+        return $path;
     }
     
     /**
