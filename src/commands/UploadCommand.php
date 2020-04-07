@@ -35,22 +35,21 @@ class UploadCommand extends Command
             ]);
             Logger::send('process', ['processId' => $params['processId'], 'step' => 'Amazon driver', 'data' => ['status' => 'init']]);
             if ($process) {
-                if ($amazonDriver instanceof AmazonDriver && $amazonDriver->createJob($process)) {
-                    Logger::send('worker.upload.run', [
-                        'step' => $params['processId'] . ' success file uploaded'
-                    ]);
+                if ($amazonDriver instanceof AmazonDriver) {
+                    if (!$amazonDriver->createJob($process)) {
+                        $error = $amazonDriver->getError();
+                        if ($error) {
+                            $process->log("Failed creat job, $error");
+                            $process->sendCallback(['error' => $error]);
+                        } else {
+                            $process->log('Failed creat job, no error message');
+                        }
+                    }
                 } else {
-                    Logger::send('worker.upload.run', [
-                        'step' => $params['processId'] . ' failed file uploaded'
-                    ]);
-                    Logger::send('faileds', [
-                        'process' => $upload
-                    ]);
+                    $process->log('Wrong driver');
                 }
             } else {
-                Logger::send('worker.upload.run', [
-                    'step' => $params['processId'] . ' not founded'
-                ]);
+                Logger::send('process', ['processId' => $params['processId'], 'step' => 'Try creat job, process not found']);
             }
         } catch (\Exception $e) {
             Logger::send('faileds', [

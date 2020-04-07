@@ -167,6 +167,7 @@ class Process
         $data['preset'] = $this->getPresetName();
     
         try {
+            $this->log('Send to callback', ['body' => $data]);
             $client = new Client();
             $response = $client->request('POST', $this->getCallbackUrl(), [
                 'json' => $data

@@ -201,6 +201,7 @@ class MediaConvertDriver extends AmazonDriver
                 $process->log('Set keyName', ['keyName' => $keyName]);
             } else {
                 $process->log("S3 file not found: s3://{$file['Bucket']}/{$file['Key']}");
+                $this->error = 'File not found';
                 return false;
             }
         } else {
@@ -236,6 +237,7 @@ class MediaConvertDriver extends AmazonDriver
             $info = FileHelper::getFileID3($filePath);
             if (empty($info['SourceImageWidth']) && empty($info['SourceImageHeight'])) {
                 $process->log('Empty ID3 info', $info);
+                $this->error = 'File is empty';
                 return false;
             }
             $width = $info['SourceImageWidth'];
@@ -321,6 +323,7 @@ class MediaConvertDriver extends AmazonDriver
                 'error' => $e->getMessage(),
                 'code' => $e->getCode()
             ]);
+            $this->error = $e->getMessage();
             return false;
         }
         $job = (array)$job->get('Job');
