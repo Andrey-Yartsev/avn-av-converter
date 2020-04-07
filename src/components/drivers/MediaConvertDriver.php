@@ -222,7 +222,7 @@ class MediaConvertDriver extends AmazonDriver
         
         $client = $this->getClient();
         try {
-            list($width, $height) = FileHelper::getVideoDimensions($filePath);
+            list($width, $height) = $this->getVideoDimensions($filePath);
         } catch (\Throwable $exception) {
             $process->log('Error get dimensions', ['error' => $exception->getMessage()]);
             $process->log('Try get dimensions from ID3');

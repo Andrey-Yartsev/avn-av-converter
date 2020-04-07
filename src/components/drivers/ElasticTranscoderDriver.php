@@ -251,7 +251,7 @@ class ElasticTranscoderDriver extends AmazonDriver
                     'PresetId' => $this->transcoder['preset']
                 ];
             } else {
-                list($width, $height) = FileHelper::getVideoDimensions($filePath);
+                list($width, $height) = $this->getVideoDimensions($filePath);
                 Logger::send('process', ['processId' => $processId, 'step' => 'Get dimensions', 'data' => "$width X $height"]);
                 foreach ($this->transcoder['presets'] as $presetId => $presetSettings) {
                     if ($height && !empty($presetSettings['height']) && $presetSettings['height'] > $height) {
