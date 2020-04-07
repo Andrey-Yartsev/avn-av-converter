@@ -476,7 +476,7 @@ $cfg = [
             'bucket' => 'of2transcoder',
             'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
             'secret' => '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',
-            'expires' => '+3 month',
+            'expires' => '+1 week',
         ],
     ],
 ];
