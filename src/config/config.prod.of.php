@@ -470,6 +470,15 @@ $cfg = [
         'of2transcoder' => 'SecretCacheFlyUserAgent',
         'of2media' => 'j/S%/qyd+_RP^tAgEjC6RZVU96(*b5#',
     ],
+    's3_url_sign' => [
+        'of2transcoder' => [
+            'region' => 'us-east-1',
+            'bucket' => 'of2transcoder',
+            'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
+            'secret' => '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',
+            'expires' => '+3 month',
+        ],
+    ],
 ];
 
 $cfg['presets']['of_beta2'] = $cfg['presets']['of'];
