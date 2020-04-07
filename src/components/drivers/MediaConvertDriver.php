@@ -20,7 +20,7 @@ use Converter\response\VideoResponse;
 class MediaConvertDriver extends AmazonDriver
 {
     protected $mediaConfig = [];
-    protected $watermarkInfo = [
+    public $watermarkInfo = [
         'width' => 0,
         'height' => 0
     ];
@@ -385,7 +385,7 @@ class MediaConvertDriver extends AmazonDriver
      * @param array $watermark
      * @return null|string
      */
-    protected function getWatermark($s3Client, $watermark = [])
+    public function getWatermark($s3Client, $watermark = [])
     {
         $watermarkKey = parent::getWatermark($s3Client, $watermark);
         if ($watermarkKey) {

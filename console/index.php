@@ -16,4 +16,5 @@ $application->add(new \Converter\commands\AmazonUploadCommand());
 $application->add(new \Converter\commands\AmazonQueueCommand());
 $application->add(new \Converter\commands\RetryCommand());
 $application->add(new \Converter\commands\UploadCommand());
+$application->add(new \Converter\commands\FixCommand());
 $application->run();
