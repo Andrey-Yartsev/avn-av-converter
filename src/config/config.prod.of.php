@@ -350,7 +350,8 @@ $cfg = [
                             'blur' => 10
                         ]
                     ]
-                ]
+                ],
+                'needPreviewOnStart' => false,
             ],
             'image' => [
                 'driver' => \Converter\components\drivers\LocalDriver::class,
