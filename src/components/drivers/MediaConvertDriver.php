@@ -193,17 +193,21 @@ class MediaConvertDriver extends AmazonDriver
         $processId = $process->getId();
         $filePath = $process->getFilePath();
         $process->log(__METHOD__);
-    
+        $s3Client = $this->getS3Client();
         $file = $process->getFile();
         if ($file) {
-            $keyName = 's3://' . $file['Bucket'] . '/' . $file['Key'];
-            $process->log('Set keyName', ['keyName' => $keyName]);
+            if ($s3Client->doesObjectExist($file['Bucket'], $file['Key'])) {
+                $keyName = 's3://' . $file['Bucket'] . '/' . $file['Key'];
+                $process->log('Set keyName', ['keyName' => $keyName]);
+            } else {
+                $process->log("S3 file not found: s3://{$file['Bucket']}/{$file['Key']}");
+                return false;
+            }
         } else {
             $process->log('S3 file object not found');
             return false;
         }
-       
-        $s3Client = $this->getS3Client();
+        
         $inputSettings = [
             'FileInput' => $keyName,
             'AudioSelectors' => [
