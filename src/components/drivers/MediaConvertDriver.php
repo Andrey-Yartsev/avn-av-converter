@@ -223,6 +223,9 @@ class MediaConvertDriver extends AmazonDriver
         $client = $this->getClient();
         try {
             list($width, $height) = $this->getVideoDimensions($filePath);
+            if ($width == 0 || $height == 0) {
+                throw new \Exception("Wrong dimensions $width X $height");
+            }
         } catch (\Throwable $exception) {
             $process->log('Error get dimensions', ['error' => $exception->getMessage()]);
             $process->log('Try get dimensions from ID3');
