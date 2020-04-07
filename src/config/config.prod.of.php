@@ -186,6 +186,10 @@ $cfg = [
                         'arn:aws:mediaconvert:us-east-1:315135013854:queues/of3',
                         'arn:aws:mediaconvert:us-east-1:315135013854:queues/of4',
                         'arn:aws:mediaconvert:us-east-1:315135013854:queues/of5',
+                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/of6',
+                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/of7',
+                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/of8',
+                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/of9'
                     ],
                     'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
                     'secret' => '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',

@@ -6,12 +6,10 @@
 
 namespace Converter\commands;
 
-use Converter\components\Config;
 use Converter\components\drivers\AmazonDriver;
 use Converter\components\Logger;
 use Converter\components\Process;
 use Converter\components\Redis;
-use GuzzleHttp\Client;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Command\LockableTrait;
 use Symfony\Component\Console\Input\InputInterface;
@@ -34,7 +32,7 @@ class AmazonQueueCommand extends Command
             $output->writeln('Process already working!');
             return 1;
         }
-        $jobs = Redis::getInstance()->sRandMember('amazon:queue', 300);
+        $jobs = Redis::getInstance()->sRandMember('amazon:queue', 50);
         Logger::send('amazon.queue', ['count' => count($jobs), 'total' => $totalJobs]);
         foreach ($jobs as $job) {
             $output->writeln('<info>Catch ' . $job . '</info>');
