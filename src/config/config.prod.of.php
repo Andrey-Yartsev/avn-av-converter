@@ -159,11 +159,24 @@ $cfg = [
         ],
         'of_beta' => [
             'callback' => 'https://onlyfans.com/converter/geo',
-            'audio' => [
-                'driver' => \Converter\components\drivers\CloudConvertDriver::class,
-                'token' => 'TnjiK5KWTh4PU9ceXIiQ9PoRGK_PXZOyR7whEi3rpAK8mweQJyuq650aWorqA2p78ohq2MYoHH9PjrEkzQEG7w',
-                'outputFormat' => 'mp3',
+            'audio'    => [
+                'driver'     => \Converter\components\drivers\ElasticTranscoderDriver::class,
+                'url' => 'https://of2transcoder.s3.amazonaws.com',
                 'needPreviewOnStart' => false,
+                's3'         => [
+                    'region' => 'us-east-1',
+                    'bucket' => 'of2transcoder',
+                    'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
+                    'secret' => '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'
+                ],
+                'transcoder' => [
+                    'region'   => 'us-east-1',
+                    'bucket' => 'of2transcoder',
+                    'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
+                    'secret' => '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',
+                    'pipeline' => '1542729803060-wvvyxu',
+                    'preset'   => '1351620000001-300020'
+                ],
             ],
             'video' => [
                 'driver' => \Converter\components\drivers\MediaConvertDriver::class,
