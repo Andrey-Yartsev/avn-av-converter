@@ -14,9 +14,7 @@ use Converter\components\Config;
 use Converter\components\drivers\Driver;
 use Converter\components\drivers\MediaConvertDriver;
 use Converter\components\Logger;
-use Converter\components\Redis;
 use Converter\helpers\FileHelper;
-use GuzzleHttp\Client;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Command\LockableTrait;
 use Symfony\Component\Console\Input\InputInterface;
@@ -61,6 +59,7 @@ class FixCommand extends Command
         }
         
         foreach ($data as $index => $row) {
+            echo $index . PHP_EOL;
             $file = $row['data']['file'];
             $filePath = $file['Location'];
             $keyName = 's3://' . $file['Bucket'] . '/' . $file['Key'];
