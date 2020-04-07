@@ -208,7 +208,7 @@ $cfg = [
                     'secret' => 'Ie9dhRuq/dWiAJM2MduBdajyTmxz7b9mnFX4Gjcp',
                     'endpoint' => 'https://q25wbt2lc.mediaconvert.us-east-1.amazonaws.com',
                     'sourcePresets' => [
-                        'System-Generic_Uhd_Mp4_Hevc_Aac_16x9_3840x2160p_24Hz_8Mbps' => ['name' => 'source', 'height' => 2160],
+                        'onlyfans-HD' => ['name' => 'source', 'height' => 2160],
                         'System-Generic_Hd_Mp4_Avc_Aac_16x9_1920x1080p_24Hz_6Mbps' => ['name' => 'source', 'height' => 1080],
                         'System-Generic_Hd_Mp4_Avc_Aac_16x9_1280x720p_50Hz_6.0Mbps' => ['name' => 'source', 'height' => 720],
                         'System-Generic_Sd_Mp4_Avc_Aac_4x3_640x480p_24Hz_1.5Mbps' => ['name' => 'source', 'height' => 480],
