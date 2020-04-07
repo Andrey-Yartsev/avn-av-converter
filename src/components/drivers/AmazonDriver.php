@@ -182,6 +182,14 @@ abstract class AmazonDriver extends Driver
      */
     public function getVideoDimensions($filePath)
     {
+        Logger::send('debug', ['command' => sprintf(
+            "ffprobe -user_agent %s -v error -select_streams v:0 -show_entries stream=width,height %s"
+            . " | grep -e width -e height"
+            . " | sed 's/width=//'"
+            . " | sed 's/height=//'",
+            escapeshellarg(FileHelper::getUserAgent($filePath)),
+            escapeshellarg($filePath)
+        )]);
         return explode(
             PHP_EOL,
             trim(
