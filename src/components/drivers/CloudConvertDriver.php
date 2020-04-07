@@ -317,7 +317,7 @@ class CloudConvertDriver extends Driver
             'outputformat'     => $this->outputFormat,
             'converteroptions' => [],
             'input'            => 'download',
-            'file'             => $filePath,
+            'file'             => FileHelper::getSignedUrl($filePath),
             'callback'         => Config::getInstance()->get('baseUrl') . '/video/cloudconvert/callback?processId=' . $processId
         ]);
         $processId = $processId ? $processId : $process->id;
