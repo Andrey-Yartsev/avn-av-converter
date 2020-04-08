@@ -201,7 +201,7 @@ abstract class AmazonDriver extends Driver
         );
         Logger::send('process', ['data' => $result, 'command' => sprintf(
             "ffprobe -user_agent %s -v error -select_streams v:0 -show_entries stream_tags=rotate -show_entries stream=width,height %s"
-            . " | grep -e width -e height"
+            . " | grep -e width -e height -e rotate"
             . " | sed 's/width=//'"
             . " | sed 's/height=//'"
             . " | sed 's/TAG:rotate=//'",
