@@ -53,7 +53,7 @@ class FixSendCommand extends Command
         ]);
         $data = [];
 
-        $file = new \SplFileObject('job.log');
+        $file = new \SplFileObject('jobs.log');
         while (!$file->eof()) {
             $row = $file->fgets();
             $row = substr($row, strpos($row, '{'));
