@@ -199,6 +199,7 @@ abstract class AmazonDriver extends Driver
                 )
             )
         );
+        Logger::send('process', $result);
         if (isset($result[2]) && in_array($result[2], [90, 270])) {
             $height = $result[0];
             $width = $result[1];
