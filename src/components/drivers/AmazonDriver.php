@@ -4,15 +4,15 @@
  * Date: 18/09/2018
  */
 
-namespace Convertercomponentsdrivers;
+namespace Converter\components\drivers;
 
-use AwsS3ExceptionS3Exception;
-use AwsS3S3Client;
-use ConvertercomponentsLogger;
-use ConvertercomponentsRedis;
-use ConverterhelpersFileHelper;
-use ConverterresponseStatusResponse;
-use FFMpegCoordinateTimeCode;
+use Aws\S3\Exception\S3Exception;
+use Aws\S3\S3Client;
+use Converter\components\Logger;
+use Converter\components\Redis;
+use Converter\helpers\FileHelper;
+use Converter\response\StatusResponse;
+use FFMpeg\Coordinate\TimeCode;
 
 abstract class AmazonDriver extends Driver
 {
@@ -48,7 +48,7 @@ abstract class AmazonDriver extends Driver
 
     public function processPhoto($filePath, $callback, $processId = null, $watermark = [])
     {
-        throw new Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
+        throw new \Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
     }
 
     public function getStatus($processId)
@@ -218,4 +218,3 @@ abstract class AmazonDriver extends Driver
         return [$width, $height];
     }
 }
-
