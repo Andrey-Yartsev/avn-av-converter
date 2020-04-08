@@ -199,7 +199,15 @@ abstract class AmazonDriver extends Driver
                 )
             )
         );
-        Logger::send('process', $result);
+        Logger::send('process', ['data' => $result, 'command' => sprintf(
+            "ffprobe -user_agent %s -v error -select_streams v:0 -show_entries stream_tags=rotate -show_entries stream=width,height %s"
+            . " | grep -e width -e height"
+            . " | sed 's/width=//'"
+            . " | sed 's/height=//'"
+            . " | sed 's/TAG:rotate=//'",
+            escapeshellarg(FileHelper::getUserAgent($filePath)),
+            escapeshellarg($filePath)
+        )]);
         if (isset($result[2]) && in_array($result[2], [90, 270])) {
             $height = $result[0];
             $width = $result[1];
