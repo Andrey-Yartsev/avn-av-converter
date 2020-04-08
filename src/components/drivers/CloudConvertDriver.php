@@ -11,6 +11,7 @@ use CloudConvert\Api;
 use CloudConvert\Process;
 use Converter\components\Config;
 use Converter\components\Logger;
+use Converter\components\Process as CProcess;
 use Converter\components\Redis;
 use Converter\helpers\CliHelper;
 use Converter\helpers\FileHelper;
@@ -41,9 +42,14 @@ class CloudConvertDriver extends Driver
     {
         throw new \Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
     }
-
-    public function getStatus($processId)
+    
+    /**
+     * @param CProcess $process
+     * @return StatusResponse
+     */
+    public function getStatus($process)
     {
+        $processId = $process->getId();
         $options = Redis::getInstance()->get('cc:' . $processId);
         if ($options) {
             $options = json_decode($options, true);

@@ -15,6 +15,7 @@ use Converter\components\Process;
 use Converter\components\Redis;
 use Converter\components\storages\S3Storage;
 use Converter\helpers\FileHelper;
+use Converter\response\StatusResponse;
 use Converter\response\VideoResponse;
 
 class MediaConvertDriver extends AmazonDriver
@@ -53,6 +54,41 @@ class MediaConvertDriver extends AmazonDriver
             'region' => $this->mediaConfig['region'],
             'credentials' => new Credentials($this->mediaConfig['key'], $this->mediaConfig['secret']),
             'endpoint' => $this->mediaConfig['endpoint']
+        ]);
+    }
+    
+    /**
+     * @param Process $process
+     * @return StatusResponse
+     */
+    public function getStatus($process)
+    {
+        $percent = $jobId = null;
+        $processId = $process->getId();
+        $client = $this->getClient();
+        $process->log(__METHOD__);
+        try {
+            $jobs = Redis::getInstance()->sMembers('amazon:queue');
+            foreach ($jobs as $job) {
+                $options = json_decode($job, true);
+                if ($options['processId'] == $processId) {
+                    $jobId = $options['jobId'];
+                    break;
+                }
+            }
+            $process->log('Founded #' . $jobId);
+            if ($jobId) {
+                $response = $client->getJob(['Id' => $jobId]);
+                $jobData = (array) $response->get('Job');
+                $percent = $jobData['JobPercentComplete'] ?? null;
+                $process->log("Percent $percent%");
+            }
+        } catch (\Throwable $e) {
+            $process->log('Error on get status', ['error' => $e->getMessage()]);
+        }
+        return new StatusResponse([
+            'id'      => $process->getId(),
+            'percent' => $percent
         ]);
     }
     

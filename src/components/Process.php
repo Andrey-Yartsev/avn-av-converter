@@ -68,7 +68,7 @@ class Process
         if ($process) {
             $driver = $process->getDriver();
             if ($driver) {
-                return $driver->getStatus($processId);
+                return $driver->getStatus($process);
             }
         }
     }

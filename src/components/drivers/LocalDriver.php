@@ -71,7 +71,7 @@ class LocalDriver extends Driver
         throw new \Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
     }
     
-    public function getStatus($processId)
+    public function getStatus($process)
     {
         throw new \Exception('Not implemented ' . __CLASS__ . ' ' . __METHOD__ . ' ' . json_encode(func_get_args()));
     }

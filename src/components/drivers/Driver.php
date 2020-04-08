@@ -158,7 +158,7 @@ abstract class Driver
         return FileHelper::getVideoDimensions($filePath);
     }
     
-    abstract public function getStatus($processId);
+    abstract public function getStatus($process);
     
     /**
      * @param $presetName
