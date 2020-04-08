@@ -494,7 +494,7 @@ $cfg = [
     ],
 ];
 
-$cfg['presets']['of_beta2'] = $cfg['presets']['of'];
+$cfg['presets']['of_beta2'] = $cfg['presets']['of_beta'];
 $cfg['presets']['of_beta2']['callback'] .= '?beta=a919992d95bbfafb47b2c6f5b0109e73';
 
 return $cfg;
