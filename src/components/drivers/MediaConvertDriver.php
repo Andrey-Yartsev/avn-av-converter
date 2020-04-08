@@ -256,7 +256,7 @@ class MediaConvertDriver extends AmazonDriver
             ],
             'VideoSelector' => [
                 'ColorSpace' => 'FOLLOW',
-                'Rotate' => 'DEGREE_0',
+                'Rotate' => 'AUTO',
                 'AlphaBehavior' => 'DISCARD',
             ]
         ];
