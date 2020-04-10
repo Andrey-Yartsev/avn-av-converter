@@ -123,6 +123,11 @@ class MediaConvertDriver extends AmazonDriver
                 if (empty($outputs[$index])) {
                     continue;
                 }
+                if ($outputDetail['DurationInMs'] <= 1001) {
+                    $process->log('Detected 1 second video file');
+                    Process::restart($process->getId(), $this->mediaConfig['presetForGif']);
+                    return false;
+                }
                 $nameModifier = $outputs[$index]['NameModifier'];
                 $files[] = [
                     'duration' => round($outputDetail['DurationInMs']/1000),
