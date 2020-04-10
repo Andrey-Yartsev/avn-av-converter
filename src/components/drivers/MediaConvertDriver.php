@@ -125,7 +125,7 @@ class MediaConvertDriver extends AmazonDriver
                 }
                 if ($outputDetail['DurationInMs'] <= 1001) {
                     $process->log('Detected 1 second video file');
-                    Process::restart($process->getId(), $this->mediaConfig['presetForGif']);
+                    $this->restart($process->getId(), $jobId);
                     return false;
                 }
                 $nameModifier = $outputs[$index]['NameModifier'];
@@ -364,7 +364,7 @@ class MediaConvertDriver extends AmazonDriver
                 'error' => $e->getMessage(),
                 'code' => $e->getCode()
             ]);
-            Process::restart($process->getId(), $this->mediaConfig['presetForGif']);
+            $this->restart($process->getId());
             return false;
         }
         $job = (array)$job->get('Job');
@@ -381,6 +381,18 @@ class MediaConvertDriver extends AmazonDriver
             $process->log('Wrong job', $job);
             return false;
         }
+    }
+    
+    protected function restart($processId, $jobId = null)
+    {
+        if ($jobId) {
+            Redis::getInstance()->sRem('amazon:queue', json_encode([
+                'jobId' => $jobId,
+                'processId' => $processId,
+                'presetName' => $this->presetName
+            ]));
+        }
+        Process::restart($processId, $this->mediaConfig['presetForGif']);
     }
     
     protected function getSourcePresetId($width, $height)
