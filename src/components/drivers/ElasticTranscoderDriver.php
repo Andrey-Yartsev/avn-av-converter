@@ -138,8 +138,7 @@ class ElasticTranscoderDriver extends AmazonDriver
                         'job'   => $jobData['Output'],
                         'error' => $exception->getMessage()
                     ]);
-                    $jobId = $jobData['Output']['Id'] ?? 'unknown';
-                    $this->error = 'Job #' . $jobId . ' failed.';
+                    $this->error = $exception->getMessage();
                     return false;
                 }
             } else {

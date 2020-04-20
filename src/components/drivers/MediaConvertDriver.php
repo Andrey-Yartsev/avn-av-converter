@@ -289,6 +289,11 @@ class MediaConvertDriver extends AmazonDriver
             $width = $this->roundNumberToEven($width);
             $height = $this->roundNumberToEven($height);
             $process->log('Get dimensions', ['dimensions' => "$width X $height"]);
+            if (($width > 1920 && $height > 1080) || ($width > 1080 && $height > 1920)) {
+                $width = $this->roundNumberToEven($width/2);
+                $height = $this->roundNumberToEven($height/2);
+                $process->log('Change dimensions', ['dimensions' => "$width X $height"]);
+            }
             $watermarkKey = $this->getWatermark($s3Client, $process->getWatermark());
             $process->log('Get watermark', ['settings' => $process->getWatermark(), 'key' => $watermarkKey]);
             if ($watermarkKey) {
