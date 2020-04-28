@@ -286,19 +286,26 @@ class MediaConvertDriver extends AmazonDriver
         }
         
         try {
-            $width = $this->roundNumberToEven($width);
-            $height = $this->roundNumberToEven($height);
-            $process->log('Get dimensions', ['dimensions' => "$width X $height"]);
-            if (($width > 1920 && $height > 1080) || ($width > 1080 && $height > 1920)) {
-                $width = $this->roundNumberToEven($width/2);
-                $height = $this->roundNumberToEven($height/2);
+            $originalWidth = $this->roundNumberToEven($width);
+            $originalHeight = $this->roundNumberToEven($height);
+            $process->log('Get dimensions', ['dimensions' => "$originalWidth X $originalHeight"]);
+            if (($originalWidth > 1920 && $originalHeight > 1080) || ($originalWidth > 1080 && $originalHeight > 1920)) {
+                $width = $this->roundNumberToEven($originalWidth/2);
+                $height = $this->roundNumberToEven($originalHeight/2);
                 $process->log('Change dimensions', ['dimensions' => "$width X $height"]);
+            } else {
+                $width = $originalWidth;
+                $height = $originalHeight;
             }
-            $watermarkKey = $this->getWatermark($s3Client, $process->getWatermark());
+            $watermarkSettings = $process->getWatermark();
+            if (empty($watermarkSettings['size'])) {
+                $watermarkSettings['size'] = round(0.027 * $originalHeight);
+            }
+            $watermarkKey = $this->getWatermark($s3Client, $watermarkSettings);
             $process->log('Get watermark', ['settings' => $process->getWatermark(), 'key' => $watermarkKey]);
             if ($watermarkKey) {
-                $imageX = $width - 10 - $this->watermarkInfo['width'];
-                $imageY = $height - 10 - $this->watermarkInfo['height'];
+                $imageX = $originalWidth - 10 - $this->watermarkInfo['width'];
+                $imageY = $originalHeight - 10 - $this->watermarkInfo['height'];
                 if ($imageX < 0) {
                     $imageX = 0;
                 }
