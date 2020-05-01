@@ -172,11 +172,13 @@ class MediaConvertDriver extends AmazonDriver
                     $process->log("Start make {$thumbsCount} thumbs");
                     $driver = Driver::loadByConfig($this->presetName, $this->thumbs);
                     for ($i = 0; $i < $thumbsCount; $i++) {
-                        $driver->createVideoPreview($videoUrl, [], $i * $step);
+                        $previewPath = $this->getVideoFrame($videoUrl, $i * $step);
+                        $driver->createPhotoPreview($previewPath);
+                        foreach ($driver->getResult() as $result) {
+                            $this->result[] = $result;
+                        }
                     }
-                    foreach ($driver->getResult() as $result) {
-                        $this->result[] = $result;
-                    }
+                    
                     $process->log('End make thumbs');
                 }
             }
