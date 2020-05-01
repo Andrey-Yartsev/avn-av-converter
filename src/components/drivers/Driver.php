@@ -128,7 +128,7 @@ abstract class Driver
     
     public function createVideoPreview($filePath, $watermark = [], $seconds = 1)
     {
-        $tempPreviewFile = $this->getVideoFrame($filePath, $seconds);
+        $tempPreviewFile = static::getVideoFrame($filePath, $seconds);
         if (!$tempPreviewFile) {
             return false;
         }
