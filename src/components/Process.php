@@ -97,6 +97,30 @@ class Process
     }
     
     /**
+     * @param $key
+     * @param $value
+     * @return bool
+     */
+    public function set($key, $value)
+    {
+        $queue = $this->getData();
+        $queue[$key] = $value;
+        Redis::getInstance()->set('queue:' . $this->getId(), json_encode($queue));
+        $this->data = $queue;
+        return true;
+    }
+    
+    /**
+     * @param $key
+     * @param null $default
+     * @return mixed|null
+     */
+    public function get($key, $default = null)
+    {
+        return $this->data[$key] ?? $default;
+    }
+    
+    /**
      * @param $processId
      * @return bool
      */

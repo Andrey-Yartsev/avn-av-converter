@@ -119,6 +119,7 @@ class MediaConvertDriver extends AmazonDriver
             $path = $jobData['Settings']['OutputGroups'][0]['OutputGroupSettings']['FileGroupSettings']['Destination'] ?? null;
             $path = str_replace("s3://{$this->s3['bucket']}/", '', $path);
             $sourcePath = null;
+            $duration = null;
             foreach ($outputDetails as $index => $outputDetail) {
                 if (empty($outputs[$index])) {
                     continue;
@@ -129,8 +130,9 @@ class MediaConvertDriver extends AmazonDriver
                     return false;
                 }
                 $nameModifier = $outputs[$index]['NameModifier'];
+                $duration = round($outputDetail['DurationInMs']/1000);
                 $files[] = [
-                    'duration' => round($outputDetail['DurationInMs']/1000),
+                    'duration' => $duration,
                     'height' => $outputDetail['VideoDetails']['HeightInPx'],
                     'width' => $outputDetail['VideoDetails']['WidthInPx'],
                     'url' => $this->url . '/' . $path . $nameModifier . '.mp4',
@@ -157,6 +159,26 @@ class MediaConvertDriver extends AmazonDriver
                 foreach ($driver->getResult() as $result) {
                     $process->log('End make previews');
                     $this->result[] = $result;
+                }
+                
+                $thumbsCount = $process->get('thumbsCount');
+                if ($thumbsCount && !empty($this->thumbs)) {
+                    if ($duration > $thumbsCount) {
+                        $step = floor($duration / $thumbsCount);
+                    } else {
+                        $thumbsCount = $duration;
+                        $step = 1;
+                    }
+                    $process->log("Start make {$thumbsCount} thumbs");
+                    $driver = Driver::loadByConfig($this->presetName, $this->thumbs);
+                    Logger::send('process', ['processId' => $process['id'], 'step' => 'generated video info']);
+                    for ($i = 0; $i < $thumbsCount; $i++) {
+                        $driver->createVideoPreview($videoUrl, [], $i * $step);
+                    }
+                    foreach ($driver->getResult() as $result) {
+                        $this->result[] = $result;
+                    }
+                    $process->log('End make thumbs');
                 }
             }
     
@@ -302,7 +324,7 @@ class MediaConvertDriver extends AmazonDriver
                 $watermarkSettings['size'] = round(0.027 * $originalHeight);
             }
             $watermarkKey = $this->getWatermark($s3Client, $watermarkSettings);
-            $process->log('Get watermark', ['settings' => $process->getWatermark(), 'key' => $watermarkKey]);
+            $process->log('Get watermark', ['settings' => $watermarkSettings, 'key' => $watermarkKey]);
             if ($watermarkKey) {
                 $imageX = $originalWidth - 10 - $this->watermarkInfo['width'];
                 $imageY = $originalHeight - 10 - $this->watermarkInfo['height'];

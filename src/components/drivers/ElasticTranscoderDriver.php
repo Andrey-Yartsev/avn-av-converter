@@ -49,6 +49,7 @@ class ElasticTranscoderDriver extends AmazonDriver
         Logger::send('converter.aws.readJob', $response->toArray());
         $jobData = (array) $response->get('Job');
         if (strtolower($jobData['Status']) != 'complete') {
+            $process->log("Status {$jobData['Status']}");
             if (strtolower($jobData['Status']) == 'error') {
                 Logger::send('converter.aws.readJob', $jobData['Output']);
                 $this->error = isset($jobData['Output']['StatusDetail']) ? $jobData['Output']['StatusDetail'] : 'Internal error';
@@ -72,6 +73,27 @@ class ElasticTranscoderDriver extends AmazonDriver
             foreach ($driver->getResult() as $result) {
                 Logger::send('process', ['processId' => $process->getId(), 'step' => 'End make previews']);
                 $this->result[] = $result;
+            }
+    
+            $thumbsCount = $process->get('thumbsCount');
+            if ($thumbsCount && !empty($this->thumbs)) {
+                $duration = $output['Duration'] ?? 0;
+                if ($duration > $thumbsCount) {
+                    $step = floor($duration / $thumbsCount);
+                } else {
+                    $thumbsCount = $duration;
+                    $step = 1;
+                }
+                $process->log("Start make {$thumbsCount} thumbs");
+                $driver = Driver::loadByConfig($this->presetName, $this->thumbs);
+                Logger::send('process', ['processId' => $process['id'], 'step' => 'generated video info']);
+                for ($i = 0; $i < $thumbsCount; $i++) {
+                    $driver->createVideoPreview($videoUrl, [], $i * $step);
+                }
+                foreach ($driver->getResult() as $result) {
+                    $this->result[] = $result;
+                }
+                $process->log('End make thumbs');
             }
         }
         $responseName = 'source';

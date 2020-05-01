@@ -65,7 +65,7 @@ $cfg = [
                     'maxCount' => 1,
                     'thumbSizes' => [
                         [
-                            'name' => 'thumb',
+                            'name' => 'thumbs',
                             'maxSize' => 300,
                             'fixRatio' => false,
                         ],

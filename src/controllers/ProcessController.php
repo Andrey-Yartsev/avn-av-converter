@@ -120,6 +120,9 @@ class ProcessController extends Controller
                 
                 $files = [];
                 $sourceResponse = FileHelper::getFileResponse($queue['filePath'], $queue['fileType']);
+                if (isset($process['thumbsCount'])) {
+                    $processModel->set('thumbsCount', $process['thumbsCount']);
+                }
                 
                 if ($driver->needPreviewOnStart) {
                     switch ($queue['fileType']) {
@@ -131,11 +134,17 @@ class ProcessController extends Controller
                             $sourceResponse->duration = $duration;
                             $sourceResponse->width = $width;
                             $sourceResponse->height = $height;
+                            
+                            $maxCount = false;
+                            if (isset($process['thumbsCount'])) {
+                                $maxCount = (int) $process['thumbsCount'];
+                            } elseif (isset($driver->thumbs['maxCount'])) {
+                                $maxCount = (int) $driver->thumbs['maxCount'];
+                            }
             
-                            if (isset($driver->thumbs['maxCount'])) {
-                                if ($duration > $driver->thumbs['maxCount']) {
-                                    $maxCount = $driver->thumbs['maxCount'];
-                                    $step = floor($duration / $driver->thumbs['maxCount']);
+                            if ($maxCount) {
+                                if ($duration > $maxCount) {
+                                    $step = floor($duration / $maxCount);
                                 } else {
                                     $maxCount = $duration;
                                     $step = 1;
