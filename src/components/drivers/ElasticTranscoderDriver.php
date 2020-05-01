@@ -86,7 +86,6 @@ class ElasticTranscoderDriver extends AmazonDriver
                 }
                 $process->log("Start make {$thumbsCount} thumbs");
                 $driver = Driver::loadByConfig($this->presetName, $this->thumbs);
-                Logger::send('process', ['processId' => $process['id'], 'step' => 'generated video info']);
                 for ($i = 0; $i < $thumbsCount; $i++) {
                     $driver->createVideoPreview($videoUrl, [], $i * $step);
                 }
