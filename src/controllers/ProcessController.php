@@ -110,7 +110,7 @@ class ProcessController extends Controller
             Logger::send('process', ['processId' => $process['id'], 'step' => 'Init start']);
             $processModel = Process::find($process['id']);
             if ($processModel) {
-                Logger::send('process', ['processId' => $process['id'], 'step' => 'Init start (find process)']);
+                $processModel->log('Find process', $process);
                 $queue = $processModel->getData();
                 $processIds[] = $processModel->getId();
                 $driver = $processModel->getDriver();
@@ -122,6 +122,7 @@ class ProcessController extends Controller
                 $sourceResponse = FileHelper::getFileResponse($queue['filePath'], $queue['fileType']);
                 if (isset($process['thumbsCount'])) {
                     $processModel->set('thumbsCount', $process['thumbsCount']);
+                    $processModel->log('Set thumbsCount', ['thumbsCount' => $process['thumbsCount']]);
                 }
                 
                 if ($driver->needPreviewOnStart) {
@@ -179,7 +180,9 @@ class ProcessController extends Controller
                     'processId' => $process['id'],
                     'files'     => $files
                 ];
-                Logger::send('process', ['processId' => $process['id'], 'step' => 'Send preview files', 'data' => $files]);
+                $processModel->log('Send preview files', $files);
+            } else {
+                Logger::send('process', ['processId' => $process['id'], 'step' => 'Process not found']);
             }
         }
         $content = json_encode($response);
