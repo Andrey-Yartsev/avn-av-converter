@@ -62,7 +62,7 @@ class UploadForm extends Form
                         'Bucket' => $this->file['Bucket'],
                         'Key' => $this->file['Key'],
                     ]);
-                    Logger::send('debug', ['step' => 'HeadObject', 'data' => $response]);
+                    Logger::send('debug', ['step' => 'HeadObject', 'data' => $response->toArray()]);
                     $this->file['ContentType'] = $response['ContentType'] ?? null;
                     $this->fileType = isset($response['ContentType']) ? FileHelper::getTypeByMimeType($response['ContentType']) : 'None';
                     $allowedHosts = [
