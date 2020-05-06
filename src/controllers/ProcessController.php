@@ -266,6 +266,7 @@ class ProcessController extends Controller
         $response = [
             'processId' => $result,
             'host'      => parse_url(Config::getInstance()->get('baseUrl'), PHP_URL_HOST),
+            'sourceUrl' => $form->getSourceUrl(),
         ];
         if (isset($_POST['additional']) && is_array($_POST['additional'])) {
             $response['additional'] = $_POST['additional'];
