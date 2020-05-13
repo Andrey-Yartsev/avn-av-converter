@@ -351,6 +351,11 @@ $cfg = [
                             'maxSize' => 760,
                         ],
                         [
+                            'name' => 'square_preview',
+                            'width' => 960,
+                            'height' => 960,
+                        ],
+                        [
                             'name' => 'thumb',
                             'width' => 150,
                             'height' => 150,
