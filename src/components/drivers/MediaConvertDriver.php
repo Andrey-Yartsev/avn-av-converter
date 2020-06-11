@@ -325,7 +325,7 @@ class MediaConvertDriver extends AmazonDriver
                 $watermarkSettings['size'] = round(0.027 * $originalHeight);
             }
             $watermarkKey = $this->getWatermark($s3Client, $watermarkSettings);
-            $process->log('Get watermark', ['settings' => $watermarkSettings, 'key' => $watermarkKey]);
+            $process->log('Get watermark', ['settings' => $watermarkSettings, 'key' => $watermarkKey, 'height' => $this->watermarkInfo['height'], 'width' => $this->watermarkInfo['width']]);
             if ($watermarkKey) {
                 $imageX = $originalWidth - 10 - $this->watermarkInfo['width'];
                 $imageY = $originalHeight - 10 - $this->watermarkInfo['height'];
