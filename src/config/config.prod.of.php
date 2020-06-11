@@ -192,7 +192,15 @@ $cfg = [
                     'region' => 'us-east-1',
                     'role' => 'arn:aws:iam::315135013854:role/MediaConvert',
                     'queues' => [
-                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/Resrved-queue'
+                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/Default',
+                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/of1',
+                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/of2',
+                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/of3',
+                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/of4',
+                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/of5',
+                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/of6',
+                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/of7',
+                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/Resrved-queue',
                     ],
                     'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
                     'secret' => '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',
