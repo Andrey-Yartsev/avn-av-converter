@@ -201,10 +201,10 @@ $cfg = [
                         'arn:aws:mediaconvert:us-east-1:315135013854:queues/of6',
                         'arn:aws:mediaconvert:us-east-1:315135013854:queues/of7',
                     ],
-                    'mainQueue' => [
-                        'id' => 'arn:aws:mediaconvert:us-east-1:315135013854:queues/Resrved-queue',
-                        'waitMinutes' => 1,
-                    ],
+//                    'mainQueue' => [
+//                        'id' => 'arn:aws:mediaconvert:us-east-1:315135013854:queues/Resrved-queue',
+//                        'waitMinutes' => 1,
+//                    ],
                     'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
                     'secret' => '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',
                     'endpoint' => 'https://q25wbt2lc.mediaconvert.us-east-1.amazonaws.com',
