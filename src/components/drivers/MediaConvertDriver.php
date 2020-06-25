@@ -379,20 +379,31 @@ class MediaConvertDriver extends AmazonDriver
                 $process->log("Set preset {$presetSettings['name']} with $newWidth X $newHeight");
             }
     
-            $jobSettings['OutputGroups'][] = $outputGroup;
-            if (isset($this->mediaConfig['queues'])) {
-                $queue = $this->mediaConfig['queues'][array_rand($this->mediaConfig['queues'])];
-            } else {
-                $queue = $this->mediaConfig['queue'];
-            }
-            $job = $client->createJob([
+            $jobSettings = [
                 'Role' => $this->mediaConfig['role'],
                 'Settings' => [
                     'Inputs' => [$inputSettings],
                     'OutputGroups' => [$outputGroup],
                 ],
-                'Queue' => $queue,
-            ]);
+            ];
+            if (isset($this->mediaConfig['mainQueue']) && isset($this->mediaConfig['queues'])) {
+                $jobSettings['Queue'] = $this->mediaConfig['mainQueue']['id'];
+                $jobSettings['HopDestinations'][] = [
+                    'WaitMinutes' => $this->mediaConfig['mainQueue']['waitMinutes'],
+                    'Queue' => $this->mediaConfig['queues'][array_rand($this->mediaConfig['queues'])],
+                ];
+                $process->log('Set mainQueue and HopDestinations');
+            } elseif (isset($this->mediaConfig['queues'])) {
+                $jobSettings['Queue'] = $this->mediaConfig['queues'][array_rand($this->mediaConfig['queues'])];
+                $process->log('Set random queue from list');
+            } elseif (isset($this->mediaConfig['queue'])) {
+                $jobSettings['Queue'] = $this->mediaConfig['queue'];
+                $process->log('Set single queue');
+            } else {
+                $process->log('Wrong config for queue');
+                return false;
+            }
+            $job = $client->createJob($jobSettings);
         } catch (\Throwable $e) {
             $process->log('Failed create media convert job', [
                 'status' => 'failed',
