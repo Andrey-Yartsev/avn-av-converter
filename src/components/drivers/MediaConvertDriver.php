@@ -389,7 +389,7 @@ class MediaConvertDriver extends AmazonDriver
             if (isset($this->mediaConfig['mainQueue']) && isset($this->mediaConfig['queues'])) {
                 $jobSettings['Queue'] = $this->mediaConfig['mainQueue']['id'];
                 $jobSettings['HopDestinations'][] = [
-                    'WaitMinutes' => $this->mediaConfig['mainQueue']['waitMinutes'],
+                    'WaitMinutes' => (int) $this->mediaConfig['mainQueue']['waitMinutes'],
                     'Queue' => $this->mediaConfig['queues'][array_rand($this->mediaConfig['queues'])],
                 ];
                 $process->log('Set mainQueue and HopDestinations');
