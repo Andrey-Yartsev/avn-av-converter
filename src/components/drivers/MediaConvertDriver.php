@@ -10,6 +10,7 @@ namespace Converter\components\drivers;
 use Aws\Credentials\Credentials;
 use Aws\MediaConvert\MediaConvertClient;
 use Aws\S3\S3Client;
+use Converter\components\Locker;
 use Converter\components\Logger;
 use Converter\components\Process;
 use Converter\components\Redis;
@@ -291,7 +292,7 @@ class MediaConvertDriver extends AmazonDriver
         
         $client = $this->getClient();
         try {
-            list($width, $height) = $this->getVideoDimensions($filePath);
+            [$width, $height] = $this->getVideoDimensions($filePath);
             if ($width == 0 || $height == 0) {
                 throw new \Exception("Wrong dimensions $width X $height");
             }
@@ -353,7 +354,7 @@ class MediaConvertDriver extends AmazonDriver
                 ],
                 'Outputs' => [],
             ];
-            list($presetId, $presetSettings) = $this->getSourcePresetId($width, $height);
+            [$presetId, $presetSettings] = $this->getSourcePresetId($width, $height);
             if ($presetId) {
                 $this->mediaConfig['presets'][$presetId] = $presetSettings;
                 $process->log('Selected source preset ' . $presetSettings['height']);
@@ -422,6 +423,7 @@ class MediaConvertDriver extends AmazonDriver
                 'processId' => $processId,
                 'presetName' => $this->presetName
             ]));
+            Locker::lock("process:{$process->getId()}", 300);
             return true;
         } else {
             $process->log('Wrong job', $job);
@@ -490,7 +492,7 @@ class MediaConvertDriver extends AmazonDriver
         if ($watermarkKey) {
             $localPath = FileHelper::getLocalPath($s3Client->getObjectUrl($this->s3['bucket'], $watermarkKey));
             if (file_exists($localPath)) {
-                list($width, $height) = getimagesize($localPath);
+                [$width, $height] = getimagesize($localPath);
                 $this->watermarkInfo = [
                     'width' => $width,
                     'height' => $height

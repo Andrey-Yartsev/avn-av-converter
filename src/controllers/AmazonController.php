@@ -60,7 +60,7 @@ class AmazonController extends Controller
                 }
                 $amazonDriver = $process->getDriver();
                 if (!$amazonDriver instanceof AmazonDriver) {
-                    Logger::send('process', ['processId' => $options['processId'], 'step' => 'Wrong driver']);
+                    $process->log('Wrong driver');
                     continue;
                 }
                 if ($amazonDriver->readJob($options['jobId'], $process)) {
@@ -71,7 +71,7 @@ class AmazonController extends Controller
                             'preset'    => $presetName,
                             'files'     => $amazonDriver->getResult()
                         ];
-                        Logger::send('process', ['processId' => $options['processId'], 'step' => 'Job success', 'data' => $json]);
+                        $process->log('Job success', $json);
                         try {
                             $client = new Client();
                             $response = $client->request('POST', $process->getCallbackUrl(), [
@@ -83,10 +83,10 @@ class AmazonController extends Controller
                                 'httpCode' => $response->getStatusCode(),
                                 'response' => $response->getBody()
                             ]);
-                            Logger::send('process', ['processId' => $options['processId'], 'step' => 'Send callback', 'data' => [
+                            $process->log('Send callback', [
                                 'httpCode' => $response->getStatusCode(),
                                 'response' => $response->getBody()
-                            ]]);
+                            ]);
                         } catch (\Exception $e) {
                             $this->failedCallback($e->getMessage(), $process->getCallbackUrl(), $options['processId'], $json);
                         }
