@@ -111,6 +111,7 @@ class MediaConvertDriver extends AmazonDriver
                 if (strtolower($jobData['Status']) == 'error') {
                     $this->error = $jobData['ErrorMessage'] ?? '';
                 }
+                $this->restart($process->getId(), $jobId);
                 return false;
             }
             
