@@ -61,6 +61,10 @@ class UploadForm extends Form
                         'Key' => $this->file['Key'],
                     ]);
                     Logger::send('debug', ['step' => 'HeadObject', 'data' => $response->toArray()]);
+                    if (isset($response['ContentLength']) && $response['ContentLength'] < 1) {
+                        $this->setErrors('File is empty.');
+                        return false;
+                    }
                     $this->file['ContentType'] = $response['ContentType'] ?? null;
                     $this->fileType = isset($response['ContentType']) ? FileHelper::getTypeByMimeType($response['ContentType']) : 'None';
                     $allowedHosts = [
