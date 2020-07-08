@@ -100,7 +100,7 @@ abstract class Driver
         }
         
         $thumbsSettings = $this->thumbs;
-        $thumbsSettings['thumbSizes'] = current($thumbsSettings['thumbSizes']);
+        $thumbsSettings['thumbSizes'] = [current($thumbsSettings['thumbSizes'])];
         $driver = Driver::loadByConfig($this->presetName, $thumbsSettings);
         if ($duration == 0) {
             $tempPreviewFile = $this->getVideoFrame($filePath, $duration);
