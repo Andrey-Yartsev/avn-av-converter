@@ -99,7 +99,9 @@ abstract class Driver
             $step = 1;
         }
         
-        $driver = Driver::loadByConfig($this->presetName,current($this->thumbs));
+        $thumbsSettings = $this->thumbs;
+        $thumbsSettings['thumbSizes'] = current($thumbsSettings['thumbSizes']);
+        $driver = Driver::loadByConfig($this->presetName, $thumbsSettings);
         if ($duration == 0) {
             $tempPreviewFile = $this->getVideoFrame($filePath, $duration);
             if ($tempPreviewFile) {
