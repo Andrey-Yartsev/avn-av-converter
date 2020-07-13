@@ -502,5 +502,22 @@ $cfg = [
 
 $cfg['presets']['of_beta2'] = $cfg['presets']['of_beta'];
 $cfg['presets']['of_beta2']['callback'] .= '?beta=a919992d95bbfafb47b2c6f5b0109e73';
-
+$cfg['presets']['of_beta2']['thumbs']['maxCount'] = 10;
+$cfg['presets']['of_beta2']['thumbs']['thumbSizes'] = [
+    [
+        'name' => 'preview',
+        'maxSize' => 960,
+        'fixRatio' => false,
+    ],
+    [
+        'name' => 'square_preview',
+        'width' => 960,
+        'height' => 960,
+    ],
+    [
+        'name' => 'thumb',
+        'width' => 300,
+        'height' => 300,
+    ],
+];
 return $cfg;
