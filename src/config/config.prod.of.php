@@ -200,10 +200,7 @@ $cfg = [
                         'arn:aws:mediaconvert:us-east-1:315135013854:queues/of5',
                         'arn:aws:mediaconvert:us-east-1:315135013854:queues/of6',
                         'arn:aws:mediaconvert:us-east-1:315135013854:queues/of7',
-                    ],
-                    'mainQueue' => [
-                        'id' => 'arn:aws:mediaconvert:us-east-1:315135013854:queues/Resrved-queue',
-                        'waitMinutes' => 1,
+                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/Resrved-queue',
                     ],
                     'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
                     'secret' => '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',
@@ -502,8 +499,8 @@ $cfg = [
 
 $cfg['presets']['of_beta2'] = $cfg['presets']['of_beta'];
 $cfg['presets']['of_beta2']['callback'] .= '?beta=a919992d95bbfafb47b2c6f5b0109e73';
-$cfg['presets']['of_beta2']['thumbs']['maxCount'] = 10;
-$cfg['presets']['of_beta2']['thumbs']['thumbSizes'] = [
+$cfg['presets']['of_beta2']['video']['thumbs']['maxCount'] = 10;
+$cfg['presets']['of_beta2']['video']['thumbs']['thumbSizes'] = [
     [
         'name' => 'preview',
         'maxSize' => 960,
