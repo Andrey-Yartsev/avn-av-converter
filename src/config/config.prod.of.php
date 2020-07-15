@@ -219,12 +219,22 @@ $cfg = [
                 'thumbs' => [
                     'driver' => \Converter\components\drivers\LocalDriver::class,
                     'engine' => 'imagick',
-                    'maxCount' => 1,
+                    'maxCount' => 10,
                     'thumbSizes' => [
                         [
-                            'name' => 'thumbs',
-                            'maxSize' => 300,
+                            'name' => 'previews',
+                            'maxSize' => 960,
                             'fixRatio' => false,
+                        ],
+                        [
+                            'name' => 'square_previews',
+                            'width' => 960,
+                            'height' => 960,
+                        ],
+                        [
+                            'name' => 'thumbs',
+                            'width' => 300,
+                            'height' => 300,
                         ],
                     ]
                 ],
@@ -499,22 +509,4 @@ $cfg = [
 
 $cfg['presets']['of_beta2'] = $cfg['presets']['of_beta'];
 $cfg['presets']['of_beta2']['callback'] .= '?beta=a919992d95bbfafb47b2c6f5b0109e73';
-$cfg['presets']['of_beta2']['video']['thumbs']['maxCount'] = 10;
-$cfg['presets']['of_beta2']['video']['thumbs']['thumbSizes'] = [
-    [
-        'name' => 'previews',
-        'maxSize' => 960,
-        'fixRatio' => false,
-    ],
-    [
-        'name' => 'square_previews',
-        'width' => 960,
-        'height' => 960,
-    ],
-    [
-        'name' => 'thumbs',
-        'width' => 300,
-        'height' => 300,
-    ],
-];
 return $cfg;
