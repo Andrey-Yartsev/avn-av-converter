@@ -8,6 +8,7 @@ namespace Converter\components\drivers;
 
 
 use Aws\ElasticTranscoder\ElasticTranscoderClient;
+use Aws\S3\MultipartCopy;
 use Converter\components\Logger;
 use Converter\components\Process;
 use Converter\components\Redis;
@@ -110,11 +111,11 @@ class ElasticTranscoderDriver extends AmazonDriver
                 try {
                     $s3Client = $this->getS3Client();
                     if ($s3Client->doesObjectExist($this->s3['bucket'], 'files/' . $output['Key'])) {
-                        $s3Client->copyObject([
-                            'Bucket'     => $storage->bucket,
-                            'Key'        => 'files/' . $output['Key'],
-                            'CopySource' => $this->s3['bucket'] . '/files/' . $output['Key'],
+                        $uploader = new MultipartCopy($s3Client, "/{$this->s3['bucket']}/files/{$output['Key']}", [
+                            'Bucket' => $storage->bucket,
+                            'Key'    => 'files/' . $output['Key'],
                         ]);
+                        $uploader->copy();
                         $s3Client->deleteObject([
                             'Bucket' => $this->s3['bucket'],
                             'Key'    => 'files/' . $output['Key'],
@@ -272,7 +273,7 @@ class ElasticTranscoderDriver extends AmazonDriver
                     'PresetId' => $this->transcoder['preset']
                 ];
             } else {
-                list($width, $height) = $this->getVideoDimensions($filePath);
+                [$width, $height] = $this->getVideoDimensions($filePath);
                 Logger::send('process', ['processId' => $processId, 'step' => 'Get dimensions', 'data' => "$width X $height"]);
                 foreach ($this->transcoder['presets'] as $presetId => $presetSettings) {
                     if ($height && !empty($presetSettings['height']) && $presetSettings['height'] > $height) {
