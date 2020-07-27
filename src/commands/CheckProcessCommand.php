@@ -22,66 +22,44 @@ class CheckProcessCommand extends Command
     {
         $this->setName('process:check');
         $this->addArgument('id', InputArgument::REQUIRED);
+        $this->addArgument('jobId', InputArgument::REQUIRED);
     }
     
     public function execute(InputInterface $input, OutputInterface $output)
     {
-        $jobId = $input->getArgument('id');
-        $jobs = Redis::getInstance()->sMembers('amazon:queue');
-        foreach ($jobs as $job) {
-            $options = json_decode($job, true);
-            if ($options['jobId'] != $jobId) {
-                continue;
-            }
-            $process = Process::find($options['processId']);
-            Logger::send('amazon.queue', ['job' => $job, 'step' => 'Start']);
-            if (empty($process)) {
-                Logger::send('amazon.queue', ['job' => $job, 'step' => 'Process #' . $options['processId'] . ' not found']);
-                Redis::getInstance()->sRem('amazon:queue', $job);
-                Logger::send('process', ['processId' => $options['processId'], 'step' => 'Not founded']);
-                continue;
-            }
-            $process->log('Start check status');
-            $lockKey = "process:{$process->getId()}";
-            $amazonDriver = $process->getDriver();
-            if (!$amazonDriver instanceof AmazonDriver) {
-                Logger::send('amazon.queue', ['job' => $job, 'step' => 'Process #' . $options['processId'] . ' wrong driver']);
-                Redis::getInstance()->sRem('amazon:queue', $job);
-                $process->log('Wrong driver');
-                continue;
-            }
-            try {
-                if ($amazonDriver->readJob($options['jobId'], $process)) {
-                    Logger::send('amazon.queue', ['job' => $job, 'step' => 'readJob():true']);
-                    $result = $amazonDriver->getResult();
-                    $process->log('Job success', $result);
-                    $resultCallback = $process->sendCallback([
-                                                                 'files' => $result
-                                                             ]);
-                
-                    if ($resultCallback) {
-                        // @TODO removed original file
-                        Redis::getInstance()->sRem('amazon:queue', $job);
-                        Logger::send('amazon.queue', ['job' => $job, 'step' => 'Send callback']);
-                    } else {
-                        Redis::getInstance()->sRem('amazon:queue', $job);
-                        Logger::send('amazon.queue', ['job' => $job, 'step' => 'Error send callback']);
-                    }
+        $jobId = $input->getArgument('jobId');
+        $id = $input->getArgument('id');
+        $process = Process::find($id);
+        if (empty($process)) {
+            Logger::send('process', ['processId' => $id, 'step' => 'Not founded']);
+            echo 'Not founded' . PHP_EOL;
+            die;
+        }
+    
+        $process->log('Start check status');
+        $amazonDriver = $process->getDriver();
+        if (!$amazonDriver instanceof AmazonDriver) {
+            $process->log('Wrong driver');
+            echo 'Wrong driver' . PHP_EOL;
+            die;
+        }
+        try {
+            if ($amazonDriver->readJob($jobId, $process)) {
+                $result = $amazonDriver->getResult();
+                $process->log('Job success', $result);
+                $resultCallback = $process->sendCallback(['files' => $result]);
+            
+                if ($resultCallback) {
+                    echo 'Send callback' . PHP_EOL;
+                    die;
                 } else {
-                    if (($error = $amazonDriver->getError())) {
-                        Redis::getInstance()->sRem('amazon:queue', $job);
-                        $process->log('Job failed', ['error' => $error]);
-                        $process->sendCallback(['error' => $error]);
-                        Logger::send('amazon.queue', ['job' => $job, 'step' => 'readJob():false:' . $error]);
-                    } else {
-                        Logger::send('amazon.queue', ['job' => $job, 'step' => 'readJob():not complete']);
-                    }
+                    echo 'Error send callback' . PHP_EOL;
+                    die;
                 }
-            } catch (\Exception $e) {
-                $process->log('Failed', ['data' => $e->getMessage()]);
-                Redis::getInstance()->sRem('amazon:queue', $job);
-                continue;
             }
+        } catch (\Exception $e) {
+            echo $e->getMessage() . PHP_EOL;
+            die;
         }
     }
 }
