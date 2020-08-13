@@ -138,7 +138,7 @@ abstract class AmazonDriver extends Driver
         }
         shell_exec(
             sprintf(
-                'ffmpeg -user-agent %s -ss %s -i %s -vframes 1 %s',
+                'ffmpeg -y -user-agent %s -ss %s -i %s -vframes 1 %s > /dev/null 2>&1',
                 escapeshellarg(FileHelper::getUserAgent($sourcePath)),
                 escapeshellarg((string) TimeCode::fromSeconds($seconds)),
                 escapeshellarg($sourcePath),
