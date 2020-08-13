@@ -22,17 +22,30 @@ class CheckProcessCommand extends Command
     {
         $this->setName('process:check');
         $this->addArgument('id', InputArgument::REQUIRED);
-        $this->addArgument('jobId', InputArgument::REQUIRED);
     }
     
     public function execute(InputInterface $input, OutputInterface $output)
     {
-        $jobId = $input->getArgument('jobId');
         $id = $input->getArgument('id');
         $process = Process::find($id);
         if (empty($process)) {
             Logger::send('process', ['processId' => $id, 'step' => 'Not founded']);
             echo 'Not founded' . PHP_EOL;
+            die;
+        }
+    
+        $jobId = null;
+        foreach (Redis::getInstance()->sMembers('amazon:queue') as $job) {
+            $options = json_decode($job, true);
+            if ($options['processId'] == $id) {
+                $jobId = $options['jobId'];
+                echo 'Job founded' . PHP_EOL;
+                break;
+            }
+        }
+        
+        if (empty($jobId)) {
+            echo 'Job not founded' . PHP_EOL;
             die;
         }
     
