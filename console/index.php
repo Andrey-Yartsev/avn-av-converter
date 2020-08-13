@@ -17,4 +17,5 @@ $application->add(new \Converter\commands\AmazonQueueCommand());
 $application->add(new \Converter\commands\RetryCommand());
 $application->add(new \Converter\commands\UploadCommand());
 $application->add(new \Converter\commands\CheckProcessCommand());
+$application->add(new \Converter\commands\AmazonQueueCountCommand());
 $application->run();
