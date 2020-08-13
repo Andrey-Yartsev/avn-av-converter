@@ -20,8 +20,8 @@ class AmazonQueueCountCommand extends Command
     
     public function execute(InputInterface $input, OutputInterface $output)
     {
-        echo count(Redis::getInstance()->sMembers('amazon:queue'));
-        
+        echo 'Queue: ' . count(Redis::getInstance()->sMembers('amazon:queue')) . PHP_EOL;
+        echo 'Workers: ' . floor(exec('ps aux | grep "amazon:queue" | grep -v "grep" | wc -l' ) / 2) . PHP_EOL;
         return 2;
     }
 }

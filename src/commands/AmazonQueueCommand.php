@@ -12,7 +12,6 @@ use Converter\components\Logger;
 use Converter\components\Process;
 use Converter\components\Redis;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Command\LockableTrait;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -26,7 +25,7 @@ class AmazonQueueCommand extends Command
     public function execute(InputInterface $input, OutputInterface $output)
     {
         $totalJobs = count(Redis::getInstance()->sMembers('amazon:queue'));
-        $jobs = Redis::getInstance()->sRandMember('amazon:queue', 50);
+        $jobs = Redis::getInstance()->sRandMember('amazon:queue', 150);
         Logger::send('amazon.queue', ['count' => count($jobs), 'total' => $totalJobs]);
         foreach ($jobs as $job) {
             $options = json_decode($job, true);
