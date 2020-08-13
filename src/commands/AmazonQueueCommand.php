@@ -18,8 +18,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class AmazonQueueCommand extends Command
 {
-    use LockableTrait;
-    
     protected function configure()
     {
         $this->setName('amazon:queue');
@@ -28,15 +26,16 @@ class AmazonQueueCommand extends Command
     public function execute(InputInterface $input, OutputInterface $output)
     {
         $totalJobs = count(Redis::getInstance()->sMembers('amazon:queue'));
-        if (!$this->lock()) {
-            Logger::send('amazon.queue', ['step' => 'Process already working!', 'totalJobs' => $totalJobs]);
-            return 1;
-        }
         $jobs = Redis::getInstance()->sRandMember('amazon:queue', 50);
         Logger::send('amazon.queue', ['count' => count($jobs), 'total' => $totalJobs]);
         foreach ($jobs as $job) {
             $options = json_decode($job, true);
             $process = Process::find($options['processId']);
+            $lockProcessingKey = "in:processing:{$process->getId()}";
+            if (Locker::isLocked($lockProcessingKey)) {
+                Logger::send('amazon.queue', ['job' => $job, 'step' => 'Already in processing']);
+                continue;
+            }
             Logger::send('amazon.queue', ['job' => $job, 'step' => 'Start']);
             if (empty($process)) {
                 Logger::send('amazon.queue', ['job' => $job, 'step' => 'Process #' . $options['processId'] . ' not found']);
@@ -48,6 +47,7 @@ class AmazonQueueCommand extends Command
             $lockKey = "process:{$process->getId()}";
             if (Locker::isLocked($lockKey)) {
                 $process->log('Skip by timeout');
+                Logger::send('amazon.queue', ['job' => $job, 'step' => 'Skip by timeout']);
                 continue;
             }
             $amazonDriver = $process->getDriver();
@@ -58,6 +58,7 @@ class AmazonQueueCommand extends Command
                 continue;
             }
             try {
+                Locker::lock($lockProcessingKey, 60);
                 if ($amazonDriver->readJob($options['jobId'], $process)) {
                     Logger::send('amazon.queue', ['job' => $job, 'step' => 'readJob():true']);
                     $result = $amazonDriver->getResult();
@@ -92,10 +93,9 @@ class AmazonQueueCommand extends Command
                 Redis::getInstance()->sRem('amazon:queue', $job);
                 continue;
             }
-            
+            Locker::unlock($lockProcessingKey);
             sleep(1);
         }
-        $this->release();
         
         return 2;
     }
