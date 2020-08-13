@@ -3,6 +3,7 @@
 namespace Converter\commands;
 
 use Converter\components\drivers\AmazonDriver;
+use Converter\components\Locker;
 use Converter\components\Logger;
 use Converter\components\Process;
 use Converter\components\Redis;
@@ -68,6 +69,12 @@ class CheckProcessCommand extends Command
                 } else {
                     echo 'Error send callback' . PHP_EOL;
                     die;
+                }
+            } else {
+                if (($error = $amazonDriver->getError())) {
+                    echo 'Error:' . $error . PHP_EOL;
+                } else {
+                    echo 'Job not complete' . PHP_EOL;
                 }
             }
         } catch (\Exception $e) {
