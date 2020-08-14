@@ -30,6 +30,11 @@ class AmazonQueueCommand extends Command
         foreach ($jobs as $job) {
             $options = json_decode($job, true);
             $process = Process::find($options['processId']);
+            if (empty($process)) {
+                Logger::send('amazon.queue', ['job' => $job, 'step' => 'Process not found']);
+                Redis::getInstance()->sRem('amazon:queue', $job);
+                continue;
+            }
             $lockProcessingKey = "in:processing:{$process->getId()}";
             if (Locker::isLocked($lockProcessingKey)) {
                 Logger::send('amazon.queue', ['job' => $job, 'step' => 'Already in processing']);
