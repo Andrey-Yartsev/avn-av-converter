@@ -89,7 +89,7 @@ class AmazonQueueCommand extends Command
                         Logger::send('amazon.queue', ['job' => $job, 'step' => 'readJob():false:' . $error]);
                     } else {
                         Logger::send('amazon.queue', ['job' => $job, 'step' => 'readJob():not complete']);
-                        Locker::lock($lockKey, 120);
+                        Locker::lock($lockKey, 300);
                     }
                 }
             } catch (\Exception $e) {
