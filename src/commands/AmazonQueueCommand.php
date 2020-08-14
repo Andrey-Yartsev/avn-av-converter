@@ -49,7 +49,7 @@ class AmazonQueueCommand extends Command
             }
             $process->log('Start check status');
             $lockKey = "process:{$process->getId()}";
-            if (Locker::isLocked($lockKey)) {
+            if (Locker::isLocked($lockKey) || (isset($options['timestamp']) && ($options['timestamp'] + 300) > time())) {
                 $process->log('Skip by timeout');
                 Logger::send('amazon.queue', ['job' => $job, 'step' => 'Skip by timeout']);
                 continue;

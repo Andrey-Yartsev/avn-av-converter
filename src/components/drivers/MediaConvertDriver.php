@@ -422,7 +422,8 @@ class MediaConvertDriver extends AmazonDriver
             Redis::getInstance()->sAdd('amazon:queue', json_encode([
                 'jobId' => $job['Id'],
                 'processId' => $processId,
-                'presetName' => $this->presetName
+                'presetName' => $this->presetName,
+                'timestamp' => time(),
             ]));
             Locker::lock("process:{$process->getId()}", 300);
             return true;
