@@ -12,11 +12,14 @@ use Converter\components\Logger;
 use Converter\components\Process;
 use Converter\components\Redis;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Command\LockableTrait;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class AmazonQueueCommand extends Command
 {
+    use LockableTrait;
+    
     protected function configure()
     {
         $this->setName('amazon:queue');
@@ -24,11 +27,11 @@ class AmazonQueueCommand extends Command
     
     public function execute(InputInterface $input, OutputInterface $output)
     {
-        $workers = floor(exec('ps aux | grep "amazon:queue" | grep -v "grep" | wc -l' ) / 2);
-        if ($workers > 3) {
-            die;
-        }
         $totalJobs = count(Redis::getInstance()->sMembers('amazon:queue'));
+        if (!$this->lock()) {
+            Logger::send('amazon.queue', ['step' => 'Process already working!', 'totalJobs' => $totalJobs]);
+            return 1;
+        }
         $jobs = Redis::getInstance()->sRandMember('amazon:queue', 150);
         Logger::send('amazon.queue', ['count' => count($jobs), 'total' => $totalJobs]);
         foreach ($jobs as $job) {
@@ -104,7 +107,7 @@ class AmazonQueueCommand extends Command
             Locker::unlock($lockProcessingKey);
             sleep(1);
         }
-        
+        $this->release();
         return 2;
     }
 }
