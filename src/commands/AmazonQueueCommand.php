@@ -40,7 +40,7 @@ class AmazonQueueCommand extends Command
                 Logger::send('amazon.queue', ['job' => $job, 'step' => 'Already in processing']);
                 continue;
             }
-            Logger::send('amazon.queue', ['job' => $job, 'step' => 'Start']);
+            Logger::send('amazon.queue', ['job' => $job, 'options' => $options, 'step' => 'Start']);
             if (empty($process)) {
                 Logger::send('amazon.queue', ['job' => $job, 'step' => 'Process #' . $options['processId'] . ' not found']);
                 Redis::getInstance()->sRem('amazon:queue', $job);
