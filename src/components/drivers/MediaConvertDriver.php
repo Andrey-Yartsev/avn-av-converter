@@ -96,54 +96,54 @@ class MediaConvertDriver extends AmazonDriver
     /**
      * @param $jobId
      * @param Process $process
+     * @param array $jobData
      */
-    public function readJob($jobId, $process)
+    public function readJob($jobId, $process, $jobData = [])
     {
         $process->log(__METHOD__, ['jobId' => $jobId]);
         $client = $this->getClient();
         try {
-            $response = $client->getJob(['Id' => $jobId]);
-            Logger::send('converter.aws.readJob', $response->toArray());
-            $jobData = (array) $response->get('Job');
-            if (strtolower($jobData['Status']) != 'complete') {
-                $percent = $jobData['JobPercentComplete'] ?? 'null';
-                $process->log("Status {$jobData['Status']}, $percent%");
-                if (strtolower($jobData['Status']) == 'error') {
-                    $this->error = $jobData['ErrorMessage'] ?? '';
+            if (empty($jobData)) {
+                $response = $client->getJob(['Id' => $jobId]);
+                Logger::send('converter.aws.readJob', $response->toArray());
+                $jobData = $this->getJobData((array) $response->get('Job'));
+            } else {
+                $process->log('Use job data from web hook');
+            }
+            
+            if (strtolower($jobData['status']) != 'complete') {
+                $percent = $jobData['percentComplete'] ?? 'null';
+                $process->log("Status {$jobData['status']}, $percent%");
+                if (strtolower($jobData['status']) == 'error') {
+                    $this->error = $jobData['errorMessage'] ?? '';
                 }
                 $this->restart($process->getId(), $jobId);
                 return false;
             }
             
             $files = [];
-            $outputDetails = $jobData['OutputGroupDetails'][0]['OutputDetails'] ?? [];
-            $outputs = $jobData['Settings']['OutputGroups'][0]['Outputs'] ?? [];
-            $path = $jobData['Settings']['OutputGroups'][0]['OutputGroupSettings']['FileGroupSettings']['Destination'] ?? null;
-            $path = str_replace("s3://{$this->s3['bucket']}/", '', $path);
             $sourcePath = null;
-            $duration = null;
-            foreach ($outputDetails as $index => $outputDetail) {
-                if (empty($outputs[$index])) {
-                    continue;
-                }
-                if ($outputDetail['DurationInMs'] <= 1001) {
+            $outputDetails = $jobData['outputGroupDetails'][0]['outputDetails'] ?? [];
+            foreach ($outputDetails as $outputDetail) {
+                if ($outputDetail['durationInMs'] <= 1001) {
                     $process->log('Detected 1 second video file');
                     $this->restart($process->getId(), $jobId);
                     return false;
                 }
-                $nameModifier = $outputs[$index]['NameModifier'];
-                $duration = round($outputDetail['DurationInMs']/1000);
+                $path = current($outputDetail['outputFilePaths']);
+                $nameModifier = str_replace('.mp4', '', substr($path, strpos($path, '_') + 1));
+                $path = str_replace("s3://{$this->s3['bucket']}/", '', $path);
+                $duration = round($outputDetail['durationInMs']/1000);
                 $files[] = [
                     'duration' => $duration,
-                    'height' => $outputDetail['VideoDetails']['HeightInPx'],
-                    'width' => $outputDetail['VideoDetails']['WidthInPx'],
-                    'url' => $this->url . '/' . $path . $nameModifier . '.mp4',
-                    'path' => $path . $nameModifier . '.mp4',
-                    'name' => substr($nameModifier, 1),
-                    'presetId' => $outputs[$index]['Preset'],
+                    'height' => $outputDetail['videoDetails']['heightInPx'],
+                    'width' => $outputDetail['videoDetails']['widthInPx'],
+                    'url' => $this->url . '/' . $path,
+                    'path' => $path,
+                    'name' => $nameModifier,
                 ];
-                if ($nameModifier == '_source') {
-                    $sourcePath = $path . $nameModifier . '.mp4';
+                if ($nameModifier == 'source') {
+                    $sourcePath = $path;
                 }
             }
             
@@ -209,8 +209,7 @@ class MediaConvertDriver extends AmazonDriver
                         } else {
                             if ($file['name'] == 'source') {
                                 $process->log('File not exists (source)');
-                                $finishTime = round($jobData['Timing']['FinishTimeMillis']/100);
-                                $deltaTime = time() - $finishTime;
+                                $deltaTime = time() - $jobData['finishTime'];
                                 if ($deltaTime > 300) {
                                     $this->error = 'File not exists (source)';
                                     return false;
@@ -226,10 +225,9 @@ class MediaConvertDriver extends AmazonDriver
                         }
                     } catch (\Throwable $exception) {
                         Logger::send('converter.fatal', [
-                            'job'   => $jobData['Output'],
+                            'job'   => $jobData,
                             'error' => $exception->getMessage()
                         ]);
-                        $jobId = $jobData['Output']['Id'] ?? 'unknown';
                         $this->error = 'Job #' . $jobId . ' failed.';
                         return false;
                     }
@@ -431,6 +429,36 @@ class MediaConvertDriver extends AmazonDriver
             $process->log('Wrong job', $job);
             return false;
         }
+    }
+    
+    protected function getJobData($job)
+    {
+        $data = [
+            'finishTime' => isset($job['Timing']['FinishTime']) ? strtotime($job['Timing']['FinishTime']) : time(),
+            'status' => $job['Status'],
+            'percentComplete' => $job['JobPercentComplete'],
+            'errorMessage' => $job['ErrorMessage'],
+        ];
+    
+        $outputDetails = $jobData['OutputGroupDetails'][0]['OutputDetails'] ?? [];
+        $outputs = $jobData['Settings']['OutputGroups'][0]['Outputs'] ?? [];
+        $path = $jobData['Settings']['OutputGroups'][0]['OutputGroupSettings']['FileGroupSettings']['Destination'] ?? null;
+        foreach ($outputDetails as $index => $outputDetail) {
+            if (empty($outputs[$index])) {
+                continue;
+            }
+            $nameModifier = $outputs[$index]['NameModifier'];
+            $data['outputGroupDetails'][0]['outputDetails'][] = [
+                'outputFilePaths' => [$path . $nameModifier . '.mp4'],
+                'durationInMs' => $outputDetail['DurationInMs'],
+                'videoDetails' => [
+                    'widthInPx' => $outputDetail['VideoDetails']['WidthInPx'],
+                    'heightInPx' => $outputDetail['VideoDetails']['HeightInPx'],
+                ]
+            ];
+        }
+        
+        return $data;
     }
     
     protected function restart($processId, $jobId = null)

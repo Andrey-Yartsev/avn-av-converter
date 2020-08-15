@@ -68,7 +68,7 @@ abstract class AmazonDriver extends Driver
         return;
     }
     
-    abstract public function readJob($jobId, $process);
+    abstract public function readJob($jobId, $process, $jobData = []);
     
     abstract public function createJob($process);
     

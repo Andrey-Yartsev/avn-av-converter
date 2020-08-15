@@ -63,7 +63,8 @@ class AmazonController extends Controller
                     $process->log('Wrong driver');
                     continue;
                 }
-                if ($amazonDriver->readJob($options['jobId'], $process)) {
+                $messageRaw['finishTime'] = time();
+                if ($amazonDriver->readJob($options['jobId'], $process, $messageRaw)) {
                     try {
                         $json = [
                             'processId' => $options['processId'],

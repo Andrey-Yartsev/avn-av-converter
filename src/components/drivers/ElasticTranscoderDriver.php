@@ -40,9 +40,10 @@ class ElasticTranscoderDriver extends AmazonDriver
     /**
      * @param string $jobId
      * @param Process $process
+     * @param array $jobData
      * @return bool
      */
-    public function readJob($jobId, $process)
+    public function readJob($jobId, $process, $jobData = [])
     {
         Logger::send('process', ['processId' => $process->getId(), 'step' => __METHOD__]);
         $transcoderClient = $this->getTranscoderClient();
