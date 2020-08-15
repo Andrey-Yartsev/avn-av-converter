@@ -23,6 +23,7 @@ class CheckProcessCommand extends Command
     {
         $this->setName('process:check');
         $this->addArgument('id', InputArgument::REQUIRED);
+        $this->addArgument('jobId', InputArgument::OPTIONAL);
     }
     
     public function execute(InputInterface $input, OutputInterface $output)
@@ -35,13 +36,15 @@ class CheckProcessCommand extends Command
             die;
         }
     
-        $jobId = null;
-        foreach (Redis::getInstance()->sMembers('amazon:queue') as $job) {
-            $options = json_decode($job, true);
-            if ($options['processId'] == $id) {
-                $jobId = $options['jobId'];
-                echo 'Job founded' . PHP_EOL;
-                break;
+        $jobId = $input->getArgument('jobId');
+        if (empty($jobId)) {
+            foreach (Redis::getInstance()->sMembers('amazon:queue') as $job) {
+                $options = json_decode($job, true);
+                if ($options['processId'] == $id) {
+                    $jobId = $options['jobId'];
+                    echo 'Job founded' . PHP_EOL;
+                    break;
+                }
             }
         }
         
