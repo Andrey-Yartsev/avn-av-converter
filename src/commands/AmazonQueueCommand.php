@@ -28,7 +28,7 @@ class AmazonQueueCommand extends Command
     public function execute(InputInterface $input, OutputInterface $output)
     {
         $totalJobs = count(Redis::getInstance()->sMembers('amazon:queue'));
-        $jobs = Redis::getInstance()->sRandMember('amazon:queue', 10);
+        $jobs = Redis::getInstance()->sRandMember('amazon:queue', 25);
         Logger::send('amazon.queue', ['count' => count($jobs), 'total' => $totalJobs]);
         foreach ($jobs as $job) {
             $options = json_decode($job, true);
