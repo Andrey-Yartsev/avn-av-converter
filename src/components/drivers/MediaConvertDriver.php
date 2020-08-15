@@ -437,8 +437,8 @@ class MediaConvertDriver extends AmazonDriver
         $data = [
             'finishTime' => isset($job['Timing']['FinishTime']) ? strtotime($job['Timing']['FinishTime']) : time(),
             'status' => $job['Status'],
-            'percentComplete' => $job['JobPercentComplete'],
-            'errorMessage' => $job['ErrorMessage'],
+            'percentComplete' => $job['JobPercentComplete'] ?? null,
+            'errorMessage' => $job['ErrorMessage'] ?? null,
         ];
     
         $outputDetails = $jobData['OutputGroupDetails'][0]['OutputDetails'] ?? [];
