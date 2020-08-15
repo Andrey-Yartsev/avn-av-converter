@@ -111,10 +111,6 @@ class MediaConvertDriver extends AmazonDriver
             } else {
                 $process->log('Use job data from web hook');
             }
-    
-            $response = $client->getJob(['Id' => $jobId]);
-            Logger::send('converter.aws.readJob', $response->toArray());
-            $jobData = $this->getJobData((array) $response->get('Job'));
             
             if (strtolower($jobData['status']) != 'complete') {
                 $percent = $jobData['percentComplete'] ?? 'null';
