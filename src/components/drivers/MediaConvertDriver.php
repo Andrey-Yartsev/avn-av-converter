@@ -9,6 +9,7 @@ namespace Converter\components\drivers;
 
 use Aws\Credentials\Credentials;
 use Aws\MediaConvert\MediaConvertClient;
+use Aws\S3\MultipartCopy;
 use Aws\S3\S3Client;
 use Converter\components\Locker;
 use Converter\components\Logger;
@@ -192,11 +193,11 @@ class MediaConvertDriver extends AmazonDriver
                         $s3Client = $this->getS3Client();
                         if ($s3Client->doesObjectExist($this->s3['bucket'], $file['path'])) {
                             $targetPath = $storage->generatePath($file['path']);
-                            $s3Client->copyObject([
-                                'Bucket'     => $storage->bucket,
-                                'Key'        => $targetPath,
-                                'CopySource' => $this->s3['bucket'] . '/' . $file['path'],
+                            $uploader = new MultipartCopy($s3Client, "/{$this->s3['bucket']}/{$file['path']}", [
+                                'Bucket' => $storage->bucket,
+                                'Key'    => $targetPath,
                             ]);
+                            $uploader->copy();
                             $s3Client->deleteObject([
                                 'Bucket' => $this->s3['bucket'],
                                 'Key'    => $file['path'],
