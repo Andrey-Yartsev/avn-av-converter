@@ -447,9 +447,9 @@ class MediaConvertDriver extends AmazonDriver
             'errorMessage' => $job['ErrorMessage'] ?? null,
         ];
     
-        $outputDetails = $jobData['OutputGroupDetails'][0]['OutputDetails'] ?? [];
-        $outputs = $jobData['Settings']['OutputGroups'][0]['Outputs'] ?? [];
-        $path = $jobData['Settings']['OutputGroups'][0]['OutputGroupSettings']['FileGroupSettings']['Destination'] ?? null;
+        $outputDetails = $job['OutputGroupDetails'][0]['OutputDetails'] ?? [];
+        $outputs = $job['Settings']['OutputGroups'][0]['Outputs'] ?? [];
+        $path = $job['Settings']['OutputGroups'][0]['OutputGroupSettings']['FileGroupSettings']['Destination'] ?? null;
         foreach ($outputDetails as $index => $outputDetail) {
             if (empty($outputs[$index])) {
                 continue;
