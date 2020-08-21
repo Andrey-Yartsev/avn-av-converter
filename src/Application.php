@@ -84,7 +84,7 @@ class Application
             $trace = '';
         } else {
             $code = $exception->getCode();
-            $message = $exception->getMessage();
+            $errorMessage = $exception->getMessage();
             $file = $exception->getFile();
             $line = $exception->getLine();
             $trace = $exception->getTraceAsString();
@@ -114,7 +114,7 @@ class Application
         $message = [
             'error' => [
                 'code'    => $code,
-                'message' => $message,
+                'message' => $errorMessage,
                 'uid' => $uid,
             ]
         ];
@@ -129,7 +129,7 @@ class Application
         Logger::send('converter.fatal', [
             'fatalError' => [
                 'code'    => $code,
-                'message' => $message,
+                'message' => $errorMessage,
                 'file' => $file,
                 'line' => $line,
                 'trace' => $trace,
