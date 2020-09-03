@@ -225,11 +225,7 @@ class MediaConvertDriver extends AmazonDriver
                             }
                         }
                     } catch (\Throwable $exception) {
-                        Logger::send('converter.fatal', [
-                            'job'   => $jobData,
-                            'error' => $exception->getMessage()
-                        ]);
-                        $this->error = 'Job #' . $jobId . ' failed.';
+                        $process->log('Error on move file', ['error' => $exception->getMessage(), 'jobId' => $jobId]);
                         return false;
                     }
                 } else {

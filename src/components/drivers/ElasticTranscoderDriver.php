@@ -198,7 +198,7 @@ class ElasticTranscoderDriver extends AmazonDriver
     {
         $processId = $process->getId();
         $filePath = $process->getFilePath();
-        Logger::send('process', ['processId' => $processId, 'step' => 'createJob()']);
+        $process->log(__METHOD__);
         $file = $process->getFile();
         $s3Client = $this->getS3Client();
         if ($file) {
