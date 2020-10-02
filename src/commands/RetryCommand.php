@@ -28,13 +28,14 @@ class RetryCommand extends Command
     {
         if (!$this->lock()) {
             $output->writeln('Process already working!');
-            return 1;
+          //  return 1;
         }
         
         $keys = Redis::getInstance()->keys('retry:*');
+        Logger::send('retry', ['count' => count($keys)]);
         $httpClient = new Client();
-        
-        foreach ($keys as $key) {
+        shuffle($keys);
+        foreach (array_slice($keys, 0, 300) as $key) {
             if (strpos($key, 'count')) {
                 continue;
             }
@@ -69,9 +70,7 @@ class RetryCommand extends Command
             $count = Redis::getInstance()->get($countKey);
             if ($count > 10) {
                 Redis::getInstance()->del($key, $countKey);
-                Logger::send('converter.cc.retry', [
-                    'options' => $options
-                ]);
+                Logger::send('retry', ['options' => $options]);
                 Logger::send('process', ['processId' => $options['processId'], 'step' => 'Failed all retry', 'data' => $options]);
             }
         }
