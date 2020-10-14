@@ -11,7 +11,7 @@ $cfg = [
     'protect' => [
         'type' => 'cloudfront',
         'key_pair_id' => 'APKAJZU4IULC2OKULHGA',
-        'private_key' => '/var/www/convert/src/config/pk.of.cf.pem',
+        'private_key' => __DIR__ . '/pk.of.cf.pem',
         'expires' => '+1 year',
         'url' => 'https://cdn2.onlyfans.com',
     ],
