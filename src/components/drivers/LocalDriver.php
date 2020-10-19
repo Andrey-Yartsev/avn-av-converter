@@ -8,16 +8,13 @@ namespace Converter\components\drivers;
 
 use Converter\components\Config;
 use Converter\components\Logger;
-use Converter\forms\UploadForm;
 use Converter\helpers\FileHelper;
 use Converter\response\ImageResponse;
-use Imagine\Filter\Basic\WebOptimization;
 use Imagine\Gd\Imagine as GdImagine;
 use Imagine\Gmagick\Imagine as GmagickImagine;
 use Imagine\Image\AbstractImage;
 use Imagine\Image\Box;
 use Imagine\Image\ImageInterface;
-use Imagine\Image\Palette\RGB;
 use Imagine\Image\Point;
 use Imagine\Imagick\Imagine as ImagickImagine;
 
@@ -132,7 +129,6 @@ class LocalDriver extends Driver
      */
     protected function resizeImage($filePath, $size, $watermark = [])
     {
-        Logger::send('debug', [$size['name']]);
         $width = $size['width'] ?? null;
         $height = $size['height'] ?? null;
         $blur = $size['blur'] ?? null;

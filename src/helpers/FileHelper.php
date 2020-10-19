@@ -116,16 +116,13 @@ class FileHelper
             if (strpos($filePath, Config::getInstance()->get('baseUrl')) != false) {
                 throw new \Exception('File not found');
             } else {
-                $localPath = PUBPATH . '/upload/' . md5($filePath) . '.' . pathinfo($filePath, PATHINFO_EXTENSION);
+                $localPath = PUBPATH . '/upload/' . md5($filePath . uniqid()) . '.' . pathinfo($filePath, PATHINFO_EXTENSION);
                 Logger::send('debug', ['localPath' => $localPath, 'filePath' => $filePath]);
                 $userAgent = static::getUserAgent($filePath);
-                if ($userAgent) {
-                    Logger::send('debug', ['url' => $filePath, 'header' => 'set']);
-                }
                 $client = new \GuzzleHttp\Client();
                 $response = $client->get($filePath, ['headers' => ['User-Agent' => $userAgent]]);
-                Logger::send('debug', ['localPath' => $localPath, 'filePath' => $filePath, 'downloaded' => true]);
-                file_put_contents($localPath, $response->getBody());
+                $bytes = file_put_contents($localPath, $response->getBody());
+                Logger::send('debug', ['localPath' => $localPath, 'filePath' => $filePath, 'downloaded' => true, 'bytes' => $bytes]);
             }
         }
         
