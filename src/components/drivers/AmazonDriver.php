@@ -127,7 +127,7 @@ abstract class AmazonDriver extends Driver
      */
     protected function getVideoFrame($filePath, $seconds)
     {
-        $framePath =  PUBPATH . '/upload/' . md5($filePath) . '_frame_' . $seconds . '.jpg';
+        $framePath =  PUBPATH . '/upload/' . md5($filePath . uniqid()) . '_frame_' . $seconds . '.jpg';
         if (file_exists($framePath)) {
             return $framePath;
         }
@@ -148,6 +148,7 @@ abstract class AmazonDriver extends Driver
         if (!file_exists($framePath)) {
             return null;
         }
+        Logger::send('debug', ['path' => $framePath, 'size' => filesize($framePath)]);
         return $framePath;
     }
 
