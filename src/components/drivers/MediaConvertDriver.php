@@ -392,7 +392,7 @@ class MediaConvertDriver extends AmazonDriver
                 $process->log('Set mainQueue and HopDestinations');
             } elseif (isset($this->mediaConfig['queues'])) {
                 $jobSettings['Queue'] = $this->mediaConfig['queues'][array_rand($this->mediaConfig['queues'])];
-                $process->log('Set random queue from list');
+                $process->log('Set random queue from list: ' . $jobSettings['Queue']);
             } elseif (isset($this->mediaConfig['queue'])) {
                 $jobSettings['Queue'] = $this->mediaConfig['queue'];
                 $process->log('Set single queue');
