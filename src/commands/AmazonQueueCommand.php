@@ -28,7 +28,7 @@ class AmazonQueueCommand extends Command
     public function execute(InputInterface $input, OutputInterface $output)
     {
         $totalJobs = count(Redis::getInstance()->sMembers('amazon:queue'));
-        $jobs = Redis::getInstance()->sRandMember('amazon:queue', 25);
+        $jobs = Redis::getInstance()->sRandMember('amazon:queue', 250);
         Logger::send('amazon.queue', ['count' => count($jobs), 'total' => $totalJobs]);
         foreach ($jobs as $job) {
             $options = json_decode($job, true);
@@ -36,6 +36,9 @@ class AmazonQueueCommand extends Command
             if (empty($process)) {
                 Logger::send('amazon.queue', ['job' => $job, 'step' => 'Process not found']);
                 Redis::getInstance()->sRem('amazon:queue', $job);
+                continue;
+            }
+            if ($options['presetName'] == 'of_beta') {
                 continue;
             }
             $lockProcessingKey = "in:processing:{$process->getId()}";
