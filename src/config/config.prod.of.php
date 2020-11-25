@@ -509,4 +509,18 @@ $cfg = [
 
 $cfg['presets']['of_beta2'] = $cfg['presets']['of_beta'];
 $cfg['presets']['of_beta2']['callback'] .= '?beta=a919992d95bbfafb47b2c6f5b0109e73';
+$cfg['presets']['of_reserve'] = $cfg['presets']['of_beta'];
+$cfg['presets']['of_reserve']['video']['mediaConfig']['endpoint'] = 'https://fkuulejsc.mediaconvert.us-east-2.amazonaws.com';
+$cfg['presets']['of_reserve']['video']['mediaConfig']['region'] = 'us-east-2';
+$cfg['presets']['of_reserve']['video']['mediaConfig']['region'] = [
+    'arn:aws:mediaconvert:us-east-2:315135013854:queues/Default',
+    'arn:aws:mediaconvert:us-east-2:315135013854:queues/of1',
+    'arn:aws:mediaconvert:us-east-2:315135013854:queues/of2',
+    'arn:aws:mediaconvert:us-east-2:315135013854:queues/of3',
+    'arn:aws:mediaconvert:us-east-2:315135013854:queues/of4',
+    'arn:aws:mediaconvert:us-east-2:315135013854:queues/of5',
+    'arn:aws:mediaconvert:us-east-2:315135013854:queues/of6',
+    'arn:aws:mediaconvert:us-east-2:315135013854:queues/of7',
+    'arn:aws:mediaconvert:us-east-2:315135013854:queues/Resrved-queue',
+];
 return $cfg;
