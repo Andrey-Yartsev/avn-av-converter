@@ -38,9 +38,6 @@ class AmazonQueueCommand extends Command
                 Redis::getInstance()->sRem('amazon:queue', $job);
                 continue;
             }
-            if ($options['presetName'] == 'of_beta') {
-                continue;
-            }
             $lockProcessingKey = "in:processing:{$process->getId()}";
             if (Locker::isLocked($lockProcessingKey)) {
                 Logger::send('amazon.queue', ['job' => $job, 'step' => 'Already in processing']);

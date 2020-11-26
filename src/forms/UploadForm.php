@@ -124,10 +124,6 @@ class UploadForm extends Form
             return false;
         }
         
-        if ($this->preset == 'of_beta') {
-            $this->preset = 'of_reserve';
-        }
-        
         if (!$this->filePath && empty($this->file)) {
             $this->setErrors('File not uploaded.');
             return false;
