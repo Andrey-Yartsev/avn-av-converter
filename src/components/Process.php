@@ -53,8 +53,17 @@ class Process
      */
     public static function createQueue($params = [], $processId = null)
     {
-        $processId = $processId ? $processId : uniqid() .  substr(md5(time()), 8, 8);
-        Redis::getInstance()->set('queue:' . $processId, json_encode($params));
+        $workload = json_encode($params);
+        if (!$processId) {
+            // 00000000000-18ce53un18f
+            $a = str_pad(base_convert(uniqid(), 16, 36), 11, 0, STR_PAD_LEFT);
+            // 0000000-vkhsvlr
+            $b = str_pad(base_convert(substr(md5($workload), 0, 9), 16, 36), 7, 0, STR_PAD_LEFT);
+            // 000-zzz
+            $c = str_pad(base_convert(random_int(0, 46655), 10, 36), 3, 0, STR_PAD_LEFT);
+            $processId = $a . $b . $c;
+        }
+        Redis::getInstance()->set('queue:' . $processId, $workload);
         return $processId;
     }
     
