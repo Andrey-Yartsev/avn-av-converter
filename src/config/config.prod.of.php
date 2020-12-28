@@ -18,11 +18,24 @@ $cfg = [
     'presets' => [
         'of' => [
             'callback' => 'https://onlyfans.com/converter/geo',
-            'audio' => [
-                'driver' => \Converter\components\drivers\CloudConvertDriver::class,
-                'token' => 'TnjiK5KWTh4PU9ceXIiQ9PoRGK_PXZOyR7whEi3rpAK8mweQJyuq650aWorqA2p78ohq2MYoHH9PjrEkzQEG7w',
-                'outputFormat' => 'mp3',
+            'audio'    => [
+                'driver'     => \Converter\components\drivers\ElasticTranscoderDriver::class,
+                'url' => 'https://of2transcoder.s3.amazonaws.com',
                 'needPreviewOnStart' => false,
+                's3'         => [
+                    'region' => 'us-east-1',
+                    'bucket' => 'of2transcoder',
+                    'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
+                    'secret' => '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'
+                ],
+                'transcoder' => [
+                    'region'   => 'us-east-1',
+                    'bucket' => 'of2transcoder',
+                    'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
+                    'secret' => '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',
+                    'pipeline' => '1542729803060-wvvyxu',
+                    'preset'   => '1351620000001-300020'
+                ],
             ],
             'video' => [
                 'driver' => \Converter\components\drivers\MediaConvertDriver::class,
@@ -35,6 +48,7 @@ $cfg = [
                 ],
                 'url' => 'https://of2transcoder.s3-accelerate.amazonaws.com',
                 'mediaConfig' => [
+                    'presetForGif' => 'of_geo_big',
                     'region' => 'us-east-1',
                     'role' => 'arn:aws:iam::315135013854:role/MediaConvert',
                     'queues' => [
@@ -44,6 +58,9 @@ $cfg = [
                         'arn:aws:mediaconvert:us-east-1:315135013854:queues/of3',
                         'arn:aws:mediaconvert:us-east-1:315135013854:queues/of4',
                         'arn:aws:mediaconvert:us-east-1:315135013854:queues/of5',
+                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/of6',
+                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/of7',
+                        'arn:aws:mediaconvert:us-east-1:315135013854:queues/Resrved-queue',
                     ],
                     'key' => 'AKIAUSX4CWPPFHYXZ6PQ',
                     'secret' => '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',
@@ -62,12 +79,22 @@ $cfg = [
                 'thumbs' => [
                     'driver' => \Converter\components\drivers\LocalDriver::class,
                     'engine' => 'imagick',
-                    'maxCount' => 1,
+                    'maxCount' => 10,
                     'thumbSizes' => [
                         [
-                            'name' => 'thumbs',
-                            'maxSize' => 300,
+                            'name' => 'previews',
+                            'maxSize' => 960,
                             'fixRatio' => false,
+                        ],
+                        [
+                            'name' => 'square_previews',
+                            'width' => 960,
+                            'height' => 960,
+                        ],
+                        [
+                            'name' => 'thumbs',
+                            'width' => 300,
+                            'height' => 300,
                         ],
                     ]
                 ],
@@ -508,6 +535,8 @@ $cfg = [
 ];
 
 $cfg['presets']['of_beta2'] = $cfg['presets']['of_beta'];
+$cfg['presets']['of_geo'] = $cfg['presets']['of_beta'];
+$cfg['presets']['of'] = $cfg['presets']['of_beta'];
 $cfg['presets']['of_beta2']['callback'] .= '?beta=a919992d95bbfafb47b2c6f5b0109e73';
 $cfg['presets']['of_reserve'] = $cfg['presets']['of_beta'];
 $cfg['presets']['of_reserve']['video']['mediaConfig']['endpoint'] = 'https://fkuulejsc.mediaconvert.us-east-2.amazonaws.com';
